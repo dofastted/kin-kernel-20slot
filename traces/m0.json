@@ -1,0 +1,40 @@
+{
+  "label": "M0_20slot_idle",
+  "health": {
+    "capabilities": {
+      "cancel_receipt": true,
+      "multiplex_slots": true,
+      "native_tool_wait": true,
+      "resume": true,
+      "streaming": true
+    },
+    "isolation": "subagent-pool",
+    "limits": {
+      "client_channel": 32,
+      "event_channel": 128,
+      "max_body_bytes": 8388608,
+      "max_tool_result_bytes": 4194304,
+      "per_connection_buffer": 524288,
+      "slot_max_jobs": 50,
+      "slot_max_lifetime_secs": 1800
+    },
+    "memory": {
+      "admission": "allow",
+      "cgroup_bytes": 3367317504,
+      "claude_rss_bytes": 274554880,
+      "inflight_payload": 0,
+      "kernel_rss_bytes": 15568896,
+      "observed_bytes": 290123776,
+      "pending": 0,
+      "service_rss_bytes": 290123776
+    },
+    "provider": "local_cli",
+    "slots_per_worker": 20,
+    "status": "ok",
+    "workers": 1
+  },
+  "pids": {
+    "kernel": 30816,
+    "claude": 30816
+  }
+}
