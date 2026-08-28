@@ -46,6 +46,7 @@ use self::{
     job_stream::JobStream,
     memory_guard::MemoryGuard,
     pending_call::{Job, JobOutcome, PendingCalls, SlotWaitPayload, new_id},
+    relay::correlate::{CorrelatedJob, RelayContextToken},
     scheduler::SlotScheduler,
     slot::{Slot, SlotPhase, SlotSnapshot},
 };
@@ -483,7 +484,9 @@ impl Runtime {
             }
         }
         match rx.await {
-            Ok(SlotWaitPayload::Job(job)) => Ok(json!({
+            Ok(SlotWaitPayload::Job(job)) => {
+                let relay_context = self.issue_relay_context(&job)?;
+                let mut payload = json!({
                 "type": "job",
                 "job_id": job.job_id,
                 "slot_id": job.slot_id,
@@ -504,10 +507,58 @@ impl Runtime {
                 "tools": job.request.tools,
                 "extra": job.request.extra,
                 "request": job.request
-            })),
+                });
+                if let Some(token) = relay_context {
+                    payload["relay_context"] = json!(token);
+                }
+                Ok(payload)
+            }
             Ok(SlotWaitPayload::Retire) => Ok(json!({ "type": "retire" })),
             Err(_) => Err(KernelError::Provider("slot_wait cancelled".into())),
         }
+    }
+
+    fn issue_relay_context(&self, job: &Job) -> Result<Option<String>, KernelError> {
+        if self.cfg.relay_mode == RelayMode::Off {
+            return Ok(None);
+        }
+        RelayContextToken::issue(
+            job.job_id.clone(),
+            job.slot_id.clone(),
+            self.process_generation.load(Ordering::Relaxed),
+            &self.secret,
+        )
+        .map(Some)
+    }
+
+    pub(crate) fn secret(&self) -> &[u8] {
+        &self.secret
+    }
+
+    pub(crate) async fn correlate_lookup(
+        &self,
+        token: &RelayContextToken,
+    ) -> Option<CorrelatedJob> {
+        let current_generation = self.process_generation.load(Ordering::Relaxed);
+        if token.generation != current_generation {
+            return None;
+        }
+        let job = self.jobs.lock().await.get(&token.job_id).cloned()?;
+        if job.slot_id != token.slot_id {
+            return None;
+        }
+        let slot_matches =
+            self.slots.lock().await.iter().any(|slot| {
+                slot.id == token.slot_id && slot.job_id.as_deref() == Some(&token.job_id)
+            });
+        if !slot_matches {
+            return None;
+        }
+        Some(CorrelatedJob {
+            job_id: token.job_id.clone(),
+            slot_id: token.slot_id.clone(),
+            generation: token.generation,
+        })
     }
 
     pub async fn mcp_client_tool(&self, args: Value) -> Result<Value, KernelError> {
@@ -1979,5 +2030,29 @@ mod tests {
             !deltas.iter().any(|d| d.contains("DUPLICATE_FROM_KIN_DONE")),
             "{deltas:?}"
         );
+    }
+
+    #[test]
+    fn relay_context_generation_respects_mode() {
+        let off = Runtime::new(test_cfg(Duration::from_secs(1)));
+        let job = Job {
+            job_id: "job-ctx".into(),
+            tenant_id: "demo".into(),
+            session_id: "session".into(),
+            slot_id: "slot-ctx".into(),
+            generation: 1,
+            request: MessageRequest::default(),
+        };
+        assert!(off.issue_relay_context(&job).unwrap().is_none());
+
+        let mut cfg = test_cfg(Duration::from_secs(1));
+        cfg.relay_mode = RelayMode::Observe;
+        let observe = Runtime::new(cfg);
+        let encoded = observe.issue_relay_context(&job).unwrap().unwrap();
+        let decoded = relay::correlate::RelayContextToken::decode(&encoded, observe.secret())
+            .expect("relay context");
+        assert_eq!(decoded.job_id, "job-ctx");
+        assert_eq!(decoded.slot_id, "slot-ctx");
+        assert_eq!(decoded.generation, 1);
     }
 }

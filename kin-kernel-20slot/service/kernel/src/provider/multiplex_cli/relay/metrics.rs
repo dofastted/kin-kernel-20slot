@@ -1,5 +1,3 @@
-#![allow(dead_code)] // consumed by the relay data plane in later stages
-
 use std::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Debug, Default)]

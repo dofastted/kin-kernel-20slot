@@ -4,8 +4,6 @@ use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
 pub const KCT_DOMAIN: &str = "kin/kct/v1";
-// Consumed by relay/correlate.rs in a later stage.
-#[allow(dead_code)]
 pub const KRC_DOMAIN: &str = "kin/krc/v1";
 
 type HmacSha256 = Hmac<Sha256>;
@@ -39,7 +37,6 @@ pub fn sign(domain: &str, payload: &[u8], secret: &[u8]) -> Result<[u8; 32], Sig
     Ok(out)
 }
 
-#[allow(dead_code)] // consumed by relay/correlate.rs in a later stage
 pub fn verify(domain: &str, payload: &[u8], signature: &[u8], secret: &[u8]) -> bool {
     if secret.is_empty() {
         return false;
