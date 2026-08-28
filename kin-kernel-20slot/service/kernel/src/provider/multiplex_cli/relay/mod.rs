@@ -280,6 +280,61 @@ mod tests {
         );
     }
 
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn upstream_5xx_passes_through_to_cli_and_never_taps() {
+        // Mock upstream that always fails with 529 (Anthropic overloaded).
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let upstream_addr = listener.local_addr().unwrap();
+        let app = Router::new().route(
+            "/v1/messages",
+            any(|| async {
+                Response::builder()
+                    .status(StatusCode::from_u16(529).unwrap())
+                    .body(Body::from(
+                        "{\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\"}}",
+                    ))
+                    .unwrap()
+            }),
+        );
+        tokio::spawn(async move {
+            let _ = axum::serve(listener, app).await;
+        });
+        let mut cfg = test_cfg();
+        cfg.relay_upstream = format!("http://{upstream_addr}");
+        let runtime = Runtime::new(cfg.clone());
+        insert_running_job(&runtime, "job-5xx", "slot-5xx").await;
+        let token = RelayContextToken {
+            job_id: "job-5xx".into(),
+            slot_id: "slot-5xx".into(),
+            generation: runtime
+                .process_generation
+                .load(std::sync::atomic::Ordering::Relaxed),
+            nonce: "nonce".into(),
+        }
+        .encode(runtime.secret())
+        .unwrap();
+        let (tap_tx, mut tap_rx) = mpsc::channel(16);
+        let relay = spawn_with_tap(runtime, &cfg, Some(tap_tx)).await.unwrap();
+        let response = reqwest::Client::new()
+            .post(format!("http://{}/v1/messages", relay.addr))
+            .header("authorization", "Bearer test-token")
+            .body(format!(r#"{{"ctx":"{token}"}}"#))
+            .send()
+            .await
+            .unwrap();
+        // CLI branch sees the upstream failure untouched so the CLI can retry.
+        assert_eq!(response.status().as_u16(), 529);
+        let body = response.text().await.unwrap();
+        assert!(body.contains("overloaded_error"), "{body}");
+        // The failed turn must never reach the user tap.
+        assert!(
+            timeout(Duration::from_millis(200), tap_rx.recv())
+                .await
+                .is_err(),
+            "tap must stay silent on non-2xx upstream responses"
+        );
+    }
+
     async fn spawn_mock_upstream(fixture: Vec<u8>) -> SocketAddr {
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();

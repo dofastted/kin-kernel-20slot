@@ -94,6 +94,29 @@ Sticky：同一 session 优先回到上次 worker。P2C 在兼容候选里比 ut
 
 tool_use 时 worker 从 `active` 转到 `waiting_tool`，容量仍被占住，直到 continuation 消费或 TTL 回收。
 
+### 3.3.1 内嵌 Messages Relay（subagent-pool 专属）
+
+CLI 2.1.x 不对 subagent 发 `stream_event` 增量帧，stdout 只有整块文本。Relay 让用户流改从 Anthropic upstream SSE 拿逐 token 正文；stdout 降级为控制面与兜底。
+
+源码：[`kernel/src/provider/multiplex_cli/relay/`](../kernel/src/provider/multiplex_cli/relay/)（server 反代 / upstream 出站 / correlate 关联 / sse_tap 解码过滤 / arbiter 正文仲裁 / metrics）。签名统一在 [`signing.rs`](../kernel/src/provider/multiplex_cli/signing.rs)（HMAC-SHA256，`kin/kct/v1` 与 `kin/krc/v1` 域隔离）。
+
+| `KIN_RELAY_MODE` | 行为 |
+|---|---|
+| 未设置 / `off` | 不启动 Relay、不注入 `ANTHROPIC_BASE_URL`，与旧行为一致 |
+| `observe` | CLI 经 Relay 出站；用户正文仍来自 stdout；tap 只累计 SHA-256 摘要对比（`digest_mismatch`） |
+| `authoritative` | upstream text/thinking delta 是正文权威；stdout 正文被抑制，仅兜底 |
+| 非法值 | 启动即报错退出，禁止静默降级 |
+
+关键机制：
+
+- **启动顺序**：`observe`/`authoritative` 下 Relay 先起并通过 `/healthz` 自检，失败则内核不 Ready、CLI 不启动。回滚 = 改回 `off` 重启（CLI 启动后无法撤销已注入的 Base URL）。
+- **双消费者**：upstream 字节原样流回 CLI（网络背压驱动）；tap 走独立有界队列（256 条 / 2 MiB），溢出只 poison 用户支路并计 `tap_dropped`，**永不阻塞 CLI 消费**。上游非 2xx 原样回 CLI 且不进 tap。
+- **请求↔job 关联**：`slot_wait` 的 job 响应携带签名 `relay_context`（`krc_` token）；它随 subagent transcript 出现在每次内部 `/v1/messages` body 里，Relay 流式扫描（跨 chunk、单 token ≤2 KiB）并做五重校验（HMAC / generation / job 存在 / slot_id 一致 / slot 仍归属）。无有效关联的请求只转发不 tap。
+- **SourceArbiter**：`NoBody → UpstreamActive | StdoutFallback → Completed` 单向；UpstreamActive 中 tap poison → 显式失败终止（不降级、不伪成功）。最终正文优先级：权威 upstream 累计 > stdout > `kin_done.fallback_content`。
+- **网络指纹取舍**：Anthropic 侧看到的 TLS/HTTP 客户端是 Rust `reqwest/rustls`，不再是 CLI/Node 指纹——Relay 做的是"应用层请求特征对齐"（headers/body 原样），不是完整网络指纹透传。
+
+`/healthz` 的 `relay` 字段暴露 `{relay_mode, relay_healthy, tap_dropped, digest_mismatch}`。
+
 ### 3.4 local_cli 出站
 
 `spawn_parked` 参数（[local_cli.rs](../kernel/src/provider/local_cli.rs)）：

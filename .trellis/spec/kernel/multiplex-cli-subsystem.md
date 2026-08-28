@@ -67,34 +67,39 @@ exclusively to this kernel + CLI pair.
 would silently break this isolation guarantee for any deployment where the cgroup is
 shared — always gate cgroup-based RSS reads behind the same opt-in env var.
 
-## Signed Continuation Tokens (`continuation.rs`)
+## Signed Tokens (`signing.rs` + `continuation.rs` + `relay/correlate.rs`)
 
-`ContinuationToken{process_generation, slot_id, job_id, logical_session_id,
-tool_call_id, expires_at, nonce}`. `issue()` generates a `Uuid::new_v4()` nonce and a
-TTL-based expiry. `encode()`/`decode()` produce/parse the `kct_<hex_payload>.<hex_mac>`
-wire format.
+All token signing goes through one module — `signing.rs`: HMAC-SHA256
+(`hmac`/`sha2`, constant-time `verify_slice`) keyed by the runtime secret, with
+**domain separation** as the first HMAC input:
 
-**Important**: `mac()` is a **hand-rolled, non-standard mixing function** — despite
-the "MAC" terminology in the type name, it is *not* HMAC-SHA256 or any other
-standardized MAC construction. It cycles the secret bytes into a 32-byte buffer,
-XORs/rotates/multiplies the payload bytes in, then runs 4 rounds of
-rotate-left-5+add+XOR-with-secret. If you touch this code:
+| Domain | Wire prefix | Consumer |
+|---|---|---|
+| `kin/kct/v1` | `kct_<hex_payload>.<hex_mac>` | continuation tokens (`continuation.rs`) |
+| `kin/krc/v1` | `krc_<hex_payload>.<hex_mac>` | relay request↔job correlation (`relay/correlate.rs`) |
 
-- Do not describe it as "HMAC" or "cryptographically signed" in new comments/docs
-  without the caveat that it's a custom scheme.
-- Its entire security value depends on `secret` being non-empty and unpredictable —
-  `mac()` returns an all-zero MAC when `secret.is_empty()`. Any code path that can
-  leave the multiplex secret unset in production is a security bug, not a
-  configuration nicety.
-- `matches_runtime()` checks `process_generation` equality and returns
-  `KernelError::ContinuationLost` on mismatch — a token from a previous CLI process
-  generation (e.g. after a restart) is correctly rejected rather than silently
-  resumed against a different process.
+A signature made under one domain must never verify under the other — there is a
+unit test for exactly that. Rules when touching this code:
 
-This is the canonical local example for
-`.trellis/spec/guides/code-reuse-thinking-guide.md`'s "don't roll your own crypto
-without flagging it" pattern — reference it there rather than duplicating this
-explanation if that guide is extended.
+- **Empty secret is a hard failure**: `sign()` returns an error and `verify()`
+  returns false. The historical hand-rolled `mac()` returned an all-zero MAC on
+  empty secret; that class of bug is why `issue()`/`encode()` now return `Result`.
+  Never reintroduce a path that silently signs with a missing secret.
+- Do NOT add a third signing scheme or a per-module MAC helper — extend
+  `signing.rs` with a new domain constant instead.
+- `ContinuationToken{process_generation, slot_id, job_id, logical_session_id,
+  tool_call_id, expires_at, nonce}`; `matches_runtime()` checks
+  `process_generation` equality and returns `KernelError::ContinuationLost` on
+  mismatch — a token from a previous CLI process generation (e.g. after a
+  restart) is rejected rather than silently resumed against a different process.
+- Runtime restart rotates the secret, so there is no cross-process token
+  compatibility to preserve; wire-format stability (`kct_`/`krc_` prefixes) is
+  still required within a process lifetime.
+
+History note: before 2026-08 `continuation.rs` used a hand-rolled XOR/rotate
+"mac()" — it was replaced by HMAC-SHA256 during the relay refactor because
+`krc_` tokens are scanned out of externally-influenced request bodies and needed
+a real, constant-time MAC as the authentication boundary.
 
 ## MCP JSON-RPC Server (`mcp_server.rs`)
 
@@ -155,6 +160,52 @@ returning a visible error.
 7. On `kin_done`/`kin_fail`, the slot's `Job` completes, its continuation token
    (if any) is finalized, and the slot returns to `ReadyBlocked` (or `Draining`/`Dead`
    per `should_retire()`).
+
+## Messages Relay (`relay/`)
+
+`KIN_RELAY_MODE` gates an in-process loopback reverse proxy that the CLI is
+pointed at via `ANTHROPIC_BASE_URL`, so the user stream can take per-token body
+from the Anthropic upstream SSE instead of the CLI's whole-block subagent text.
+
+| Mode | Boot behavior | User body source |
+|---|---|---|
+| unset / `off` | relay never spawns, no env injected — identical to pre-relay behavior | stdout |
+| `observe` | relay is REQUIRED: spawn → `/healthz` probe → only then start the CLI; probe failure aborts boot | stdout (tap feeds SHA-256 digest comparison only) |
+| `authoritative` | same strict boot | upstream tap (stdout suppressed, fallback only) |
+| invalid value | `Config::from_env` errors, process exits | — |
+
+**Never let an explicit `observe`/`authoritative` silently degrade to `off`** —
+that produces "tests pass but the relay was never in the path" false positives.
+Rollback is config-change + restart; an already-running CLI cannot have its
+injected base URL revoked.
+
+Invariants to preserve when touching `relay/`:
+
+- **The CLI branch must never block on the tap.** Upstream bytes stream back to
+  the CLI driven by network backpressure; the tap is try_send into a bounded
+  per-job queue (256 items / 2 MiB) that poisons on overflow (`tap_dropped`
+  metric + explicit job failure if the turn was already `UpstreamActive`).
+- **Non-2xx upstream responses pass through to the CLI untouched and are never
+  tapped** (`upstream_5xx_passes_through_to_cli_and_never_taps` test).
+- **Correlation is streaming**: request bodies are scanned incrementally for
+  `krc_` tokens while being forwarded (cross-chunk tail carry, 2 KiB candidate
+  cap) — never buffer the whole body. A match requires all five checks: HMAC,
+  current generation, job exists, slot_id matches, slot still owns the job.
+  Uncorrelated requests (root supervisor, slot bootstrap) are forwarded but not
+  tapped.
+- **`SourceArbiter` transitions are one-way**: NoBody → UpstreamActive |
+  StdoutFallback → Completed. A turn that upgraded to UpstreamActive must never
+  fall back to stdout mid-turn (duplicate/truncated body); tap poison there
+  fails the job explicitly via the JobSink terminal instead. The
+  `upstream_authoritative` flag (not `upstream_text` emptiness) decides the
+  final body source — observe mode accumulates upstream text for digests while
+  the user body stays stdout.
+- **No token/body/authorization logging** anywhere in `relay/` — debug with
+  job_id/slot_id/generation/digests only.
+
+`/healthz`'s `relay` field exposes `{relay_mode, relay_healthy, tap_dropped,
+digest_mismatch}`. Ops guidance: `docs/RUNBOOK.md` §4.1; architecture rationale:
+`docs/SOURCE_AND_PRINCIPLES.md` §3.3.1.
 
 ## Testing Without a Live CLI
 

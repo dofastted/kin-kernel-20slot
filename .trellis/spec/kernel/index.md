@@ -19,7 +19,7 @@ describe what the Rust source actually does.
 | [API and Schema](./api-and-schema.md) | `api.rs` HTTP/SSE layer, `model.rs` request/response schema, `stream.rs` SSE assembly |
 | [Provider Adapters](./provider-adapters.md) | `Provider` trait, `mock`/`anthropic_api`/`local_cli` implementations, provider selection |
 | [Scheduling and Sessions](./scheduling-and-sessions.md) | P2C worker-lease scheduler, `SessionDirectory`, isolation modes, the simple continuation-token protocol |
-| [Multiplex CLI Subsystem](./multiplex-cli-subsystem.md) | The `subagent-pool` isolation mode: slot state machine, memory admission control, signed continuation tokens, MCP server |
+| [Multiplex CLI Subsystem](./multiplex-cli-subsystem.md) | The `subagent-pool` isolation mode: slot state machine, memory admission control, HMAC-signed tokens (`kct_`/`krc_`), MCP server, Messages Relay (`KIN_RELAY_MODE`) |
 | [Error Handling](./error-handling.md) | `KernelError`, HTTP status/code/retryable mapping |
 | [Logging Guidelines](./logging-guidelines.md) | `tracing` usage, JSON logs, what never gets logged |
 | [Quality Guidelines](./quality-guidelines.md) | `cargo test`/`clippy` conventions, forbidden patterns found in this codebase |
