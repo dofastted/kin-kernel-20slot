@@ -4,10 +4,10 @@
 //! `slot_wait`; stream-json is demuxed by `parent_tool_use_id`.
 
 pub mod bootstrap;
-pub mod job_stream;
-pub mod memory_guard;
 pub mod continuation;
+pub mod job_stream;
 pub mod mcp_server;
+pub mod memory_guard;
 pub mod pending_call;
 pub mod replay;
 pub mod scheduler;
@@ -20,7 +20,7 @@ use std::{
     env,
     path::PathBuf,
     sync::{
-        Arc,
+        Arc, OnceLock, Weak,
         atomic::{AtomicU32, AtomicU64, AtomicUsize, Ordering},
     },
     time::Duration,
@@ -28,10 +28,11 @@ use std::{
 
 use async_trait::async_trait;
 use serde_json::{Value, json};
-use tokio::sync::{Mutex, OnceCell};
+use tokio::sync::{Mutex, Notify, OnceCell, mpsc};
 use uuid::Uuid;
 
 use crate::{
+    config::DEFAULT_CLIENT_STALL_SECS,
     error::KernelError,
     model::{ContentBlock, MessageContent, MessageRequest, MessageResponse, StopReason, Usage},
     provider::{ExecutionContext, Provider, ProviderCapabilities, StreamTx, job_event_channel},
@@ -60,6 +61,7 @@ pub struct MultiplexConfig {
     pub session_idle_ttl: Duration,
     pub simulate_latency: Duration,
     pub continuation_ttl_secs: i64,
+    pub client_stall_timeout: Duration,
 }
 
 impl MultiplexConfig {
@@ -69,10 +71,12 @@ impl MultiplexConfig {
             .and_then(|value| value.parse().ok())
             .unwrap_or(20)
             .clamp(1, 20);
-        let bin = env::var("KIN_CLAUDE_BIN").map(PathBuf::from).unwrap_or_else(|_| {
-            PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".into()))
-                .join("../../scripts/kin-node-kernel/mock-claude.mjs")
-        });
+        let bin = env::var("KIN_CLAUDE_BIN")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| {
+                PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".into()))
+                    .join("../../scripts/kin-node-kernel/mock-claude.mjs")
+            });
         let mock_bin = bin.to_string_lossy().contains("mock-claude");
         let simulate = env::var("KIN_MULTIPLEX_SIMULATE")
             .map(|value| value != "0")
@@ -109,6 +113,7 @@ impl MultiplexConfig {
                     .unwrap_or(40),
             ),
             continuation_ttl_secs: 600,
+            client_stall_timeout: crate::config::client_stall_timeout_from_env()?,
         })
     }
 }
@@ -122,7 +127,7 @@ pub struct Runtime {
     sched: Mutex<SlotScheduler>,
     pending: Mutex<PendingCalls>,
     jobs: Mutex<HashMap<String, Job>>,
-    events: Mutex<HashMap<String, StreamTx>>,
+    sinks: Mutex<HashMap<String, JobSink>>,
     parents: Mutex<HashMap<String, String>>,
     unassigned_parents: Mutex<VecDeque<String>>,
     issued: Mutex<HashMap<String, ContinuationToken>>,
@@ -133,6 +138,162 @@ pub struct Runtime {
     running: AtomicUsize,
     peak_running: AtomicUsize,
     ready: AtomicUsize,
+    stage_dropped: AtomicU64,
+}
+
+const JOB_SINK_ITEMS: usize = 256;
+const JOB_SINK_BYTES: usize = 2 * 1024 * 1024;
+
+#[derive(Clone)]
+struct JobSink {
+    data_tx: mpsc::Sender<SinkEnvelope>,
+    terminal: Arc<OnceLock<Terminal>>,
+    terminal_notify: Arc<Notify>,
+    budget: Arc<ByteBudget>,
+    client_tx: Arc<Mutex<Option<StreamTx>>>,
+}
+
+struct SinkEnvelope {
+    item: StreamItem,
+    bytes: usize,
+}
+
+struct ByteBudget {
+    used: AtomicUsize,
+    max: usize,
+}
+
+#[derive(Debug)]
+enum Terminal {
+    Overflow,
+    ClientTooSlow,
+    ClientGone,
+    Done,
+    Failed(KernelError),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum EmitResult {
+    Sent,
+    StageDropped,
+    Failed,
+    Closed,
+    Missing,
+}
+
+enum SinkPushError {
+    Full,
+    Closed,
+}
+
+impl JobSink {
+    fn new(client_tx: StreamTx) -> (Self, mpsc::Receiver<SinkEnvelope>) {
+        let (data_tx, data_rx) = mpsc::channel(JOB_SINK_ITEMS);
+        let sink = Self {
+            data_tx,
+            terminal: Arc::new(OnceLock::new()),
+            terminal_notify: Arc::new(Notify::new()),
+            budget: Arc::new(ByteBudget::new(JOB_SINK_BYTES)),
+            client_tx: Arc::new(Mutex::new(Some(client_tx))),
+        };
+        (sink, data_rx)
+    }
+
+    async fn replace_client(&self, tx: StreamTx) {
+        *self.client_tx.lock().await = Some(tx);
+    }
+
+    fn try_push(&self, item: StreamItem) -> Result<(), SinkPushError> {
+        if self.terminal_failed() {
+            return Err(SinkPushError::Closed);
+        }
+        let bytes = stream_item_bytes(&item);
+        if !self.budget.try_reserve(bytes) {
+            return Err(SinkPushError::Full);
+        }
+        let envelope = SinkEnvelope { item, bytes };
+        match self.data_tx.try_send(envelope) {
+            Ok(()) => Ok(()),
+            Err(mpsc::error::TrySendError::Full(envelope)) => {
+                self.budget.release(envelope.bytes);
+                Err(SinkPushError::Full)
+            }
+            Err(mpsc::error::TrySendError::Closed(envelope)) => {
+                self.budget.release(envelope.bytes);
+                Err(SinkPushError::Closed)
+            }
+        }
+    }
+
+    fn set_terminal(&self, terminal: Terminal) -> bool {
+        let set = self.terminal.set(terminal).is_ok();
+        if set {
+            self.terminal_notify.notify_waiters();
+        }
+        set
+    }
+
+    fn terminal_failed(&self) -> bool {
+        self.terminal.get().is_some_and(Terminal::is_failure)
+    }
+}
+
+impl ByteBudget {
+    fn new(max: usize) -> Self {
+        Self {
+            used: AtomicUsize::new(0),
+            max,
+        }
+    }
+
+    fn try_reserve(&self, bytes: usize) -> bool {
+        let bytes = bytes.max(1);
+        let mut current = self.used.load(Ordering::Relaxed);
+        loop {
+            let Some(next) = current.checked_add(bytes) else {
+                return false;
+            };
+            if next > self.max {
+                return false;
+            }
+            match self.used.compare_exchange_weak(
+                current,
+                next,
+                Ordering::AcqRel,
+                Ordering::Relaxed,
+            ) {
+                Ok(_) => return true,
+                Err(actual) => current = actual,
+            }
+        }
+    }
+
+    fn release(&self, bytes: usize) {
+        self.used
+            .fetch_update(Ordering::AcqRel, Ordering::Relaxed, |current| {
+                Some(current.saturating_sub(bytes.max(1)))
+            })
+            .ok();
+    }
+}
+
+impl Terminal {
+    fn is_failure(&self) -> bool {
+        matches!(
+            self,
+            Self::Overflow | Self::ClientTooSlow | Self::ClientGone | Self::Failed(_)
+        )
+    }
+
+    fn error(&self) -> KernelError {
+        match self {
+            Self::Overflow => KernelError::Provider("job stream overflow".into()),
+            Self::ClientTooSlow => KernelError::Provider("client read timed out".into()),
+            Self::ClientGone => KernelError::Provider("client disconnected".into()),
+            Self::Done => KernelError::Provider("job already completed".into()),
+            Self::Failed(err) => KernelError::Provider(err.to_string()),
+        }
+    }
 }
 
 impl Runtime {
@@ -150,7 +311,7 @@ impl Runtime {
             sched: Mutex::new(SlotScheduler::new()),
             pending: Mutex::new(PendingCalls::new()),
             jobs: Mutex::new(HashMap::new()),
-            events: Mutex::new(HashMap::new()),
+            sinks: Mutex::new(HashMap::new()),
             parents: Mutex::new(HashMap::new()),
             unassigned_parents: Mutex::new(VecDeque::new()),
             issued: Mutex::new(HashMap::new()),
@@ -161,6 +322,7 @@ impl Runtime {
             running: AtomicUsize::new(0),
             peak_running: AtomicUsize::new(0),
             ready: AtomicUsize::new(0),
+            stage_dropped: AtomicU64::new(0),
         })
     }
 
@@ -432,7 +594,9 @@ impl Runtime {
         {
             let mut slots = self.slots.lock().await;
             if let Some(slot) = slots.iter_mut().find(|slot| slot.id == job.slot_id) {
-                let _ = slot.cas(SlotPhase::WaitingTool, SlotPhase::Running);
+                if slot.phase != SlotPhase::Dead {
+                    let _ = slot.cas(SlotPhase::WaitingTool, SlotPhase::Running);
+                }
             }
         }
         let _ = encoded;
@@ -456,7 +620,8 @@ impl Runtime {
             .unwrap_or("end_turn")
             .to_string();
         let usage = args.get("usage").cloned().unwrap_or_else(|| json!({}));
-        self.complete_job(job_id, fallback, false, &stop, usage).await?;
+        self.complete_job(job_id, fallback, false, &stop, usage)
+            .await?;
         Ok(json!({ "ok": true }))
     }
 
@@ -471,7 +636,8 @@ impl Runtime {
             .unwrap_or("slot failed")
             .to_string();
         let retire = args.get("retire").and_then(Value::as_bool).unwrap_or(true);
-        self.complete_job(job_id, error, true, "refusal", json!({})).await?;
+        self.complete_job(job_id, error, true, "refusal", json!({}))
+            .await?;
         if retire {
             if let Some(job) = self.jobs.lock().await.get(job_id).cloned() {
                 self.retire_slot(&job.slot_id).await;
@@ -495,6 +661,13 @@ impl Runtime {
             .get(job_id)
             .cloned()
             .ok_or(KernelError::ContinuationLost)?;
+        if is_error {
+            if let Some(sink) = self.sinks.lock().await.get(job_id).cloned() {
+                sink.set_terminal(Terminal::Failed(KernelError::Provider(fallback)));
+            }
+            self.abort_terminal_job(job_id).await;
+            return Ok(());
+        }
         let mut stream = self
             .job_streams
             .lock()
@@ -502,24 +675,61 @@ impl Runtime {
             .remove(job_id)
             .unwrap_or_else(JobStream::new);
         for event in stream.fallback_text(&fallback) {
-            self.emit(job_id, StreamItem::Event(event)).await;
+            if self.emit(job_id, StreamItem::Event(event)).await == EmitResult::Failed {
+                self.abort_terminal_job(job_id).await;
+                return Ok(());
+            }
         }
         for event in stream.finish(stop_reason, usage) {
-            self.emit(job_id, StreamItem::Event(event)).await;
+            if self.emit(job_id, StreamItem::Event(event)).await == EmitResult::Failed {
+                self.abort_terminal_job(job_id).await;
+                return Ok(());
+            }
         }
-        let text = if stream.text.is_empty() { fallback.clone() } else { stream.text.clone() };
+        let text = if stream.text.is_empty() {
+            fallback.clone()
+        } else {
+            stream.text.clone()
+        };
         let response = MessageResponse {
             id: format!("msg_{}", self.pid.load(Ordering::Relaxed)),
             r#type: "message",
             role: "assistant",
             model: job.request.model.clone(),
-            content: vec![ContentBlock::Text { text: text.clone(), cache_control: None }],
-            stop_reason: if is_error { StopReason::Refusal } else { StopReason::EndTurn },
+            content: vec![ContentBlock::Text {
+                text: text.clone(),
+                cache_control: None,
+            }],
+            stop_reason: if is_error {
+                StopReason::Refusal
+            } else {
+                StopReason::EndTurn
+            },
             usage: Usage::default(),
         };
-        self.emit(job_id, StreamItem::Finished(response)).await;
-        self.pending.lock().await.finish_job(job_id, JobOutcome { text, is_error })?;
-        self.running.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| Some(n.saturating_sub(1))).ok();
+        if self.emit(job_id, StreamItem::Finished(response)).await != EmitResult::Sent {
+            self.abort_terminal_job(job_id).await;
+            return Ok(());
+        }
+        // Take the sink out first: holding the `sinks` guard across another
+        // `sinks.lock()` in the same scope would self-deadlock the runtime.
+        let sink = self.sinks.lock().await.remove(job_id);
+        if let Some(sink) = sink
+            && !sink.set_terminal(Terminal::Done)
+        {
+            self.sinks.lock().await.insert(job_id.to_string(), sink);
+            self.abort_terminal_job(job_id).await;
+            return Ok(());
+        }
+        self.pending
+            .lock()
+            .await
+            .finish_job(job_id, JobOutcome { text, is_error })?;
+        self.running
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
+                Some(n.saturating_sub(1))
+            })
+            .ok();
         if let Some(size) = self.job_sizes.lock().await.remove(job_id) {
             self.memory.end(size);
         }
@@ -603,7 +813,10 @@ impl Runtime {
             .find(|slot| slot.parent_tool_use_id.is_none() && slot.phase != SlotPhase::Dead)
         {
             slot.parent_tool_use_id = Some(tool_use_id.clone());
-            self.parents.lock().await.insert(tool_use_id, slot.id.clone());
+            self.parents
+                .lock()
+                .await
+                .insert(tool_use_id, slot.id.clone());
             return;
         }
         drop(slots);
@@ -616,8 +829,7 @@ impl Runtime {
                 self.note_agent_spawn(tool_use_id).await;
             }
             stream_decoder::Decoded::Routed {
-                parent_tool_use_id,
-                ..
+                parent_tool_use_id, ..
             } => {
                 let slot_id = self.parents.lock().await.get(&parent_tool_use_id).cloned();
                 let Some(slot_id) = slot_id else {
@@ -648,32 +860,84 @@ impl Runtime {
         }
     }
 
-    async fn emit(&self, job_id: &str, item: StreamItem) {
-        if let StreamItem::Event(ref event) = item {
-            if event.get("type").and_then(Value::as_str) == Some("content_block_delta")
-                && event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta")
-            {
-                self.streamed.lock().await.insert(job_id.to_string());
-            }
-        }
-        let finished = matches!(item, StreamItem::Finished(_));
-        let tx = {
-            let mut events = self.events.lock().await;
-            if finished {
-                events.remove(job_id)
-            } else {
-                events.get(job_id).cloned()
-            }
+    async fn emit(&self, job_id: &str, item: StreamItem) -> EmitResult {
+        let lossless_delta = is_lossless_delta(&item);
+        let sink = self.sinks.lock().await.get(job_id).cloned();
+        let Some(sink) = sink else {
+            return EmitResult::Missing;
         };
-        if let Some(tx) = tx {
-            if tx.try_send(Ok(item)).is_err() && finished {
-                tracing::warn!(job_id, "client channel full or closed on finish");
+        match sink.try_push(item) {
+            Ok(()) => {
+                if lossless_delta {
+                    self.streamed.lock().await.insert(job_id.to_string());
+                }
+                EmitResult::Sent
             }
+            Err(SinkPushError::Full) => {
+                if lossless_delta {
+                    sink.set_terminal(Terminal::Overflow);
+                    EmitResult::Failed
+                } else if matches!(sink.terminal.get(), Some(Terminal::Done)) {
+                    EmitResult::Closed
+                } else {
+                    self.stage_dropped.fetch_add(1, Ordering::Relaxed);
+                    EmitResult::StageDropped
+                }
+            }
+            Err(SinkPushError::Closed) => EmitResult::Closed,
+        }
+    }
+
+    async fn start_job_sink(self: &Arc<Self>, job_id: String, tx: StreamTx) {
+        let (sink, data_rx) = JobSink::new(tx);
+        self.sinks.lock().await.insert(job_id.clone(), sink.clone());
+        tokio::spawn(job_egress(
+            Arc::downgrade(self),
+            job_id,
+            data_rx,
+            sink,
+            self.cfg.client_stall_timeout,
+        ));
+    }
+
+    async fn abort_terminal_job(&self, job_id: &str) {
+        let sink = self.sinks.lock().await.get(job_id).cloned();
+        let reason = sink
+            .as_ref()
+            .and_then(|sink| sink.terminal.get())
+            .map(Terminal::error)
+            .unwrap_or_else(|| KernelError::Provider("job stream aborted".into()));
+        let message = reason.to_string();
+        if let Some(sink) = &sink
+            && let Some(terminal) = sink.terminal.get()
+            && terminal.is_failure()
+        {
+            fail_client_stream(sink, terminal).await;
+        }
+        let job = self.jobs.lock().await.remove(job_id);
+        self.sinks.lock().await.remove(job_id);
+        self.job_streams.lock().await.remove(job_id);
+        self.streamed.lock().await.remove(job_id);
+        if let Some(size) = self.job_sizes.lock().await.remove(job_id) {
+            self.memory.end(size);
+        }
+        self.pending
+            .lock()
+            .await
+            .abort_client_tools(job_id, &message);
+        self.pending.lock().await.drop_job(job_id);
+        if let Some(job) = job {
+            self.running
+                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
+                    Some(n.saturating_sub(1))
+                })
+                .ok();
+            self.retire_slot(&job.slot_id).await;
         }
     }
 
     pub async fn submit(
-        &self,
+        self: &Arc<Self>,
         request: MessageRequest,
         context: ExecutionContext,
         tx: StreamTx,
@@ -688,7 +952,11 @@ impl Runtime {
         let mut slots = self.slots.lock().await;
         let mut sched = self.sched.lock().await;
         let slot_id = sched.pick(&mut slots, &context.tenant_id, &context.session_id)?;
-        self.ready.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| Some(n.saturating_sub(1))).ok();
+        self.ready
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
+                Some(n.saturating_sub(1))
+            })
+            .ok();
         let job_id = new_id("job");
         let slot = slots
             .iter_mut()
@@ -708,9 +976,15 @@ impl Runtime {
             request,
         };
         self.jobs.lock().await.insert(job_id.clone(), job.clone());
-        self.events.lock().await.insert(job_id.clone(), tx);
-        self.job_streams.lock().await.insert(job_id.clone(), JobStream::new());
-        self.job_sizes.lock().await.insert(job_id.clone(), request_bytes);
+        self.start_job_sink(job_id.clone(), tx).await;
+        self.job_streams
+            .lock()
+            .await
+            .insert(job_id.clone(), JobStream::new());
+        self.job_sizes
+            .lock()
+            .await
+            .insert(job_id.clone(), request_bytes);
         self.memory.begin(request_bytes);
         let n = self.running.fetch_add(1, Ordering::Relaxed) + 1;
         self.peak_running.fetch_max(n, Ordering::Relaxed);
@@ -728,7 +1002,7 @@ impl Runtime {
     }
 
     async fn resume(
-        &self,
+        self: &Arc<Self>,
         request: MessageRequest,
         context: ExecutionContext,
         tx: StreamTx,
@@ -754,7 +1028,17 @@ impl Runtime {
         if job.generation != generation || job.tenant_id != context.tenant_id {
             return Err(KernelError::ContinuationLost);
         }
-        self.events.lock().await.insert(job_id.clone(), tx);
+        let sink = self
+            .sinks
+            .lock()
+            .await
+            .get(&job_id)
+            .cloned()
+            .ok_or(KernelError::ContinuationLost)?;
+        if sink.terminal_failed() {
+            return Err(KernelError::ContinuationLost);
+        }
+        sink.replace_client(tx).await;
         self.job_streams
             .lock()
             .await
@@ -776,6 +1060,105 @@ impl Runtime {
     pub fn pid(&self) -> u32 {
         self.pid.load(Ordering::Relaxed)
     }
+}
+
+async fn job_egress(
+    runtime: Weak<Runtime>,
+    job_id: String,
+    mut data_rx: mpsc::Receiver<SinkEnvelope>,
+    sink: JobSink,
+    stall_timeout: Duration,
+) {
+    loop {
+        if let Some(terminal) = sink.terminal.get()
+            && terminal.is_failure()
+        {
+            fail_client_stream(&sink, terminal).await;
+            if let Some(runtime) = runtime.upgrade() {
+                runtime.abort_terminal_job(&job_id).await;
+            }
+            break;
+        }
+        let envelope = tokio::select! {
+            biased;
+            envelope = data_rx.recv() => envelope,
+            _ = sink.terminal_notify.notified() => continue,
+        };
+        let Some(envelope) = envelope else {
+            break;
+        };
+        sink.budget.release(envelope.bytes);
+        let final_response = match &envelope.item {
+            StreamItem::Finished(response) => !matches!(response.stop_reason, StopReason::ToolUse),
+            StreamItem::Event(_) => false,
+        };
+        let tool_response = match &envelope.item {
+            StreamItem::Finished(response) => matches!(response.stop_reason, StopReason::ToolUse),
+            StreamItem::Event(_) => false,
+        };
+        let Some(tx) = sink.client_tx.lock().await.clone() else {
+            sink.set_terminal(Terminal::ClientGone);
+            continue;
+        };
+        let send = tx.send(Ok(envelope.item));
+        tokio::pin!(send);
+        let deadline = tokio::time::sleep(stall_timeout);
+        tokio::pin!(deadline);
+        // A `Done` notification must not abandon the envelope mid-send (it may
+        // be the Finished frame); only failure terminals abort the delivery.
+        let sent = loop {
+            tokio::select! {
+                biased;
+                result = &mut send => break result.map_err(|_| Terminal::ClientGone),
+                _ = sink.terminal_notify.notified() => {
+                    if sink.terminal_failed() {
+                        break Err(Terminal::ClientGone);
+                    }
+                }
+                _ = &mut deadline => break Err(Terminal::ClientTooSlow),
+            }
+        };
+        match sent {
+            Ok(()) if final_response || tool_response => {
+                sink.client_tx.lock().await.take();
+                if final_response {
+                    break;
+                }
+            }
+            Ok(()) => {}
+            Err(terminal) => {
+                sink.set_terminal(terminal);
+            }
+        }
+    }
+}
+
+async fn fail_client_stream(sink: &JobSink, terminal: &Terminal) {
+    if let Some(tx) = sink.client_tx.lock().await.take() {
+        let _ = tx.try_send(Err(terminal.error()));
+    }
+}
+
+fn stream_item_bytes(item: &StreamItem) -> usize {
+    match item {
+        StreamItem::Event(event) => event.to_string().len(),
+        StreamItem::Finished(response) => {
+            serde_json::to_vec(response).map_or(1, |bytes| bytes.len())
+        }
+    }
+}
+
+fn is_lossless_delta(item: &StreamItem) -> bool {
+    let StreamItem::Event(event) = item else {
+        return true;
+    };
+    if event.get("type").and_then(Value::as_str) != Some("content_block_delta") {
+        return false;
+    }
+    matches!(
+        event.pointer("/delta/type").and_then(Value::as_str),
+        Some("text_delta" | "thinking_delta")
+    )
 }
 
 fn tool_results(request: &MessageRequest) -> Vec<(String, Value)> {
@@ -942,10 +1325,7 @@ async fn simulate_worker(runtime: Arc<Runtime>, parent: String) {
     }
 }
 
-async fn decode_stdout(
-    runtime: Arc<Runtime>,
-    stdout: impl tokio::io::AsyncRead + Unpin,
-) {
+async fn decode_stdout(runtime: Arc<Runtime>, stdout: impl tokio::io::AsyncRead + Unpin) {
     use tokio::io::{AsyncBufReadExt, BufReader};
     let mut lines = BufReader::new(stdout).lines();
     let mut job_bytes: HashMap<String, usize> = HashMap::new();
@@ -1005,6 +1385,7 @@ impl MultiplexCliProvider {
                 session_idle_ttl: Duration::from_secs(600),
                 simulate_latency: Duration::from_millis(60),
                 continuation_ttl_secs: 600,
+                client_stall_timeout: Duration::from_secs(DEFAULT_CLIENT_STALL_SECS),
             },
             runtime: OnceCell::new(),
         }
@@ -1025,6 +1406,7 @@ impl MultiplexCliProvider {
                     session_idle_ttl: self.cfg.session_idle_ttl,
                     simulate_latency: self.cfg.simulate_latency,
                     continuation_ttl_secs: self.cfg.continuation_ttl_secs,
+                    client_stall_timeout: self.cfg.client_stall_timeout,
                 });
                 runtime.start().await?;
                 Ok(runtime)
@@ -1067,13 +1449,10 @@ impl Provider for MultiplexCliProvider {
         &self,
         request: &MessageRequest,
         context: &ExecutionContext,
-    ) -> Result<crate::provider::StreamRx, KernelError>
-    {
+    ) -> Result<crate::provider::StreamRx, KernelError> {
         let runtime = self.runtime().await?;
         let (tx, rx) = job_event_channel();
-        runtime
-            .submit(request.clone(), context.clone(), tx)
-            .await?;
+        runtime.submit(request.clone(), context.clone(), tx).await?;
         Ok(rx)
     }
 }
@@ -1118,6 +1497,63 @@ mod tests {
         }
     }
 
+    fn test_cfg(stall: Duration) -> MultiplexConfig {
+        MultiplexConfig {
+            slot_count: 1,
+            simulate: true,
+            bin: PathBuf::from("simulated"),
+            mock_bin: true,
+            model: "claude-sonnet-5".into(),
+            retire_after_turn: false,
+            max_jobs_per_slot: 32,
+            slot_max_lifetime: Duration::from_secs(1800),
+            session_idle_ttl: Duration::from_secs(600),
+            simulate_latency: Duration::from_millis(1),
+            continuation_ttl_secs: 600,
+            client_stall_timeout: stall,
+        }
+    }
+
+    fn delta(text: &str) -> StreamItem {
+        StreamItem::Event(json!({
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": { "type": "text_delta", "text": text }
+        }))
+    }
+
+    fn stage_event(name: &str) -> StreamItem {
+        StreamItem::Event(json!({ "type": name }))
+    }
+
+    fn finished_response() -> StreamItem {
+        StreamItem::Finished(MessageResponse {
+            id: "msg_test".into(),
+            r#type: "message",
+            role: "assistant",
+            model: "claude-sonnet-5".into(),
+            content: vec![ContentBlock::Text {
+                text: "done".into(),
+                cache_control: None,
+            }],
+            stop_reason: StopReason::EndTurn,
+            usage: Usage::default(),
+        })
+    }
+
+    async fn wait_for_overflow(sink: &JobSink) {
+        timeout(Duration::from_secs(1), async {
+            loop {
+                if matches!(sink.terminal.get(), Some(Terminal::Overflow)) {
+                    return;
+                }
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .expect("overflow terminal");
+    }
+
     async fn collect(
         provider: &MultiplexCliProvider,
         request: MessageRequest,
@@ -1125,6 +1561,119 @@ mod tests {
     ) -> Result<MessageResponse, KernelError> {
         let rx = provider.execute_stream(&request, &context).await?;
         crate::provider::collect_stream(rx).await
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn fast_consumer_receives_all_deltas() {
+        let runtime = Runtime::new(test_cfg(Duration::from_secs(1)));
+        let (tx, mut rx) = mpsc::channel(64);
+        runtime.start_job_sink("job-fast".into(), tx).await;
+
+        for index in 0..24 {
+            assert_eq!(
+                runtime
+                    .emit("job-fast", delta(&format!("chunk-{index};")))
+                    .await,
+                EmitResult::Sent
+            );
+        }
+        assert_eq!(
+            runtime.emit("job-fast", finished_response()).await,
+            EmitResult::Sent
+        );
+
+        let mut deltas = Vec::new();
+        let mut finished = false;
+        while let Some(item) = timeout(Duration::from_secs(1), rx.recv())
+            .await
+            .expect("stream item")
+        {
+            match item.unwrap() {
+                StreamItem::Event(event) => {
+                    if event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta") {
+                        deltas.push(event["delta"]["text"].as_str().unwrap_or("").to_string());
+                    }
+                }
+                StreamItem::Finished(_) => {
+                    finished = true;
+                    break;
+                }
+            }
+        }
+        assert!(finished);
+        assert_eq!(deltas.len(), 24);
+        assert_eq!(deltas[0], "chunk-0;");
+        assert_eq!(deltas[23], "chunk-23;");
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn oversized_delta_overflow_sends_explicit_error() {
+        let runtime = Runtime::new(test_cfg(Duration::from_secs(1)));
+        let (tx, mut rx) = mpsc::channel(8);
+        runtime.start_job_sink("job-big".into(), tx).await;
+
+        let big = "x".repeat(JOB_SINK_BYTES + 1);
+        assert_eq!(
+            runtime.emit("job-big", delta(&big)).await,
+            EmitResult::Failed
+        );
+
+        let item = timeout(Duration::from_secs(1), rx.recv())
+            .await
+            .expect("error item")
+            .expect("error item");
+        assert!(item.is_err(), "{item:?}");
+        assert!(rx.recv().await.is_none());
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn queue_full_text_delta_sets_overflow_terminal() {
+        let runtime = Runtime::new(test_cfg(Duration::from_secs(1)));
+        let (tx, _rx) = mpsc::channel(1);
+        runtime.start_job_sink("job-full".into(), tx).await;
+        let sink = runtime
+            .sinks
+            .lock()
+            .await
+            .get("job-full")
+            .cloned()
+            .expect("sink");
+
+        for index in 0..(JOB_SINK_ITEMS + 32) {
+            let _ = runtime
+                .emit("job-full", delta(&format!("chunk-{index}")))
+                .await;
+        }
+
+        wait_for_overflow(&sink).await;
+        assert!(sink.terminal_failed());
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn stalled_client_never_receives_success_finish() {
+        let runtime = Runtime::new(test_cfg(Duration::from_millis(20)));
+        let (tx, mut rx) = mpsc::channel(1);
+        runtime.start_job_sink("job-stalled".into(), tx).await;
+
+        assert_eq!(
+            runtime
+                .emit("job-stalled", stage_event("message_start"))
+                .await,
+            EmitResult::Sent
+        );
+        assert_eq!(
+            runtime.emit("job-stalled", finished_response()).await,
+            EmitResult::Sent
+        );
+
+        tokio::time::sleep(Duration::from_millis(80)).await;
+        let mut saw_finished = false;
+        while let Some(item) = rx.recv().await {
+            if matches!(item.unwrap(), StreamItem::Finished(_)) {
+                saw_finished = true;
+            }
+        }
+        assert!(!saw_finished);
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
@@ -1236,13 +1785,9 @@ mod tests {
         .await
         .unwrap();
         provider.runtime.get().unwrap().bump_generation();
-        let err = collect(
-            &provider,
-            text_request("ignored"),
-            ctx("sess-gen", true),
-        )
-        .await
-        .unwrap_err();
+        let err = collect(&provider, text_request("ignored"), ctx("sess-gen", true))
+            .await
+            .unwrap_err();
         assert!(matches!(err, KernelError::ContinuationLost));
     }
 
@@ -1328,7 +1873,10 @@ mod tests {
             .unwrap();
         match first {
             StreamItem::Event(event) => {
-                assert_eq!(event.get("type").and_then(Value::as_str), Some("message_start"));
+                assert_eq!(
+                    event.get("type").and_then(Value::as_str),
+                    Some("message_start")
+                );
             }
             other => panic!("expected message_start, got {other:?}"),
         }
@@ -1347,7 +1895,13 @@ mod tests {
         while let Some(item) = rx.recv().await {
             match item.unwrap() {
                 StreamItem::Event(event) => {
-                    types.push(event.get("type").and_then(Value::as_str).unwrap_or("").to_string());
+                    types.push(
+                        event
+                            .get("type")
+                            .and_then(Value::as_str)
+                            .unwrap_or("")
+                            .to_string(),
+                    );
                     if event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta") {
                         deltas.push(event["delta"]["text"].as_str().unwrap_or("").to_string());
                     }
@@ -1366,7 +1920,10 @@ mod tests {
     async fn web_search_frames_are_forwarded() {
         let provider = MultiplexCliProvider::simulated(1);
         let rx = provider
-            .execute_stream(&text_request("please [web_search] now"), &ctx("sess-ws", false))
+            .execute_stream(
+                &text_request("please [web_search] now"),
+                &ctx("sess-ws", false),
+            )
             .await
             .unwrap();
         let mut block_types = Vec::new();

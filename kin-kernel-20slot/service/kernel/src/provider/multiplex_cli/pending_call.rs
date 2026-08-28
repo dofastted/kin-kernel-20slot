@@ -48,7 +48,11 @@ impl PendingCalls {
         rx
     }
 
-    pub fn wake_slot(&mut self, slot_id: &str, payload: SlotWaitPayload) -> Result<(), KernelError> {
+    pub fn wake_slot(
+        &mut self,
+        slot_id: &str,
+        payload: SlotWaitPayload,
+    ) -> Result<(), KernelError> {
         self.slot_wait
             .remove(slot_id)
             .ok_or_else(|| KernelError::NoCapacity)?
@@ -110,8 +114,32 @@ impl PendingCalls {
     }
 
     pub fn drop_job(&mut self, job_id: &str) {
-        self.client_tool.retain(|key, _| key != job_id && !key.starts_with(&format!("{job_id}:")));
+        self.client_tool
+            .retain(|key, _| key != job_id && !key.starts_with(&format!("{job_id}:")));
         self.done.remove(job_id);
+    }
+
+    pub fn abort_client_tools(&mut self, job_id: &str, message: &str) {
+        let prefix = format!("{job_id}:");
+        let keys: Vec<String> = self
+            .client_tool
+            .keys()
+            .filter(|key| key.as_str() == job_id || key.starts_with(&prefix))
+            .cloned()
+            .collect();
+        for key in keys {
+            if let Some(tx) = self.client_tool.remove(&key) {
+                let tool_id = key
+                    .strip_prefix(&prefix)
+                    .filter(|id| !id.is_empty())
+                    .unwrap_or("");
+                let _ = tx.send(json!({
+                    "tool_use_id": tool_id,
+                    "content": message,
+                    "is_error": true
+                }));
+            }
+        }
     }
 }
 

@@ -43,6 +43,7 @@ impl FromStr for IsolationMode {
 
 pub const CLIENT_CHANNEL_SIZE: usize = 32;
 pub const EVENT_CHANNEL_SIZE: usize = 128;
+pub const DEFAULT_CLIENT_STALL_SECS: u64 = 30;
 pub const PER_CONNECTION_BUFFER: usize = 512 * 1024;
 pub const MAX_TOOL_RESULT_BYTES: usize = 4 * 1024 * 1024;
 pub const DEFAULT_SLOTS: usize = 20;
@@ -110,7 +111,9 @@ impl Config {
             return Err("worker, slot, body, and TTL settings must be positive".into());
         }
         if slots_per_worker > 20 {
-            return Err("Claude official subagent cap is 20; KIN_SLOTS_PER_WORKER must be <= 20".into());
+            return Err(
+                "Claude official subagent cap is 20; KIN_SLOTS_PER_WORKER must be <= 20".into(),
+            );
         }
 
         Ok(Self {
@@ -125,8 +128,7 @@ impl Config {
             continuation_ttl: Duration::from_secs(continuation_ttl_seconds),
             slot_max_jobs,
             slot_max_lifetime,
-            default_tenant: env::var("KIN_DEFAULT_TENANT")
-                .unwrap_or_else(|_| "demo".to_string()),
+            default_tenant: env::var("KIN_DEFAULT_TENANT").unwrap_or_else(|_| "demo".to_string()),
             expose_slot_header: parse_bool_env("KIN_EXPOSE_SLOT_HEADER", true)?,
             provider: env::var("KIN_PROVIDER").unwrap_or_else(|_| "mock".to_string()),
         })
@@ -153,4 +155,12 @@ fn parse_bool_env(name: &str, default: bool) -> Result<bool, Box<dyn std::error:
         },
         Err(_) => Ok(default),
     }
+}
+
+pub fn client_stall_timeout_from_env() -> Result<Duration, Box<dyn std::error::Error>> {
+    let seconds = parse_env("KIN_CLIENT_STALL_SECS", DEFAULT_CLIENT_STALL_SECS)?;
+    if seconds == 0 {
+        return Err("KIN_CLIENT_STALL_SECS must be positive".into());
+    }
+    Ok(Duration::from_secs(seconds))
 }

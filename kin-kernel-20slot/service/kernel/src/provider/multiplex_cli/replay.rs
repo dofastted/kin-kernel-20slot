@@ -119,7 +119,9 @@ impl VirtualIds {
 #[derive(Default)]
 pub struct ReplayStats {
     pub events_emitted: AtomicU64,
-    pub dropped: AtomicU64,
+    pub stage_dropped: AtomicU64,
+    pub jobs_aborted_slow_client: AtomicU64,
+    pub successful_text_delta_lost: AtomicU64,
     pub finished: AtomicUsize,
     pub peak_inflight: AtomicUsize,
     inflight: AtomicUsize,
@@ -178,8 +180,16 @@ pub async fn replay_one(
     tokio::time::sleep(Duration::from_millis(8)).await;
 
     let mut stream = JobStream::new();
+    let mut aborted = false;
+    let mut text_delta_lost = 0u64;
     let start = JobStream::message_start("claude-sonnet-5", &ids.job_id);
-    emit(&tx, stats.as_ref(), StreamItem::Event(start));
+    match emit(&tx, stats.as_ref(), StreamItem::Event(start)) {
+        EmitResult::Sent | EmitResult::StageDropped | EmitResult::Closed => {}
+        EmitResult::TextDeltaLost => {
+            aborted = true;
+            text_delta_lost += 1;
+        }
+    }
     if time_scale > 0.0 {
         tokio::time::sleep(Duration::from_micros((500.0 * time_scale) as u64)).await;
     }
@@ -187,14 +197,27 @@ pub async fn replay_one(
     match mode {
         PayloadMode::Shared => {
             for frame in trace.frames.iter() {
+                if aborted {
+                    break;
+                }
                 let events = stream.ingest(frame);
                 for event in events {
-                    emit(&tx, stats.as_ref(), StreamItem::Event(event));
+                    match emit(&tx, stats.as_ref(), StreamItem::Event(event)) {
+                        EmitResult::Sent | EmitResult::StageDropped | EmitResult::Closed => {}
+                        EmitResult::TextDeltaLost => {
+                            aborted = true;
+                            text_delta_lost += 1;
+                            break;
+                        }
+                    }
                 }
             }
         }
         PayloadMode::Independent => {
             for line in trace.lines.iter() {
+                if aborted {
+                    break;
+                }
                 let parsed: Value = match serde_json::from_slice(line) {
                     Ok(value) => value,
                     Err(_) => continue,
@@ -202,13 +225,37 @@ pub async fn replay_one(
                 let frame = parsed.get("frame").cloned().unwrap_or(parsed);
                 let events = stream.ingest(&frame);
                 for event in events {
-                    emit(&tx, stats.as_ref(), StreamItem::Event(event));
+                    match emit(&tx, stats.as_ref(), StreamItem::Event(event)) {
+                        EmitResult::Sent | EmitResult::StageDropped | EmitResult::Closed => {}
+                        EmitResult::TextDeltaLost => {
+                            aborted = true;
+                            text_delta_lost += 1;
+                            break;
+                        }
+                    }
                 }
             }
         }
     }
-    for event in stream.finish("end_turn", serde_json::json!({})) {
-        emit(&tx, stats.as_ref(), StreamItem::Event(event));
+    if aborted {
+        stats
+            .jobs_aborted_slow_client
+            .fetch_add(1, Ordering::Relaxed);
+    } else {
+        stats
+            .successful_text_delta_lost
+            .fetch_add(text_delta_lost, Ordering::Relaxed);
+        for event in stream.finish("end_turn", serde_json::json!({})) {
+            match emit(&tx, stats.as_ref(), StreamItem::Event(event)) {
+                EmitResult::Sent | EmitResult::StageDropped | EmitResult::Closed => {}
+                EmitResult::TextDeltaLost => {
+                    stats
+                        .successful_text_delta_lost
+                        .fetch_add(1, Ordering::Relaxed);
+                    break;
+                }
+            }
+        }
     }
     drop(tx);
     let _ = consumer.await;
@@ -219,11 +266,47 @@ fn emit(
     tx: &mpsc::Sender<Result<StreamItem, KernelError>>,
     stats: &ReplayStats,
     item: StreamItem,
-) {
+) -> EmitResult {
     stats.events_emitted.fetch_add(1, Ordering::Relaxed);
-    if tx.try_send(Ok(item)).is_err() {
-        stats.dropped.fetch_add(1, Ordering::Relaxed);
+    match tx.try_send(Ok(item)) {
+        Ok(()) => EmitResult::Sent,
+        Err(mpsc::error::TrySendError::Full(Ok(item))) => {
+            if is_lossless_delta(&item) {
+                EmitResult::TextDeltaLost
+            } else {
+                stats.stage_dropped.fetch_add(1, Ordering::Relaxed);
+                EmitResult::StageDropped
+            }
+        }
+        Err(mpsc::error::TrySendError::Full(Err(_))) => {
+            stats.stage_dropped.fetch_add(1, Ordering::Relaxed);
+            EmitResult::StageDropped
+        }
+        Err(mpsc::error::TrySendError::Closed(_)) => EmitResult::Closed,
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[allow(dead_code)]
+enum EmitResult {
+    Sent,
+    StageDropped,
+    TextDeltaLost,
+    Closed,
+}
+
+#[allow(dead_code)]
+fn is_lossless_delta(item: &StreamItem) -> bool {
+    let StreamItem::Event(event) = item else {
+        return true;
+    };
+    if event.get("type").and_then(Value::as_str) != Some("content_block_delta") {
+        return false;
+    }
+    matches!(
+        event.pointer("/delta/type").and_then(Value::as_str),
+        Some("text_delta" | "thinking_delta")
+    )
 }
 
 pub async fn replay_pool(
@@ -274,9 +357,10 @@ mod tests {
         let stats = replay_pool(Trace::synthetic(), 20, PayloadMode::Independent, 50).await;
         assert_eq!(stats.finished.load(Ordering::Relaxed), 1000);
         assert!(
-            stats.dropped.load(Ordering::Relaxed) > 0,
-            "stalled/disconnected clients must drop"
+            stats.jobs_aborted_slow_client.load(Ordering::Relaxed) > 0,
+            "stalled/slow clients must abort before losing text deltas"
         );
+        assert_eq!(stats.successful_text_delta_lost.load(Ordering::Relaxed), 0);
     }
 
     #[test]
@@ -307,7 +391,9 @@ mod tests {
             "mode": "independent",
             "finished": stats.finished.load(Ordering::Relaxed),
             "events_emitted": stats.events_emitted.load(Ordering::Relaxed),
-            "dropped": stats.dropped.load(Ordering::Relaxed),
+            "stage_dropped": stats.stage_dropped.load(Ordering::Relaxed),
+            "jobs_aborted_slow_client": stats.jobs_aborted_slow_client.load(Ordering::Relaxed),
+            "successful_text_delta_lost": stats.successful_text_delta_lost.load(Ordering::Relaxed),
             "peak_inflight": stats.peak_inflight.load(Ordering::Relaxed),
             "frames": frames,
         });
