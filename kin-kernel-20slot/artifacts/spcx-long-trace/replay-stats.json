@@ -1,0 +1,10 @@
+{
+  "concurrency": 20,
+  "dropped": 1125600,
+  "events_emitted": 1222000,
+  "finished": 1000,
+  "frames": 1409,
+  "mode": "independent",
+  "peak_inflight": 20,
+  "repeats": 50
+}

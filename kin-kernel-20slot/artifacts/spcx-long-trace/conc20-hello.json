@@ -1,0 +1,249 @@
+{
+  "n": 20,
+  "elapsed": 2.104,
+  "ok": 18,
+  "streamed": 20,
+  "unique_texts": 18,
+  "before": {
+    "admission": "allow",
+    "cgroup_bytes": 3393572864,
+    "claude_rss_bytes": 278499328,
+    "inflight_payload": 0,
+    "kernel_rss_bytes": 16355328,
+    "observed_bytes": 294854656,
+    "pending": 0,
+    "service_rss_bytes": 294854656
+  },
+  "after": {
+    "admission": "allow",
+    "cgroup_bytes": 3430903808,
+    "claude_rss_bytes": 311435264,
+    "inflight_payload": 0,
+    "kernel_rss_bytes": 16617472,
+    "observed_bytes": 328052736,
+    "pending": 0,
+    "service_rss_bytes": 328052736
+  },
+  "rows": [
+    {
+      "i": 0,
+      "session": "hello-c20-00",
+      "status": 200,
+      "elapsed": 1.567,
+      "text": "hello-00",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 1,
+      "session": "hello-c20-01",
+      "status": 200,
+      "elapsed": 1.755,
+      "text": "hello-01",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 2,
+      "session": "hello-c20-02",
+      "status": 200,
+      "elapsed": 1.837,
+      "text": "hello-02",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 3,
+      "session": "hello-c20-03",
+      "status": 200,
+      "elapsed": 1.81,
+      "text": "hello-03",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 4,
+      "session": "hello-c20-04",
+      "status": 200,
+      "elapsed": 1.747,
+      "text": "hello-04",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 5,
+      "session": "hello-c20-05",
+      "status": 200,
+      "elapsed": 1.716,
+      "text": "hello-05",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 6,
+      "session": "hello-c20-06",
+      "status": 200,
+      "elapsed": 1.816,
+      "text": "hello-06",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 7,
+      "session": "hello-c20-07",
+      "status": 200,
+      "elapsed": 1.737,
+      "text": "hello-07",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 8,
+      "session": "hello-c20-08",
+      "status": 200,
+      "elapsed": 1.944,
+      "text": "hello-08",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 9,
+      "session": "hello-c20-09",
+      "status": 200,
+      "elapsed": 1.872,
+      "text": "hello-09",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 10,
+      "session": "hello-c20-10",
+      "status": 200,
+      "elapsed": 1.955,
+      "text": "hello-10",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 11,
+      "session": "hello-c20-11",
+      "status": 200,
+      "elapsed": 1.868,
+      "text": "hello-11",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 12,
+      "session": "hello-c20-12",
+      "status": 200,
+      "elapsed": 1.796,
+      "text": "hello-12",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 13,
+      "session": "hello-c20-13",
+      "status": 200,
+      "elapsed": 1.807,
+      "text": "hello-13",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 14,
+      "session": "hello-c20-14",
+      "status": 200,
+      "elapsed": 1.87,
+      "text": "hello-14",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 15,
+      "session": "hello-c20-15",
+      "status": 200,
+      "elapsed": 1.824,
+      "text": "hello-15",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 16,
+      "session": "hello-c20-16",
+      "status": 200,
+      "elapsed": 1.826,
+      "text": "hello-16",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 17,
+      "session": "hello-c20-17",
+      "status": 200,
+      "elapsed": 1.875,
+      "text": "hello-17",
+      "n_events": 7,
+      "has_message_start": true,
+      "has_text": true,
+      "error": null
+    },
+    {
+      "i": 18,
+      "session": "hello-c20-18",
+      "status": 200,
+      "elapsed": 1.986,
+      "text": "",
+      "n_events": 4,
+      "has_message_start": true,
+      "has_text": false,
+      "error": null
+    },
+    {
+      "i": 19,
+      "session": "hello-c20-19",
+      "status": 200,
+      "elapsed": 2.076,
+      "text": "",
+      "n_events": 4,
+      "has_message_start": true,
+      "has_text": false,
+      "error": null
+    }
+  ]
+}

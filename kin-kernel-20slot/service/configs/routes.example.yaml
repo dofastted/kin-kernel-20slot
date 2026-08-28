@@ -1,0 +1,28 @@
+apiVersion: kin.openai.local/v1alpha1
+kind: RoutePolicySet
+revision: 1
+routes:
+  - name: default-mock
+    match:
+      tenant: demo
+      model_patterns:
+        - mock-*
+    target:
+      provider: mock
+      slot_group: mock-default
+    isolation:
+      mode: process_per_session
+      domain: tenant
+    admission:
+      max_inflight: 20
+      max_waiting_tool: 5
+      queue_limit: 40
+      queue_timeout_ms: 100
+    timeouts:
+      first_byte_ms: 30000
+      total_ms: 300000
+      continuation_ttl_ms: 600000
+    retries:
+      before_first_byte: 1
+      after_first_byte: 0
+

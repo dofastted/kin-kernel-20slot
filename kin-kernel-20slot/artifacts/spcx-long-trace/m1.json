@@ -1,0 +1,27 @@
+{
+  "label": "M1_20_short_real",
+  "elapsed": 2.104,
+  "ok": 18,
+  "streamed": 20,
+  "unique_texts": 18,
+  "before": {
+    "admission": "allow",
+    "cgroup_bytes": 3393572864,
+    "claude_rss_bytes": 278499328,
+    "inflight_payload": 0,
+    "kernel_rss_bytes": 16355328,
+    "observed_bytes": 294854656,
+    "pending": 0,
+    "service_rss_bytes": 294854656
+  },
+  "after": {
+    "admission": "allow",
+    "cgroup_bytes": 3430903808,
+    "claude_rss_bytes": 311435264,
+    "inflight_payload": 0,
+    "kernel_rss_bytes": 16617472,
+    "observed_bytes": 328052736,
+    "pending": 0,
+    "service_rss_bytes": 328052736
+  }
+}

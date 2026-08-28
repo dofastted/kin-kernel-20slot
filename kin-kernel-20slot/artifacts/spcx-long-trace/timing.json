@@ -1,0 +1,289 @@
+[
+  {
+    "turn": 1,
+    "title": "overview",
+    "elapsed": 64.591,
+    "status": 200,
+    "n_sse": 30,
+    "n_stdout": 21,
+    "ttft": 0.003,
+    "timed_out": false,
+    "sse_types": {
+      "message_start": 1,
+      "content_block_start": 10,
+      "content_block_stop": 10,
+      "ping": 5,
+      "content_block_delta": 2,
+      "message_delta": 1,
+      "message_stop": 1
+    },
+    "event_times": [
+      {
+        "t": 0.003,
+        "type": "message_start",
+        "event": "message_start"
+      },
+      {
+        "t": 2.16,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 2.16,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 2.171,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 2.171,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 12.004,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 14.136,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 14.136,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 16.077,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 16.078,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 19.717,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 19.717,
+        "type": "content_block_delta",
+        "event": "content_block_delta"
+      },
+      {
+        "t": 19.717,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 19.718,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 19.718,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 20.044,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 20.044,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 24.004,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 33.169,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 33.169,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 36.004,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 37.614,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 37.614,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 48.004,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 60.004,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 60.438,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 60.438,
+        "type": "content_block_delta",
+        "event": "content_block_delta"
+      },
+      {
+        "t": 60.438,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 64.591,
+        "type": "message_delta",
+        "event": "message_delta"
+      },
+      {
+        "t": 64.591,
+        "type": "message_stop",
+        "event": "message_stop"
+      }
+    ]
+  },
+  {
+    "turn": 2,
+    "title": "outlook",
+    "elapsed": null,
+    "status": 200,
+    "n_sse": 0,
+    "n_stdout": 1327,
+    "harvested": true,
+    "note": "client dropped; harvested from Claude stdout after kin_done"
+  },
+  {
+    "turn": 4,
+    "title": "report",
+    "elapsed": 101.199,
+    "status": 200,
+    "n_sse": 17,
+    "n_stdout": 5,
+    "ttft": 0.008,
+    "timed_out": false,
+    "sse_types": {
+      "message_start": 1,
+      "ping": 8,
+      "content_block_start": 2,
+      "content_block_delta": 2,
+      "content_block_stop": 2,
+      "message_delta": 1,
+      "message_stop": 1
+    },
+    "event_times": [
+      {
+        "t": 0.008,
+        "type": "message_start",
+        "event": "message_start"
+      },
+      {
+        "t": 12.005,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 24.004,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 25.238,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 25.239,
+        "type": "content_block_delta",
+        "event": "content_block_delta"
+      },
+      {
+        "t": 25.239,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 36.006,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 48.005,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 60.004,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 72.004,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 84.004,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 96.004,
+        "type": "ping",
+        "event": "ping"
+      },
+      {
+        "t": 96.237,
+        "type": "content_block_start",
+        "event": "content_block_start"
+      },
+      {
+        "t": 96.237,
+        "type": "content_block_delta",
+        "event": "content_block_delta"
+      },
+      {
+        "t": 96.238,
+        "type": "content_block_stop",
+        "event": "content_block_stop"
+      },
+      {
+        "t": 101.199,
+        "type": "message_delta",
+        "event": "message_delta"
+      },
+      {
+        "t": 101.199,
+        "type": "message_stop",
+        "event": "message_stop"
+      }
+    ]
+  }
+]

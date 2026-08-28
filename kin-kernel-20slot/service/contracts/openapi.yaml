@@ -1,0 +1,343 @@
+openapi: 3.1.0
+info:
+  title: Kin Gateway v2 API
+  version: 0.1.0
+  description: Reference data-plane and control-plane contract.
+servers:
+  - url: http://localhost:8080
+paths:
+  /healthz:
+    get:
+      operationId: kernelHealth
+      responses:
+        "200":
+          description: Kernel process is alive.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /readyz:
+    get:
+      operationId: kernelReady
+      responses:
+        "200":
+          description: Kernel has usable capacity.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+        "503":
+          description: Kernel cannot accept compatible work.
+  /v1/messages:
+    post:
+      operationId: createMessage
+      parameters:
+        - $ref: "#/components/parameters/SessionHeader"
+        - $ref: "#/components/parameters/ContinuationHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageRequest"
+      responses:
+        "200":
+          description: Message result.
+          headers:
+            x-kin-session-id:
+              schema: {type: string}
+            x-kin-continuation:
+              schema: {type: string}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+  /v1/chat/completions:
+    post:
+      operationId: createChatCompletion
+      parameters:
+        - $ref: "#/components/parameters/SessionHeader"
+        - $ref: "#/components/parameters/ContinuationHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Chat completion result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /internal/v1/slots:
+    get:
+      operationId: listSlots
+      responses:
+        "200":
+          description: Demo worker and slot observations.
+  /api/v1/kernels:
+    servers:
+      - url: http://localhost:9090
+    get:
+      operationId: listKernels
+      responses:
+        "200": {description: Registered kernels.}
+    post:
+      operationId: registerKernel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KernelRegistration"
+      responses:
+        "200": {description: Kernel registered.}
+        "400":
+          $ref: "#/components/responses/Error"
+  /api/v1/kernels/{id}/heartbeat:
+    servers:
+      - url: http://localhost:9090
+    post:
+      operationId: heartbeatKernel
+      parameters:
+        - $ref: "#/components/parameters/KernelID"
+      responses:
+        "204": {description: Heartbeat accepted.}
+        "404":
+          $ref: "#/components/responses/Error"
+  /api/v1/kernels/{id}/drain:
+    servers:
+      - url: http://localhost:9090
+    post:
+      operationId: drainKernel
+      parameters:
+        - $ref: "#/components/parameters/KernelID"
+      responses:
+        "202": {description: Drain requested.}
+        "404":
+          $ref: "#/components/responses/Error"
+  /api/v1/route-policies/{name}:
+    servers:
+      - url: http://localhost:9090
+    get:
+      operationId: getRoutePolicy
+      parameters:
+        - $ref: "#/components/parameters/PolicyName"
+      responses:
+        "200":
+          description: Route policy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoutePolicy"
+        "404":
+          $ref: "#/components/responses/Error"
+    put:
+      operationId: putRoutePolicy
+      parameters:
+        - $ref: "#/components/parameters/PolicyName"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoutePolicy"
+      responses:
+        "200":
+          description: Route policy stored.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoutePolicy"
+        "400":
+          $ref: "#/components/responses/Error"
+  /api/v1/snapshots/current:
+    servers:
+      - url: http://localhost:9090
+    get:
+      operationId: getCurrentSnapshot
+      responses:
+        "200": {description: Current immutable configuration snapshot.}
+  /api/v1/reconcile:
+    servers:
+      - url: http://localhost:9090
+    post:
+      operationId: reconcileNow
+      responses:
+        "200": {description: Reconcile result.}
+components:
+  parameters:
+    SessionHeader:
+      name: x-kin-session-id
+      in: header
+      required: false
+      schema: {type: string, maxLength: 128}
+    ContinuationHeader:
+      name: x-kin-continuation
+      in: header
+      required: false
+      schema: {type: string, maxLength: 128}
+    KernelID:
+      name: id
+      in: path
+      required: true
+      schema: {type: string, maxLength: 128}
+    PolicyName:
+      name: name
+      in: path
+      required: true
+      schema: {type: string, maxLength: 128}
+  responses:
+    Error:
+      description: Error response.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status: {type: string}
+    ContentBlock:
+      oneOf:
+        - type: object
+          required: [type, text]
+          properties:
+            type: {const: text}
+            text: {type: string}
+        - type: object
+          required: [type, id, name, input]
+          properties:
+            type: {const: tool_use}
+            id: {type: string}
+            name: {type: string}
+            input: {}
+        - type: object
+          required: [type, tool_use_id, content]
+          properties:
+            type: {const: tool_result}
+            tool_use_id: {type: string}
+            content: {}
+            is_error: {type: boolean}
+    Message:
+      type: object
+      required: [role, content]
+      properties:
+        role: {type: string, enum: [user, assistant, system, tool]}
+        content:
+          oneOf:
+            - {type: string}
+            - type: array
+              items:
+                $ref: "#/components/schemas/ContentBlock"
+    ToolDefinition:
+      type: object
+      required: [name, input_schema]
+      properties:
+        name: {type: string}
+        description: {type: string}
+        input_schema: {type: object}
+    MessageRequest:
+      type: object
+      required: [model, messages, max_tokens]
+      properties:
+        model: {type: string}
+        messages:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Message"
+        tools:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolDefinition"
+        max_tokens: {type: integer, minimum: 1}
+        stream: {type: boolean, default: false}
+    Usage:
+      type: object
+      required: [input_tokens, output_tokens]
+      properties:
+        input_tokens: {type: integer, minimum: 0}
+        output_tokens: {type: integer, minimum: 0}
+    MessageResponse:
+      type: object
+      required: [id, type, role, model, content, stop_reason, usage]
+      properties:
+        id: {type: string}
+        type: {const: message}
+        role: {const: assistant}
+        model: {type: string}
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentBlock"
+        stop_reason:
+          type: string
+          enum: [end_turn, tool_use, max_tokens, stop_sequence, pause_turn, refusal, model_context_window_exceeded, unknown]
+        usage:
+          $ref: "#/components/schemas/Usage"
+    ChatRequest:
+      type: object
+      required: [model, messages]
+      properties:
+        model: {type: string}
+        messages:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Message"
+        stream: {type: boolean, default: false}
+    ChatResponse:
+      type: object
+      required: [id, object, model, choices, usage]
+      properties:
+        id: {type: string}
+        object: {const: chat.completion}
+        model: {type: string}
+        choices: {type: array}
+        usage: {type: object}
+    ErrorResponse:
+      type: object
+      required: [type, error]
+      properties:
+        type: {const: error}
+        error:
+          type: object
+          required: [code, message, retryable]
+          properties:
+            code: {type: string}
+            message: {type: string}
+            retryable: {type: boolean}
+            request_id: {type: string}
+    KernelRegistration:
+      type: object
+      required: [id, address, capacity, provider]
+      properties:
+        id: {type: string}
+        address: {type: string}
+        capacity: {type: integer, minimum: 1}
+        provider: {type: string}
+        revision: {type: integer, minimum: 0}
+    RoutePolicy:
+      type: object
+      required: [name, tenant, model_pattern, provider, slot_group, max_inflight, max_waiting_tool]
+      properties:
+        name: {type: string}
+        tenant: {type: string}
+        model_pattern: {type: string}
+        provider: {type: string}
+        slot_group: {type: string}
+        max_inflight: {type: integer, minimum: 1}
+        max_waiting_tool: {type: integer, minimum: 0}
