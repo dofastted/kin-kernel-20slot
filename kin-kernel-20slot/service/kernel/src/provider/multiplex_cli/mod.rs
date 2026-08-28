@@ -9,8 +9,10 @@ pub mod job_stream;
 pub mod mcp_server;
 pub mod memory_guard;
 pub mod pending_call;
+pub mod relay;
 pub mod replay;
 pub mod scheduler;
+pub mod signing;
 pub mod slot;
 pub mod stream_decoder;
 pub mod supervisor;
@@ -32,7 +34,7 @@ use tokio::sync::{Mutex, Notify, OnceCell, mpsc};
 use uuid::Uuid;
 
 use crate::{
-    config::DEFAULT_CLIENT_STALL_SECS,
+    config::{DEFAULT_CLIENT_STALL_SECS, RelayMode},
     error::KernelError,
     model::{ContentBlock, MessageContent, MessageRequest, MessageResponse, StopReason, Usage},
     provider::{ExecutionContext, Provider, ProviderCapabilities, StreamTx, job_event_channel},
@@ -62,6 +64,9 @@ pub struct MultiplexConfig {
     pub simulate_latency: Duration,
     pub continuation_ttl_secs: i64,
     pub client_stall_timeout: Duration,
+    pub relay_mode: RelayMode,
+    pub relay_addr: std::net::SocketAddr,
+    pub relay_upstream: String,
 }
 
 impl MultiplexConfig {
@@ -81,6 +86,9 @@ impl MultiplexConfig {
         let simulate = env::var("KIN_MULTIPLEX_SIMULATE")
             .map(|value| value != "0")
             .unwrap_or(mock_bin);
+        let relay_addr = env::var("KIN_RELAY_ADDR")
+            .unwrap_or_else(|_| "127.0.0.1:0".to_string())
+            .parse()?;
         Ok(Self {
             slot_count,
             simulate,
@@ -114,6 +122,10 @@ impl MultiplexConfig {
             ),
             continuation_ttl_secs: 600,
             client_stall_timeout: crate::config::client_stall_timeout_from_env()?,
+            relay_mode: RelayMode::from_env()?,
+            relay_addr,
+            relay_upstream: env::var("KIN_RELAY_UPSTREAM")
+                .unwrap_or_else(|_| "https://api.anthropic.com".into()),
         })
     }
 }
@@ -541,7 +553,7 @@ impl Runtime {
             &tool_id,
             self.cfg.continuation_ttl_secs,
             &self.secret,
-        );
+        )?;
         self.issued.lock().await.insert(token.nonce.clone(), token);
         let tool_block = json!({
             "type": "tool_use",
@@ -1386,6 +1398,9 @@ impl MultiplexCliProvider {
                 simulate_latency: Duration::from_millis(60),
                 continuation_ttl_secs: 600,
                 client_stall_timeout: Duration::from_secs(DEFAULT_CLIENT_STALL_SECS),
+                relay_mode: RelayMode::Off,
+                relay_addr: "127.0.0.1:0".parse().unwrap(),
+                relay_upstream: "https://api.anthropic.com".into(),
             },
             runtime: OnceCell::new(),
         }
@@ -1407,6 +1422,9 @@ impl MultiplexCliProvider {
                     simulate_latency: self.cfg.simulate_latency,
                     continuation_ttl_secs: self.cfg.continuation_ttl_secs,
                     client_stall_timeout: self.cfg.client_stall_timeout,
+                    relay_mode: self.cfg.relay_mode,
+                    relay_addr: self.cfg.relay_addr,
+                    relay_upstream: self.cfg.relay_upstream.clone(),
                 });
                 runtime.start().await?;
                 Ok(runtime)
@@ -1511,6 +1529,9 @@ mod tests {
             simulate_latency: Duration::from_millis(1),
             continuation_ttl_secs: 600,
             client_stall_timeout: stall,
+            relay_mode: RelayMode::Off,
+            relay_addr: "127.0.0.1:0".parse().unwrap(),
+            relay_upstream: "https://api.anthropic.com".into(),
         }
     }
 
