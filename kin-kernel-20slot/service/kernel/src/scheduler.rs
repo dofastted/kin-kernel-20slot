@@ -168,6 +168,15 @@ impl Scheduler {
         self.workers.iter().any(|worker| self.is_available(worker))
     }
 
+    /// Mark every worker unhealthy. Used when provider boot fails so /readyz
+    /// flips to 503 and no traffic is scheduled onto a kernel whose CLI (or
+    /// relay) never came up.
+    pub fn mark_all_unhealthy(&self) {
+        for worker in &self.workers {
+            worker.healthy.store(false, Ordering::Release);
+        }
+    }
+
     pub fn expire_waiting(&self, index: usize, generation: u64) {
         let Some(worker) = self.workers.get(index) else {
             return;

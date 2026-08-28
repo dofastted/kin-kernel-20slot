@@ -335,6 +335,78 @@ mod tests {
         );
     }
 
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn upstream_midstream_io_error_poisons_current_tap() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let upstream_addr = listener.local_addr().unwrap();
+        let app = Router::new().route(
+            "/v1/messages",
+            any(|| async {
+                // Delay the error so hyper flushes the 200 + first chunk
+                // first; an immediately-ready Err would short-circuit into a
+                // 502 before any body byte reaches the relay.
+                let first = Bytes::from(sse(json!({
+                    "type":"content_block_start",
+                    "index":0,
+                    "content_block":{"type":"text","text":""}
+                })));
+                let chunks = stream::unfold(0u8, move |step| {
+                    let first = first.clone();
+                    async move {
+                        match step {
+                            0 => Some((Ok::<Bytes, std::io::Error>(first), 1)),
+                            1 => {
+                                tokio::time::sleep(Duration::from_millis(50)).await;
+                                Some((Err(std::io::Error::other("broken upstream")), 2))
+                            }
+                            _ => None,
+                        }
+                    }
+                });
+                Response::builder()
+                    .status(StatusCode::OK)
+                    .header(CONTENT_TYPE, "text/event-stream")
+                    .body(Body::from_stream(chunks))
+                    .unwrap()
+            }),
+        );
+        tokio::spawn(async move {
+            let _ = axum::serve(listener, app).await;
+        });
+        let mut cfg = test_cfg();
+        cfg.relay_upstream = format!("http://{upstream_addr}");
+        let runtime = Runtime::new(cfg.clone());
+        insert_running_job(&runtime, "job-io", "slot-io").await;
+        let token = RelayContextToken {
+            job_id: "job-io".into(),
+            slot_id: "slot-io".into(),
+            generation: runtime
+                .process_generation
+                .load(std::sync::atomic::Ordering::Relaxed),
+            nonce: "nonce".into(),
+        }
+        .encode(runtime.secret())
+        .unwrap();
+        let (tap_tx, mut tap_rx) = mpsc::channel(16);
+        let relay = spawn_with_tap(runtime, &cfg, Some(tap_tx)).await.unwrap();
+        let response = reqwest::Client::new()
+            .post(format!("http://{}/v1/messages", relay.addr))
+            .body(format!(r#"{{"ctx":"{token}"}}"#))
+            .send()
+            .await
+            .unwrap();
+        assert!(response.bytes().await.is_err());
+
+        let mut saw_poison = false;
+        while let Ok(Some(event)) = timeout(Duration::from_secs(1), tap_rx.recv()).await {
+            if event.is_poisoned() {
+                saw_poison = true;
+                break;
+            }
+        }
+        assert!(saw_poison, "tap must be poisoned on partial upstream body");
+    }
+
     async fn spawn_mock_upstream(fixture: Vec<u8>) -> SocketAddr {
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();

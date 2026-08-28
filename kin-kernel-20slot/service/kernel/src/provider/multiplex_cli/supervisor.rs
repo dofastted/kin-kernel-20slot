@@ -117,7 +117,7 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
     } else {
         Command::new(&spec.bin)
     };
-    apply_proxy_env(&mut cmd)?;
+    apply_proxy_env(&mut cmd, spec.anthropic_base_url.is_some())?;
     let mcp_path_str = mcp_path.to_string_lossy().into_owned();
     cmd.args([
         "-p",
@@ -174,24 +174,94 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
     })
 }
 
-fn apply_proxy_env(cmd: &mut Command) -> Result<(), KernelError> {
-    if let Ok(http) = env::var("KIN_HTTPS_PROXY") {
-        cmd.env("HTTPS_PROXY", &http)
-            .env("HTTP_PROXY", &http)
-            .env("https_proxy", &http)
-            .env("http_proxy", &http)
-            .env("ALL_PROXY", &http)
-            .env("NO_PROXY", "127.0.0.1,localhost")
-            .env("no_proxy", "127.0.0.1,localhost");
-        return Ok(());
+fn apply_proxy_env(cmd: &mut Command, relay_enabled: bool) -> Result<(), KernelError> {
+    match proxy_env_plan(
+        env::var("KIN_HTTPS_PROXY").ok().as_deref(),
+        env::var("KIN_SOCKS5").ok().as_deref(),
+        relay_enabled,
+    )? {
+        ProxyEnvPlan::Http(http) => {
+            cmd.env("HTTPS_PROXY", &http)
+                .env("HTTP_PROXY", &http)
+                .env("https_proxy", &http)
+                .env("http_proxy", &http)
+                .env("ALL_PROXY", &http)
+                .env("NO_PROXY", "127.0.0.1,localhost")
+                .env("no_proxy", "127.0.0.1,localhost");
+        }
+        ProxyEnvPlan::RelayLoopbackOnly => {
+            cmd.env_remove("HTTPS_PROXY")
+                .env_remove("HTTP_PROXY")
+                .env_remove("https_proxy")
+                .env_remove("http_proxy")
+                .env_remove("ALL_PROXY")
+                .env_remove("all_proxy")
+                .env("NO_PROXY", "127.0.0.1,localhost")
+                .env("no_proxy", "127.0.0.1,localhost");
+        }
+        ProxyEnvPlan::None => {}
     }
-    if env::var("KIN_SOCKS5")
-        .map(|value| value.starts_with("socks"))
-        .unwrap_or(false)
+    Ok(())
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum ProxyEnvPlan {
+    Http(String),
+    RelayLoopbackOnly,
+    None,
+}
+
+fn proxy_env_plan(
+    https_proxy: Option<&str>,
+    socks5: Option<&str>,
+    relay_enabled: bool,
+) -> Result<ProxyEnvPlan, KernelError> {
+    if let Some(http) = https_proxy
+        && !http.trim().is_empty()
     {
+        return Ok(ProxyEnvPlan::Http(http.to_string()));
+    }
+    if let Some(socks5) = socks5
+        && socks5.trim().starts_with("socks")
+    {
+        if relay_enabled {
+            return Ok(ProxyEnvPlan::RelayLoopbackOnly);
+        }
         return Err(KernelError::Provider(
             "Claude CLI cannot use SOCKS5 as HTTPS_PROXY; set KIN_HTTPS_PROXY to an HTTP CONNECT bridge".into(),
         ));
     }
-    Ok(())
+    Ok(ProxyEnvPlan::None)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn relay_mode_allows_socks5_without_cli_https_proxy() {
+        assert_eq!(
+            proxy_env_plan(None, Some("socks5h://127.0.0.1:10808"), true).unwrap(),
+            ProxyEnvPlan::RelayLoopbackOnly
+        );
+    }
+
+    #[test]
+    fn relay_off_rejects_socks5_without_http_bridge() {
+        let err = proxy_env_plan(None, Some("socks5h://127.0.0.1:10808"), false).unwrap_err();
+        assert!(err.to_string().contains("cannot use SOCKS5"));
+    }
+
+    #[test]
+    fn https_proxy_still_wins_over_socks5() {
+        assert_eq!(
+            proxy_env_plan(
+                Some("http://127.0.0.1:7890"),
+                Some("socks5h://127.0.0.1:10808"),
+                true
+            )
+            .unwrap(),
+            ProxyEnvPlan::Http("http://127.0.0.1:7890".into())
+        );
+    }
 }

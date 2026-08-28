@@ -13,7 +13,7 @@ use crate::error::KernelError;
 use super::{
     RelayState,
     correlate::{ContextScanner, last_valid_candidate},
-    sse_tap::TapQueue,
+    sse_tap::{TapBinding, TapQueue},
 };
 
 pub async fn proxy(State(state): State<RelayState>, req: Request<Body>) -> Response<Body> {
@@ -55,27 +55,40 @@ pub async fn proxy(State(state): State<RelayState>, req: Request<Body>) -> Respo
         Some(job) => state.runtime.tap_binding(&job.job_id).await,
         None => None,
     };
-    let tap = tap.or_else(|| state.tap_events.clone().map(|events| (events, None)));
-    upstream_response(response, correlated, state, tap)
+    let tap = tap.or_else(|| {
+        state.tap_events.clone().map(|events| TapBinding {
+            events,
+            poisoned: None,
+            index_allocator: std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            turn_id: 0,
+        })
+    });
+    upstream_response(response, correlated, state, tap).await
 }
 
-fn upstream_response(
+async fn upstream_response(
     response: reqwest::Response,
     correlated: Option<super::correlate::CorrelatedJob>,
     state: RelayState,
-    tap_binding: Option<(
-        tokio::sync::mpsc::Sender<super::sse_tap::TapEvent>,
-        Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
-    )>,
+    tap_binding: Option<TapBinding>,
 ) -> Response<Body> {
     let status = response.status();
     let headers = filtered_headers(response.headers());
     let tap = if status.is_success() {
-        correlated.and_then(|job| {
-            tap_binding.map(|(events, poisoned)| {
-                TapQueue::spawn(job.job_id, events, Arc::clone(&state.metrics), poisoned)
-            })
-        })
+        match (correlated, tap_binding) {
+            (Some(job), Some(binding)) => {
+                state.runtime.register_tap_response(&job.job_id).await;
+                Some(TapQueue::spawn(
+                    job.job_id,
+                    binding.events,
+                    Arc::clone(&state.metrics),
+                    binding.poisoned,
+                    binding.index_allocator,
+                    binding.turn_id,
+                ))
+            }
+            _ => None,
+        }
     } else {
         None
     };
@@ -86,7 +99,12 @@ fn upstream_response(
             }
             Ok::<Bytes, reqwest::Error>(bytes)
         }
-        Err(err) => Err(err),
+        Err(err) => {
+            if let Some(tap) = &tap {
+                tap.poison();
+            }
+            Err(err)
+        }
     });
     build_response(status, headers, Body::from_stream(stream))
 }

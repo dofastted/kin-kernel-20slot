@@ -11,6 +11,7 @@ use super::super::{
 
 pub const KRC_PREFIX: &str = "krc_";
 const MAX_TOKEN_BYTES: usize = 2 * 1024;
+const MAX_CANDIDATES: usize = 64;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RelayContextToken {
@@ -141,7 +142,7 @@ impl ContextScanner {
                 && cursor > mac_start
                 && let Ok(candidate) = std::str::from_utf8(&self.buf[start..cursor])
             {
-                self.candidates.push(candidate.to_string());
+                self.push_candidate(candidate.to_string());
             }
             index = cursor.max(index + 1);
         }
@@ -160,6 +161,13 @@ impl ContextScanner {
                 self.buf.drain(..split);
             }
         }
+    }
+
+    fn push_candidate(&mut self, candidate: String) {
+        if self.candidates.len() == MAX_CANDIDATES {
+            self.candidates.remove(0);
+        }
+        self.candidates.push(candidate);
     }
 }
 
@@ -378,5 +386,18 @@ mod tests {
             scanner.candidates()
         );
         assert!(RelayContextToken::decode("krc_7b7d.0000", b"secret").is_err());
+    }
+
+    #[test]
+    fn scanner_caps_candidates_and_drops_oldest() {
+        let mut scanner = ContextScanner::default();
+        let body = (0..80)
+            .map(|index| format!("krc_{index:02x}.abcd "))
+            .collect::<String>();
+        scanner.push(&Bytes::from(body));
+        scanner.finish();
+        assert_eq!(scanner.candidates().len(), MAX_CANDIDATES);
+        assert_eq!(scanner.candidates().first().unwrap(), "krc_10.abcd");
+        assert_eq!(scanner.candidates().last().unwrap(), "krc_4f.abcd");
     }
 }

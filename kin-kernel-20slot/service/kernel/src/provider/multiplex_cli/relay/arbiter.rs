@@ -127,7 +127,17 @@ impl SourceArbiter {
         let Value::Object(map) = usage else {
             return;
         };
-        self.usage = map;
+        // Tap emits per-response usage deltas. Each internal Messages request
+        // has independent input_tokens, while output_tokens is cumulative only
+        // within that response, so summing deltas gives total upstream work.
+        for (key, value) in map {
+            let Some(value) = value.as_u64() else {
+                continue;
+            };
+            let current = self.usage.get(&key).and_then(Value::as_u64).unwrap_or(0);
+            self.usage
+                .insert(key, Value::from(current.saturating_add(value)));
+        }
     }
 
     pub fn filter_stdout(&mut self, events: Vec<Value>) -> Vec<Value> {
@@ -417,5 +427,16 @@ mod tests {
         );
         assert!(mismatch.mismatch_digests("").is_some());
         assert_eq!(mismatch.final_text("stdout", "fallback"), "upstream");
+    }
+
+    #[test]
+    fn usage_deltas_accumulate_across_internal_responses() {
+        let mut arbiter = SourceArbiter::new(RelayMode::Authoritative);
+        arbiter.note_usage(serde_json::json!({"input_tokens":4,"output_tokens":5}));
+        arbiter.note_usage(serde_json::json!({"input_tokens":6,"output_tokens":2}));
+        assert_eq!(
+            arbiter.usage(),
+            Some(serde_json::json!({"input_tokens":10,"output_tokens":7}))
+        );
     }
 }

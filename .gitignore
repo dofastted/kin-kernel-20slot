@@ -1,0 +1,48 @@
+# --- Rust ---
+target/
+**/*.rs.bk
+
+# --- Go ---
+*.exe~
+*.test
+*.out
+vendor/
+
+# --- Node ---
+node_modules/
+npm-debug.log*
+*.tsbuildinfo
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- Build / packaging output ---
+dist/
+build/
+*.tar.gz
+*.zip
+
+# --- Logs & runtime state ---
+*.log
+logs/
+nohup.out
+*.pid
+
+# --- Local env & secrets (never commit) ---
+.env
+.env.*
+*.credentials.json
+oauth.json
+
+# --- Editor / OS noise ---
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# --- Claude local runtime ---
+.claude/scheduled_tasks.lock

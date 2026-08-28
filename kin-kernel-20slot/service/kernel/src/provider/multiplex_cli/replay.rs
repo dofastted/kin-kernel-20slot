@@ -300,12 +300,16 @@ fn is_lossless_delta(item: &StreamItem) -> bool {
     let StreamItem::Event(event) = item else {
         return true;
     };
-    if event.get("type").and_then(Value::as_str) != Some("content_block_delta") {
-        return false;
-    }
     matches!(
-        event.pointer("/delta/type").and_then(Value::as_str),
-        Some("text_delta" | "thinking_delta")
+        event.get("type").and_then(Value::as_str),
+        Some(
+            "message_start"
+                | "content_block_start"
+                | "content_block_delta"
+                | "content_block_stop"
+                | "message_delta"
+                | "message_stop"
+        )
     )
 }
 
@@ -343,6 +347,7 @@ pub async fn replay_pool(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::{MessageResponse, StopReason, Usage};
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
     async fn twenty_shared_replays_do_not_mix_sessions() {
@@ -369,6 +374,32 @@ mod tests {
         let b = VirtualIds::new(1);
         assert_ne!(a.parent_tool_use_id, b.parent_tool_use_id);
         assert_ne!(a.session_id, b.session_id);
+    }
+
+    #[test]
+    fn structural_events_are_lossless_but_ping_can_drop() {
+        assert!(is_lossless_delta(&StreamItem::Event(serde_json::json!({
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {"type": "text", "text": ""}
+        }))));
+        assert!(is_lossless_delta(&StreamItem::Event(serde_json::json!({
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {"type": "input_json_delta", "partial_json": "{}"}
+        }))));
+        assert!(is_lossless_delta(&StreamItem::Finished(MessageResponse {
+            id: "msg".into(),
+            r#type: "message",
+            role: "assistant",
+            model: "claude-sonnet-5".into(),
+            content: Vec::new(),
+            stop_reason: StopReason::EndTurn,
+            usage: Usage::default(),
+        })));
+        assert!(!is_lossless_delta(&StreamItem::Event(serde_json::json!({
+            "type": "ping"
+        }))));
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
