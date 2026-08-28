@@ -1,0 +1,18 @@
+event: message_start
+data: {"message":{"content":[],"id":"msg_job_c90a0c45f888412bb4b06dc9273d0b61","model":"claude-sonnet-5","role":"assistant","stop_reason":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
+
+event: ping
+data: {"type":"ping"}
+
+event: ping
+data: {"type":"ping"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn","stop_sequence":null},"type":"message_delta","usage":{"cache_creation_input_tokens":2227,"cache_read_input_tokens":5789,"input_tokens":4,"output_tokens":1205}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+event: kin.done
+data: {"continuation":null,"generation":1,"pid":7554,"session_id":"cap-02-vision","slot":"runtime-00"}
+

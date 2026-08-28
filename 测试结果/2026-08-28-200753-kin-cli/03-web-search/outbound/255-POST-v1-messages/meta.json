@@ -1,0 +1,93 @@
+{
+  "seq": 255,
+  "case": "03-web-search",
+  "ts": 1787947860.2447445,
+  "iso": "2026-08-28T20:11:00Z",
+  "method": "POST",
+  "path": "/v1/messages?beta=true",
+  "upstream": "https://api.anthropic.com/v1/messages?beta=true",
+  "status": 200,
+  "elapsed_ms": 41036,
+  "req_bytes": 19958,
+  "resp_bytes": 15937,
+  "resp_decoded_bytes": 15937,
+  "accept_encoding_stripped": true,
+  "error": null,
+  "request_summary": {
+    "json": true,
+    "bytes": 19958,
+    "model": "claude-sonnet-5",
+    "stream": true,
+    "max_tokens": 64000,
+    "thinking": {
+      "type": "adaptive"
+    },
+    "output_config": {
+      "effort": "high"
+    },
+    "n_messages": 7,
+    "user_head": "<system-reminder>\nAs you answer the user's questions, you can use the following context:\n# currentDate\nToday's date is 2026-08-28.\n\n      IMPORTANT: this context may or may not be relevant to your tas",
+    "tools": [
+      "WebSearch",
+      "mcp__kin_runtime__slot_wait",
+      "mcp__kin_runtime__client_tool",
+      "mcp__kin_runtime__kin_done",
+      "mcp__kin_runtime__kin_fail"
+    ],
+    "n_tools": 5,
+    "system_blocks": [
+      {
+        "kind": "billing",
+        "chars": 95,
+        "head": "x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;"
+      },
+      {
+        "kind": "other",
+        "chars": 62,
+        "head": "You are a Claude agent, built on Anthropic's Claude Agent SDK."
+      },
+      {
+        "kind": "kin_slot",
+        "chars": 2440,
+        "head": "You are a persistent Kin request slot. Repeatedly call mcp__kin_runtime__slot_wait. The job payload is a full Anthropic Messages request: system, thinking, tool_choice, tools, mess"
+      }
+    ],
+    "metadata_user_id": "{\"device_id\":\"6a27af91edaa4c54de787ff556a83de34fb3987f11ce315044b4c44008e03d8a\",\"account_uuid\":\"174d10b6-0dd8-4819-9311-7a70ccd97abd\",\"session_id\":\"050e9127-2fe1-4270-88a2-5fd08e988afe\"}",
+    "keys": [
+      "context_management",
+      "max_tokens",
+      "messages",
+      "metadata",
+      "model",
+      "output_config",
+      "stream",
+      "system",
+      "thinking",
+      "tools"
+    ]
+  },
+  "response_preview": {
+    "kind": "sse",
+    "model": "claude-sonnet-5",
+    "stop": "tool_use",
+    "tools": [
+      "mcp__kin_runtime__kin_done"
+    ],
+    "usage": {
+      "input_tokens": 2,
+      "cache_creation_input_tokens": 4307,
+      "cache_read_input_tokens": 3211,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 4307,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 1784,
+      "service_tier": "standard",
+      "inference_geo": "not_available",
+      "output_tokens_details": {
+        "thinking_tokens": 62
+      }
+    },
+    "text_head": "根据最新消息，2026年苹果iPhone产品线采用\"分阶段发布\"新策略，分为春季和秋季两批发布。\n\n## 一、2026年春季新品(已发布，3月)\n\n**iPhone 17e**\n- 核心升级为A19芯片(唯一硬件迭代点)\n- 首次搭载苹果自研C1X基带，大幅改善5G信号\n- 沿用6.1英寸60Hz OLED屏，新增MagSafe磁吸充电\n- 出厂搭载iOS 26系统，支持5年系统更新\n- 可能配备U1/U2超宽带芯片，支持精确查找功能\n- 其余保持简配：单摄像头、60Hz屏幕、USB-2接口\n\n## 二、2026年秋季新品(预计9月发布)\n\n**最大亮点：苹果首款折叠屏iPhone**\n- 内"
+  }
+}

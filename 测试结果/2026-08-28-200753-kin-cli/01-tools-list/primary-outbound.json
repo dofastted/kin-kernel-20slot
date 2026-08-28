@@ -1,0 +1,25 @@
+{
+  "seq": 142,
+  "case": "01-tools-list",
+  "method": "POST",
+  "path": "/v1/messages?beta=true",
+  "status": 200,
+  "ms": 4590,
+  "req_bytes": 8312,
+  "resp_bytes": 6274,
+  "dir": "01-tools-list/outbound/142-POST-v1-messages",
+  "model": "claude-sonnet-5",
+  "user_head": "<system-reminder>\nAs you answer the user's questions, you can use the following context:\n# currentDate\nToday's date is 2026-08-28.\n\n      IMPORTANT: this context may or may not be relevant to your tas",
+  "tools": [
+    "WebSearch",
+    "mcp__kin_runtime__slot_wait",
+    "mcp__kin_runtime__client_tool",
+    "mcp__kin_runtime__kin_done",
+    "mcp__kin_runtime__kin_fail"
+  ],
+  "resp_tools": [
+    "mcp__kin_runtime__kin_done"
+  ],
+  "text_head": "根据当前任务请求，本次调用未提供任何工具（tools 列表为空），因此我在这个任务中没有可调用的工具。",
+  "error": null
+}

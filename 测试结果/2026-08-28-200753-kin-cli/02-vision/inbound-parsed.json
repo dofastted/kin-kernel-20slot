@@ -1,0 +1,29 @@
+{
+  "status": 200,
+  "elapsed": 30.132,
+  "text": "",
+  "thinking": "",
+  "tool_uses": [],
+  "stop": "end_turn",
+  "model": "claude-sonnet-5",
+  "usage": {
+    "input_tokens": 4,
+    "output_tokens": 1205,
+    "cache_creation_input_tokens": 2227,
+    "cache_read_input_tokens": 5789
+  },
+  "kin_done": {
+    "continuation": null,
+    "generation": 1,
+    "pid": 7554,
+    "session_id": "cap-02-vision",
+    "slot": "runtime-00"
+  },
+  "error": null,
+  "headers": {
+    "content-type": "text/event-stream",
+    "x-kin-session-id": "cap-02-vision",
+    "x-kin-slot": "runtime-00",
+    "x-kin-generation": "1"
+  }
+}

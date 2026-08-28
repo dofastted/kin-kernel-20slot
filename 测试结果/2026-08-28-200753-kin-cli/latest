@@ -1,0 +1,1318 @@
+2026-08-28T20:07:55.677Z [DEBUG] MDM settings load completed in 1ms
+2026-08-28T20:07:55.713Z [DEBUG] Broken symlink or missing file encountered for settings.json at path: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/settings.json
+2026-08-28T20:07:55.714Z [DEBUG] Broken symlink or missing file encountered for settings.json at path: /etc/claude-code/managed-settings.json
+2026-08-28T20:07:55.714Z [DEBUG] Broken symlink or missing file encountered for settings.json at path: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude/settings.json
+2026-08-28T20:07:55.714Z [DEBUG] Broken symlink or missing file encountered for settings.json at path: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude/settings.local.json
+2026-08-28T20:07:55.718Z [DEBUG] CA certs: Config fallback - globalEnv keys: , settingsEnv keys: none
+2026-08-28T20:07:55.722Z [DEBUG] [init] configureGlobalMTLS starting
+2026-08-28T20:07:55.722Z [DEBUG] [init] configureGlobalMTLS complete
+2026-08-28T20:07:55.722Z [DEBUG] [init] configureGlobalAgents starting
+2026-08-28T20:07:55.722Z [DEBUG] CA certs: stores=bundled,system, extraCertsPath=undefined
+2026-08-28T20:07:55.723Z [DEBUG] CA certs: Loaded 121 bundled root certificates
+2026-08-28T20:07:55.738Z [DEBUG] CA certs: Dropped 2 expired certificate(s) from system store
+2026-08-28T20:07:55.738Z [DEBUG] CA certs: Loaded 299 system CA certificates
+2026-08-28T20:07:55.738Z [DEBUG] mTLS: Creating HTTPS agent with custom certificates
+2026-08-28T20:07:55.738Z [DEBUG] [init] configureGlobalAgents complete
+2026-08-28T20:07:55.742Z [DEBUG] Git remote URL: null
+2026-08-28T20:07:55.742Z [DEBUG] No git remote URL found
+2026-08-28T20:07:55.744Z [DEBUG] Error log sink initialized
+2026-08-28T20:07:55.770Z [ERROR] Failed to save config with lock: Error: ENOENT: no such file or directory, lstat '/tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json'
+2026-08-28T20:07:55.775Z [DEBUG] Setting permissions for new file: 600
+2026-08-28T20:07:55.775Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.34f70aba30c5
+2026-08-28T20:07:55.778Z [DEBUG] Temp file written successfully, size: 84 bytes
+2026-08-28T20:07:55.778Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.34f70aba30c5 to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:55.778Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:07:55.783Z [DEBUG] Preserving file permissions: 100600
+2026-08-28T20:07:55.783Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.4727a38660e2
+2026-08-28T20:07:55.783Z [DEBUG] Applied original permissions to temp file
+2026-08-28T20:07:55.784Z [DEBUG] Temp file written successfully, size: 167 bytes
+2026-08-28T20:07:55.784Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.4727a38660e2 to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:55.784Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:07:55.785Z [DEBUG] Preserving file permissions: 100600
+2026-08-28T20:07:55.785Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.2d978a8f05e7
+2026-08-28T20:07:55.785Z [DEBUG] Applied original permissions to temp file
+2026-08-28T20:07:55.786Z [DEBUG] Temp file written successfully, size: 249 bytes
+2026-08-28T20:07:55.786Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.2d978a8f05e7 to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:55.786Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:07:55.787Z [DEBUG] Preserving file permissions: 100600
+2026-08-28T20:07:55.787Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.6fe7963ddf8b
+2026-08-28T20:07:55.788Z [DEBUG] Applied original permissions to temp file
+2026-08-28T20:07:55.788Z [DEBUG] Temp file written successfully, size: 288 bytes
+2026-08-28T20:07:55.788Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.6fe7963ddf8b to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:55.788Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:07:55.790Z [DEBUG] Preserving file permissions: 100600
+2026-08-28T20:07:55.790Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.d3385f5a40a5
+2026-08-28T20:07:55.790Z [DEBUG] Applied original permissions to temp file
+2026-08-28T20:07:55.790Z [DEBUG] Temp file written successfully, size: 315 bytes
+2026-08-28T20:07:55.791Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.d3385f5a40a5 to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:55.791Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:07:55.792Z [DEBUG] Preserving file permissions: 100600
+2026-08-28T20:07:55.792Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.5feadb8adc3e
+2026-08-28T20:07:55.792Z [DEBUG] Applied original permissions to temp file
+2026-08-28T20:07:55.792Z [DEBUG] Temp file written successfully, size: 363 bytes
+2026-08-28T20:07:55.792Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.5feadb8adc3e to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:55.793Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:07:55.793Z [DEBUG] Preserving file permissions: 100600
+2026-08-28T20:07:55.793Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.d4456cd787c2
+2026-08-28T20:07:55.794Z [DEBUG] Applied original permissions to temp file
+2026-08-28T20:07:55.794Z [DEBUG] Temp file written successfully, size: 389 bytes
+2026-08-28T20:07:55.794Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.d4456cd787c2 to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:55.794Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:07:55.819Z [DEBUG] [ToolSearch:optimistic] disabled: ANTHROPIC_BASE_URL=http://127.0.0.1:18082 is not a first-party Anthropic host. Set ENABLE_TOOL_SEARCH=true (or auto / auto:N) if your proxy forwards tool_reference blocks.
+2026-08-28T20:07:55.820Z [DEBUG] [STARTUP] Loading MCP configs...
+2026-08-28T20:07:55.820Z [DEBUG] [STARTUP] Running setup()...
+2026-08-28T20:07:55.835Z [DEBUG] installed_plugins.json doesn't exist, returning empty V2 object
+2026-08-28T20:07:55.841Z [DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+2026-08-28T20:07:55.842Z [DEBUG] getPluginSkills: Processing 0 enabled plugins
+2026-08-28T20:07:55.842Z [DEBUG] Total plugin workflows loaded: 0
+2026-08-28T20:07:55.842Z [DEBUG] Total plugin commands loaded: 0
+2026-08-28T20:07:55.843Z [DEBUG] Loading skills from: managed=/etc/claude-code/.claude/skills, user=/tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/skills, project=[]
+2026-08-28T20:07:55.844Z [DEBUG] Total plugin skills loaded: 0 (0 duplicate/user-owned entries skipped)
+2026-08-28T20:07:55.844Z [DEBUG] Failed to stat directory /etc/claude-code/.claude/agents: ENOENT: no such file or directory, stat '/etc/claude-code/.claude/agents'
+2026-08-28T20:07:55.844Z [DEBUG] Failed to stat directory /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/agents: ENOENT: no such file or directory, stat '/tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/agents'
+2026-08-28T20:07:55.844Z [DEBUG] Total plugin agents loaded: 0
+2026-08-28T20:07:55.847Z [DEBUG] Git remote URL: null
+2026-08-28T20:07:55.847Z [DEBUG] No git remote URL found
+2026-08-28T20:07:55.852Z [DEBUG] Failed to stat directory /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/commands: ENOENT: no such file or directory, stat '/tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/commands'
+2026-08-28T20:07:55.852Z [DEBUG] Failed to stat directory /etc/claude-code/.claude/commands: ENOENT: no such file or directory, stat '/etc/claude-code/.claude/commands'
+2026-08-28T20:07:55.852Z [DEBUG] Loaded 0 unique skills (0 unconditional, 0 conditional, managed: 0, user: 0, project: 0, additional: 0, legacy commands: 0)
+2026-08-28T20:07:55.855Z [INFO] [uds-messaging] Listening: /tmp/cc-socks/7554.sock
+2026-08-28T20:07:55.855Z [INFO] [uds-messaging] Inject messages (auth line optional here): { echo '{"type":"auth","token":"[REDACTED]"$CLAUDE_CODE_MESSAGING_TOKEN"'"}'; echo '{"type":"user","message":{"role":"user","content":"hello"}}'; } | socat - UNIX-CONNECT:/tmp/cc-socks/7554.sock
+2026-08-28T20:07:55.856Z [INFO] [uds-messaging] Connect when the data is ready (e.g. out=$(cmd); printf '%s\n' "$out" | nc -N -U "$CLAUDE_CODE_MESSAGING_SOCKET" — or the socat form above): a connection that sends no complete line within 30000 ms is closed
+2026-08-28T20:07:55.858Z [DEBUG] Broken symlink or missing file encountered for settings.json at path: /etc/claude-code/managed-settings.json
+2026-08-28T20:07:55.858Z [DEBUG] Broken symlink or missing file encountered for settings.json at path: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/settings.json
+2026-08-28T20:07:55.858Z [DEBUG] Broken symlink or missing file encountered for settings.json at path: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude/settings.json
+2026-08-28T20:07:55.858Z [DEBUG] Broken symlink or missing file encountered for settings.json at path: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude/settings.local.json
+2026-08-28T20:07:55.859Z [DEBUG] Error log sink initialized
+2026-08-28T20:07:55.862Z [DEBUG] hooks modules not loaded: rollout flag (tengu_plugin_hooks_modules) is off, from the default (GrowthBook is off for this session: a third-party provider, or telemetry opted out)
+2026-08-28T20:07:55.863Z [DEBUG] Registered 0 hooks from 0 plugins
+2026-08-28T20:07:55.864Z [DEBUG] [STARTUP] setup() completed in 44ms
+2026-08-28T20:07:55.864Z [DEBUG] Cleared mTLS configuration cache
+2026-08-28T20:07:55.864Z [DEBUG] Cleared proxy agent cache
+2026-08-28T20:07:55.864Z [DEBUG] mTLS: Creating HTTPS agent with custom certificates
+2026-08-28T20:07:55.867Z [DEBUG] [STARTUP] Loading commands and agents...
+2026-08-28T20:07:55.871Z [DEBUG] getSkills returning: 0 skill dir commands, 0 plugin skills, 41 bundled skills, 0 builtin plugin skills
+2026-08-28T20:07:55.879Z [DEBUG] [STARTUP] Commands and agents loaded in 12ms
+2026-08-28T20:07:55.881Z [DEBUG] [LSP MANAGER] initializeLspServerManager() called
+2026-08-28T20:07:55.881Z [DEBUG] [LSP MANAGER] Created manager instance, state=pending
+2026-08-28T20:07:55.881Z [DEBUG] [LSP MANAGER] Starting async initialization (generation 1)
+2026-08-28T20:07:55.881Z [DEBUG] Starting background startup prefetches
+2026-08-28T20:07:55.881Z [DEBUG] [Bootstrap] Fetching
+2026-08-28T20:07:55.886Z [DEBUG] [STARTUP] MCP configs resolved in 0ms (awaited at +66ms)
+2026-08-28T20:07:55.887Z [DEBUG] Total LSP servers loaded: 0
+2026-08-28T20:07:55.888Z [DEBUG] [LSP SERVER MANAGER] getAllLspServers returned 0 server(s)
+2026-08-28T20:07:55.888Z [DEBUG] LSP manager initialized with 0 servers
+2026-08-28T20:07:55.888Z [DEBUG] Initialized versioned plugins system with 0 plugins
+2026-08-28T20:07:55.889Z [DEBUG] Cleared mTLS configuration cache
+2026-08-28T20:07:55.889Z [DEBUG] Cleared proxy agent cache
+2026-08-28T20:07:55.889Z [DEBUG] mTLS: Creating HTTPS agent with custom certificates
+2026-08-28T20:07:55.889Z [DEBUG] LSP server manager initialized successfully
+2026-08-28T20:07:55.889Z [DEBUG] LSP notification handlers registered successfully for all 0 server(s)
+2026-08-28T20:07:55.890Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:07:55.891Z [DEBUG] [MCP] --mcp-config servers running fully async (nonblocking)
+2026-08-28T20:07:55.891Z [DEBUG] [MCP] claude.ai connectors running fully async (nonblocking)
+2026-08-28T20:07:55.897Z [DEBUG] [auto-mode] verifyAutoModeGateAccess: enabledState=enabled disabledBySettings=false model=claude-sonnet-5 modelSupported=true disableFastModeBreakerFires=false carouselAvailable=true canEnterAuto=true
+2026-08-28T20:07:55.917Z [DEBUG] [Perfetto] initializePerfettoTracing called, env value: undefined
+2026-08-28T20:07:55.917Z [DEBUG] [3P telemetry] isTelemetryEnabled=false (CLAUDE_CODE_ENABLE_TELEMETRY=undefined)
+2026-08-28T20:07:55.927Z [DEBUG] [print] turns run on legacy per-turn ask()
+2026-08-28T20:07:55.931Z [DEBUG] [ScheduledTasks] scheduler start() — enabled=false, hasTasks=false
+2026-08-28T20:07:55.936Z [DEBUG] [sessionRegistry] sweep declined by isRegistrySweepPermitted() — dead records are left in place (neither counted nor deleted)
+2026-08-28T20:07:55.937Z [DEBUG] [claudeai-mcp] Fetching from https://api.anthropic.com/v1/mcp_servers?limit=1000
+2026-08-28T20:07:55.937Z [DEBUG] mcp runtime arm: v1 (source: default)
+2026-08-28T20:07:55.977Z [DEBUG] Ripgrep first use test: PASSED (mode=embedded, path=/tmp/kin-live/cli/node_modules/@anthropic-ai/claude-code-linux-x64/claude)
+2026-08-28T20:07:55.977Z [DEBUG] "rg error (signal=undefined, code=2, stderr: rg: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/plugins/cache: IO error for operation on /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/plugins/cache: No such file or directory (os error 2)\n), 0 results"
+2026-08-28T20:07:55.983Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.725; cc_entrypoint=sdk-cli;
+2026-08-28T20:07:55.983Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:07:55.985Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:07:55.987Z [DEBUG] [sessionRegistry] sweep declined by isRegistrySweepPermitted() — dead records are left in place (neither counted nor deleted)
+2026-08-28T20:07:55.989Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:07:55.989Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:07:55.991Z [DEBUG] [API REQUEST] /v1/messages source=generate_session_title
+2026-08-28T20:07:55.993Z [DEBUG] MCP server "kin_runtime": Initializing HTTP transport to http://127.0.0.1:44875/mcp
+2026-08-28T20:07:55.993Z [DEBUG] MCP server "kin_runtime": Node version: v26.3.0, Platform: linux
+2026-08-28T20:07:55.993Z [DEBUG] MCP server "kin_runtime": Environment: {"NODE_OPTIONS":"not set","UV_THREADPOOL_SIZE":"default","HTTP_PROXY":"not set","HTTPS_PROXY":"not set","NO_PROXY":"127.0.0.1,localhost"}
+2026-08-28T20:07:55.993Z [DEBUG] MCP server "kin_runtime": HTTP transport options: {"url":"http://127.0.0.1:44875/mcp","headers":{"User-Agent":"claude-code/2.1.250 (sdk-cli)","Accept-Encoding":"identity"},"hasAuthProvider":true,"timeoutMs":60000}
+2026-08-28T20:07:55.993Z [DEBUG] MCP server "kin_runtime": HTTP transport created successfully
+2026-08-28T20:07:55.995Z [DEBUG] MCP server "kin_runtime": Client created, setting up request handler
+2026-08-28T20:07:55.995Z [DEBUG] MCP server "kin_runtime": Starting connection with timeout of 30000ms
+2026-08-28T20:07:55.995Z [DEBUG] MCP server "kin_runtime": Testing basic HTTP connectivity to http://127.0.0.1:44875/mcp
+2026-08-28T20:07:55.995Z [DEBUG] MCP server "kin_runtime": Parsed URL: host=127.0.0.1, port=44875, protocol=http:
+2026-08-28T20:07:55.995Z [DEBUG] MCP server "kin_runtime": Using loopback address: 127.0.0.1
+2026-08-28T20:07:55.996Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:07:55.997Z [DEBUG] Watching for changes in setting files /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/settings.json...
+2026-08-28T20:07:55.997Z [DEBUG] Preserving file permissions: 100600
+2026-08-28T20:07:55.997Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.dc29011035ea
+2026-08-28T20:07:56.001Z [DEBUG] Applied original permissions to temp file
+2026-08-28T20:07:56.002Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:07:56.004Z [DEBUG] Temp file written successfully, size: 469 bytes
+2026-08-28T20:07:56.005Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.dc29011035ea to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:56.005Z [DEBUG] MCP server "kin_runtime": Successfully connected (transport: http) in 13ms
+2026-08-28T20:07:56.005Z [DEBUG] MCP server "kin_runtime": Connection established with capabilities: {"hasTools":true,"hasPrompts":false,"hasResources":false,"hasResourceSubscribe":false,"serverVersion":{"name":"kin_runtime","version":"0.1.0"}}
+2026-08-28T20:07:56.005Z [DEBUG] [MCP] Server "kin_runtime" connected with subscribe=false
+2026-08-28T20:07:56.006Z [WARN] [3P telemetry] Event dropped (no event logger initialized): mcp_server_connection
+2026-08-28T20:07:56.007Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:07:56.007Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:07:56.008Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:07:56.067Z [DEBUG] Failed to stat directory /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/output-styles: ENOENT: no such file or directory, stat '/tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/output-styles'
+2026-08-28T20:07:56.067Z [DEBUG] Failed to stat directory /etc/claude-code/.claude/output-styles: ENOENT: no such file or directory, stat '/etc/claude-code/.claude/output-styles'
+2026-08-28T20:07:56.067Z [DEBUG] Total plugin output styles loaded: 0
+2026-08-28T20:07:56.068Z [DEBUG] act_dont_rederive_arm_active source=growthbook
+2026-08-28T20:07:56.073Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2026-08-28T20:07:56.073Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2026-08-28T20:07:56.074Z [DEBUG] Hooks: Found 0 total hooks in registry
+2026-08-28T20:07:56.074Z [DEBUG] Sending 11 skills via attachment (initial)
+2026-08-28T20:07:56.074Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2026-08-28T20:07:56.080Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:07:56.080Z [DEBUG] [session-notices] advertise=false mode=acceptEdits flag=false(disabled) pollChannel=false remote=false remoteEnv=false nonInteractive=true
+2026-08-28T20:07:56.085Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:07:56.102Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.26f; cc_entrypoint=sdk-cli;
+2026-08-28T20:07:56.102Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:07:56.102Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:07:56.104Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:07:56.104Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:07:56.105Z [DEBUG] [API REQUEST] /v1/messages source=sdk
+2026-08-28T20:07:56.126Z [DEBUG] Org fast mode: disabled (extra_usage_disabled)
+2026-08-28T20:07:56.148Z [DEBUG] Preserving file permissions: 100600
+2026-08-28T20:07:56.148Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.564e2449bbfd
+2026-08-28T20:07:56.150Z [DEBUG] [claudeai-mcp] Fetched 0 servers
+2026-08-28T20:07:56.160Z [DEBUG] installPluginsForHeadless: starting
+2026-08-28T20:07:56.160Z [DEBUG] installPluginsForHeadless: no marketplaces declared
+2026-08-28T20:07:56.167Z [DEBUG] Applied original permissions to temp file
+2026-08-28T20:07:56.184Z [DEBUG] [Bootstrap] Fetch ok
+2026-08-28T20:07:56.200Z [DEBUG] [Bootstrap] Cache updated, persisting to disk
+2026-08-28T20:07:56.200Z [DEBUG] Temp file written successfully, size: 1071 bytes
+2026-08-28T20:07:56.200Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.564e2449bbfd to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:56.201Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:07:56.204Z [DEBUG] Preserving file permissions: 100600
+2026-08-28T20:07:56.204Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.c4ad71616f41
+2026-08-28T20:07:56.206Z [DEBUG] Applied original permissions to temp file
+2026-08-28T20:07:56.207Z [DEBUG] Temp file written successfully, size: 1965 bytes
+2026-08-28T20:07:56.207Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.c4ad71616f41 to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:56.207Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:07:57.010Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:07:58.013Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:07:59.016Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:07:59.264Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:07:59.264Z [DEBUG] [API:timing] first byte after 3275ms
+2026-08-28T20:07:59.272Z [DEBUG] Preserving file permissions: 100600
+2026-08-28T20:07:59.272Z [DEBUG] Writing to temp file: /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.cf0dff08e257
+2026-08-28T20:07:59.273Z [DEBUG] Applied original permissions to temp file
+2026-08-28T20:07:59.274Z [DEBUG] Temp file written successfully, size: 2023 bytes
+2026-08-28T20:07:59.274Z [DEBUG] Renaming /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json.tmp.7554.cf0dff08e257 to /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json
+2026-08-28T20:07:59.275Z [DEBUG] File /tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/.claude.json written atomically
+2026-08-28T20:08:00.019Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:01.023Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:02.025Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:03.028Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:04.030Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:05.033Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:06.035Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:07.038Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:08.041Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:09.043Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:10.046Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:11.048Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:12.051Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:13.053Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:14.055Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:15.058Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:16.062Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:17.064Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:18.067Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:19.069Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:20.072Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:21.074Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:22.076Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:23.079Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:24.081Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:25.085Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:26.087Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:26.105Z [WARN] Slow first byte: no stream chunk 30.0s after request sent (attempt 1)
+2026-08-28T20:08:27.089Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:28.092Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:29.095Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:30.097Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:31.101Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:32.104Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:33.107Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:34.112Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:35.115Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:36.128Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:37.130Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:38.133Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:39.135Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:40.137Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:41.143Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:42.148Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:43.150Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:44.153Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:45.155Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:46.157Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:47.160Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:48.162Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:49.165Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:50.167Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:51.170Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:52.173Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:53.175Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:54.177Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:55.180Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:56.183Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:57.186Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:57.386Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:08:57.386Z [DEBUG] [API:timing] first byte after 61282ms
+2026-08-28T20:08:57.411Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_017NWBCoGxnXDnysXxmoGaQv permissionDecisionMs=5
+2026-08-28T20:08:57.420Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_017NWBCoGxnXDnysXxmoGaQv outcome=ok durationMs=9
+2026-08-28T20:08:57.425Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.428Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.428Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.428Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.433Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01E7t6at969AXYxMirChHk6m permissionDecisionMs=0
+2026-08-28T20:08:57.435Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01E7t6at969AXYxMirChHk6m outcome=ok durationMs=2
+2026-08-28T20:08:57.437Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.438Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.439Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.439Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.442Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_014kguHUrnH4Xc6uqYJVgPFL permissionDecisionMs=0
+2026-08-28T20:08:57.444Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_014kguHUrnH4Xc6uqYJVgPFL outcome=ok durationMs=2
+2026-08-28T20:08:57.446Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.447Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.447Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.447Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.451Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01KP1FNXKrcHzNMhVh2Ab2cs permissionDecisionMs=0
+2026-08-28T20:08:57.453Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01KP1FNXKrcHzNMhVh2Ab2cs outcome=ok durationMs=2
+2026-08-28T20:08:57.455Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.456Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.456Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.456Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.461Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_015n7iE6DaVBDJLsSp3MPB2q permissionDecisionMs=0
+2026-08-28T20:08:57.463Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_015n7iE6DaVBDJLsSp3MPB2q outcome=ok durationMs=2
+2026-08-28T20:08:57.465Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.467Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.467Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.467Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.471Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01P2m7rvfwMZr3TPVgr1EdrQ permissionDecisionMs=0
+2026-08-28T20:08:57.473Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01P2m7rvfwMZr3TPVgr1EdrQ outcome=ok durationMs=3
+2026-08-28T20:08:57.476Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.477Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.477Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.477Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.482Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01BsVdtGR12MMNHRTMixMMkv permissionDecisionMs=0
+2026-08-28T20:08:57.483Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01BsVdtGR12MMNHRTMixMMkv outcome=ok durationMs=1
+2026-08-28T20:08:57.485Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.486Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.486Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.487Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.491Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01EU6z95FjN7PD8XyqLeq9S7 permissionDecisionMs=0
+2026-08-28T20:08:57.493Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01EU6z95FjN7PD8XyqLeq9S7 outcome=ok durationMs=2
+2026-08-28T20:08:57.495Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.499Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.499Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.499Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.504Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01NDG2L14PEHFYNVbW6ifgVm permissionDecisionMs=0
+2026-08-28T20:08:57.506Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01NDG2L14PEHFYNVbW6ifgVm outcome=ok durationMs=2
+2026-08-28T20:08:57.508Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.509Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.510Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.510Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.541Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_014NpRyRUCn2W9qXsJ6ofYSv permissionDecisionMs=0
+2026-08-28T20:08:57.542Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_014NpRyRUCn2W9qXsJ6ofYSv outcome=ok durationMs=2
+2026-08-28T20:08:57.545Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.546Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.546Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.546Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.551Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01Ev7KQQ8BFQYZ5qgDDbk62g permissionDecisionMs=0
+2026-08-28T20:08:57.553Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01Ev7KQQ8BFQYZ5qgDDbk62g outcome=ok durationMs=3
+2026-08-28T20:08:57.555Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.556Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.557Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.557Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.561Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01JDFNoqJhb76hFxajLexTHP permissionDecisionMs=0
+2026-08-28T20:08:57.564Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01JDFNoqJhb76hFxajLexTHP outcome=ok durationMs=3
+2026-08-28T20:08:57.566Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.567Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.567Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.567Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.573Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_015KWsUmaPN9wkzKmjUWUwYh permissionDecisionMs=0
+2026-08-28T20:08:57.575Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_015KWsUmaPN9wkzKmjUWUwYh outcome=ok durationMs=2
+2026-08-28T20:08:57.576Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.578Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.578Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.578Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.583Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01CHar2si4d4cXUQcpyNkUaz permissionDecisionMs=0
+2026-08-28T20:08:57.585Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01CHar2si4d4cXUQcpyNkUaz outcome=ok durationMs=2
+2026-08-28T20:08:57.588Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.589Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.589Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.589Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.599Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_013gGRnU1k96zQrxG2TrropY permissionDecisionMs=0
+2026-08-28T20:08:57.602Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_013gGRnU1k96zQrxG2TrropY outcome=ok durationMs=3
+2026-08-28T20:08:57.615Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.616Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.616Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.616Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.623Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_017eehkZrExVmWKD4VZGQGhe permissionDecisionMs=0
+2026-08-28T20:08:57.625Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_017eehkZrExVmWKD4VZGQGhe outcome=ok durationMs=4
+2026-08-28T20:08:57.626Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.627Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.628Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.628Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.630Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_0199uYPDxGQ8HdQDF6jVwL5r permissionDecisionMs=0
+2026-08-28T20:08:57.632Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_0199uYPDxGQ8HdQDF6jVwL5r outcome=ok durationMs=2
+2026-08-28T20:08:57.635Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.636Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.636Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.636Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.639Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01FtJmQNPFWeVpL7VUjXmQvx permissionDecisionMs=0
+2026-08-28T20:08:57.641Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01FtJmQNPFWeVpL7VUjXmQvx outcome=ok durationMs=2
+2026-08-28T20:08:57.643Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.644Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.644Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.644Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.647Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01XGBpi5P7ekYrzYu3eMcWeL permissionDecisionMs=0
+2026-08-28T20:08:57.649Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01XGBpi5P7ekYrzYu3eMcWeL outcome=ok durationMs=2
+2026-08-28T20:08:57.651Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.652Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.652Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.652Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.656Z [INFO] [Stall] tool_dispatch_start tool=Agent toolUseId=toolu_01SeGPuNSKLdmuCcfDBrx7Zg permissionDecisionMs=0
+2026-08-28T20:08:57.658Z [INFO] [Stall] tool_dispatch_end tool=Agent toolUseId=toolu_01SeGPuNSKLdmuCcfDBrx7Zg outcome=ok durationMs=2
+2026-08-28T20:08:57.660Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.661Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:08:57.661Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.662Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.665Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2026-08-28T20:08:57.665Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2026-08-28T20:08:57.666Z [DEBUG] Hooks: Found 0 total hooks in registry
+2026-08-28T20:08:57.666Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2026-08-28T20:08:57.667Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.668Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.668Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.668Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.668Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.668Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.669Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.669Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.669Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.669Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.669Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.669Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.669Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.669Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.669Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.669Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.669Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.670Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.670Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.670Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.670Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.670Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.670Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.670Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.670Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.671Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.671Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.671Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.671Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.671Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.671Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.671Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.672Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.672Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.672Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.672Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.672Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.672Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.672Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.672Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.675Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.676Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.677Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.677Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.678Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.679Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.679Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.679Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.680Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.680Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.680Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.680Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.681Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.681Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.681Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.682Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.682Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.682Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.683Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.684Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:08:57.706Z [DEBUG] Loading skills from: managed=/etc/claude-code/.claude/skills, user=/tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1/skills, project=[]
+2026-08-28T20:08:57.707Z [DEBUG] Loaded 0 unique skills (0 unconditional, 0 conditional, managed: 0, user: 0, project: 0, additional: 0, legacy commands: 0)
+2026-08-28T20:08:57.707Z [DEBUG] getSkills returning: 0 skill dir commands, 0 plugin skills, 41 bundled skills, 0 builtin plugin skills
+2026-08-28T20:08:57.722Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:08:57.731Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.26f; cc_entrypoint=sdk-cli;
+2026-08-28T20:08:57.732Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.732Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.734Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:08:57.735Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:08:57.736Z [DEBUG] [API REQUEST] /v1/messages source=sdk
+2026-08-28T20:08:58.266Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:59.304Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:59.881Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:08:59.881Z [DEBUG] [API:timing] first byte after 2211ms
+2026-08-28T20:08:59.886Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_016YXuMkNyKHQ31kYTrpYFpx permissionDecisionMs=0
+2026-08-28T20:08:59.888Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:08:59.891Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:59.897Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:08:59.897Z [DEBUG] [API:timing] first byte after 2227ms
+2026-08-28T20:08:59.899Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01UKxfoLKxxkhvjAWV9qWYuq permissionDecisionMs=1
+2026-08-28T20:08:59.899Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:08:59.901Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:59.904Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:08:59.904Z [DEBUG] [API:timing] first byte after 2233ms
+2026-08-28T20:08:59.906Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01LNgDc4SHT8x9iSdtc5BZjW permissionDecisionMs=0
+2026-08-28T20:08:59.907Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:08:59.909Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:08:59.993Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:08:59.993Z [DEBUG] [API:timing] first byte after 2325ms
+2026-08-28T20:08:59.996Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_019LaZgwCDxMGaQskG4r1RMS permissionDecisionMs=0
+2026-08-28T20:08:59.998Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.001Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.025Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.025Z [DEBUG] [API:timing] first byte after 2356ms
+2026-08-28T20:09:00.029Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01J2NKCcyPC4N9oD5zHq182m permissionDecisionMs=1
+2026-08-28T20:09:00.030Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.032Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.080Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.080Z [DEBUG] [API:timing] first byte after 2411ms
+2026-08-28T20:09:00.085Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_019ji4KDY4gkiQwcKVsWQM8j permissionDecisionMs=0
+2026-08-28T20:09:00.086Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.088Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.125Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.126Z [DEBUG] [API:timing] first byte after 2456ms
+2026-08-28T20:09:00.134Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01QF8SLMpW216JHLqYxFAPqx permissionDecisionMs=1
+2026-08-28T20:09:00.134Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.136Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.222Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.222Z [DEBUG] [API:timing] first byte after 2552ms
+2026-08-28T20:09:00.230Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_0167tB2NcxzUnSephPmXwaUw permissionDecisionMs=0
+2026-08-28T20:09:00.231Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.233Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.235Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.235Z [DEBUG] [API:timing] first byte after 2563ms
+2026-08-28T20:09:00.239Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01VW163GVJH6wDeMAqWqn1Nn permissionDecisionMs=0
+2026-08-28T20:09:00.240Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.245Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.306Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.332Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.332Z [DEBUG] [API:timing] first byte after 2660ms
+2026-08-28T20:09:00.335Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01C4CHqewkJzSMLwYV4sBfUN permissionDecisionMs=0
+2026-08-28T20:09:00.335Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.338Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.359Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.359Z [DEBUG] [API:timing] first byte after 2691ms
+2026-08-28T20:09:00.363Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01SJkHu2LJ3gzbrZqBMXEsxq permissionDecisionMs=0
+2026-08-28T20:09:00.364Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.366Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.468Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.468Z [DEBUG] [API:timing] first byte after 2801ms
+2026-08-28T20:09:00.473Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01KYQXzdqUiBv6i5MD9E7oeo permissionDecisionMs=1
+2026-08-28T20:09:00.474Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.477Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.498Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.498Z [DEBUG] [API:timing] first byte after 2827ms
+2026-08-28T20:09:00.503Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01Qy8xvo4xRn2PJ9TtdmHawr permissionDecisionMs=1
+2026-08-28T20:09:00.503Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.505Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.546Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.546Z [DEBUG] [API:timing] first byte after 2876ms
+2026-08-28T20:09:00.550Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_017TED7tzMt2X9mFCX2SuS7v permissionDecisionMs=0
+2026-08-28T20:09:00.550Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.555Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:00.780Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:00.780Z [DEBUG] [API:timing] first byte after 3111ms
+2026-08-28T20:09:00.785Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01SUSLTSEQaqJ4mzNVEW4bp5 permissionDecisionMs=0
+2026-08-28T20:09:00.786Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:00.788Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:01.197Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:01.197Z [DEBUG] [API:timing] first byte after 3463ms
+2026-08-28T20:09:01.216Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:01.308Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:02.029Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:02.029Z [DEBUG] [API:timing] first byte after 4359ms
+2026-08-28T20:09:02.037Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01C87X7sR21iGamNvB1ALiFj permissionDecisionMs=1
+2026-08-28T20:09:02.037Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:02.041Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:02.310Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:03.314Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:03.355Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:03.355Z [DEBUG] [API:timing] first byte after 5684ms
+2026-08-28T20:09:03.358Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01TsMrreWuq1EvzCHHadnbVf permissionDecisionMs=0
+2026-08-28T20:09:03.359Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:03.361Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:03.657Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:03.657Z [DEBUG] [API:timing] first byte after 5985ms
+2026-08-28T20:09:03.660Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01DtKjQjJE1WicCFCfKBKtKF permissionDecisionMs=0
+2026-08-28T20:09:03.660Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:03.662Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:04.316Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:05.324Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:06.325Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:07.327Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:08.180Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:08.180Z [DEBUG] [API:timing] first byte after 10512ms
+2026-08-28T20:09:08.184Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01VG7nCJvtH3W4ixPuKeUNHf permissionDecisionMs=0
+2026-08-28T20:09:08.185Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:08.187Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:08.329Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:09.332Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:10.334Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:10.921Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:10.921Z [DEBUG] [API:timing] first byte after 13252ms
+2026-08-28T20:09:10.925Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01YC1Z8PYd8ZoNbujg7smDKd permissionDecisionMs=0
+2026-08-28T20:09:10.925Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:10.929Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:11.336Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:11.371Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' completed successfully in 11s
+2026-08-28T20:09:11.373Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__slot_wait toolUseId=toolu_016YXuMkNyKHQ31kYTrpYFpx outcome=ok durationMs=11486
+2026-08-28T20:09:11.378Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:09:11.379Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:09:11.379Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:11.380Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:11.381Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:11.381Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:09:11.381Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:09:12.339Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:13.342Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:14.347Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:15.350Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:15.980Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:15.981Z [DEBUG] [API:timing] first byte after 4600ms
+2026-08-28T20:09:15.988Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__kin_done toolUseId=toolu_01M6wzUtpWxYRpkBTgZ5Q26D permissionDecisionMs=0
+2026-08-28T20:09:15.990Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: kin_done
+2026-08-28T20:09:15.992Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:15.997Z [DEBUG] MCP server "kin_runtime": Tool 'kin_done' completed successfully in 7ms
+2026-08-28T20:09:15.997Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__kin_done toolUseId=toolu_01M6wzUtpWxYRpkBTgZ5Q26D outcome=ok durationMs=9
+2026-08-28T20:09:16.001Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:09:16.002Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:09:16.002Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:16.002Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:16.004Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:16.004Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:09:16.006Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:09:16.352Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:17.354Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:18.359Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:18.407Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' completed successfully in 18s
+2026-08-28T20:09:18.407Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01UKxfoLKxxkhvjAWV9qWYuq outcome=ok durationMs=18508
+2026-08-28T20:09:18.410Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:09:18.412Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:09:18.412Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:18.412Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:18.413Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:18.413Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:09:18.414Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:09:19.362Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:20.364Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:20.827Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:20.827Z [DEBUG] [API:timing] first byte after 2414ms
+2026-08-28T20:09:20.834Z [INFO] [Stall] tool_dispatch_start tool=WebSearch toolUseId=toolu_01MunCqo6geVuYbUms9K3ynK permissionDecisionMs=1
+2026-08-28T20:09:20.835Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.5cc; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:09:20.835Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:20.835Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:20.838Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:20.838Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:09:20.839Z [DEBUG] [API REQUEST] /v1/messages source=web_search_tool
+2026-08-28T20:09:21.367Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:21.659Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:21.659Z [DEBUG] [API:timing] first byte after 5656ms
+2026-08-28T20:09:21.664Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01RDTa7pA1jd2j3ytqNQgYFi permissionDecisionMs=0
+2026-08-28T20:09:21.664Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:21.666Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:22.370Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:23.372Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:24.374Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:25.376Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:26.379Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:27.383Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:28.385Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:29.390Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:29.907Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.002Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.030Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.086Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.134Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.231Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.240Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.335Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.364Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.395Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:30.477Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.503Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.550Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:30.786Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:31.398Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:31.436Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:31.436Z [DEBUG] [API:timing] first byte after 10598ms
+2026-08-28T20:09:31.479Z [INFO] [Stall] tool_dispatch_end tool=WebSearch toolUseId=toolu_01MunCqo6geVuYbUms9K3ynK outcome=ok durationMs=10645
+2026-08-28T20:09:31.482Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:09:31.484Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:09:31.484Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:31.484Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:31.485Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:31.485Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:09:31.485Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:09:32.037Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:32.400Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:33.359Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:33.403Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:33.661Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:34.405Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:35.407Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:36.409Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:37.412Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:38.185Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:38.414Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:39.416Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:40.418Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:40.925Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:41.421Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:42.423Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:43.425Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:44.428Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:45.431Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:46.433Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:47.436Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:48.439Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:48.514Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:48.514Z [DEBUG] [API:timing] first byte after 17029ms
+2026-08-28T20:09:48.525Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__kin_done toolUseId=toolu_017Dw1neszyQG6Xibs9T1AHz permissionDecisionMs=0
+2026-08-28T20:09:48.526Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: kin_done
+2026-08-28T20:09:48.529Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:48.535Z [DEBUG] MCP server "kin_runtime": Tool 'kin_done' completed successfully in 9ms
+2026-08-28T20:09:48.535Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__kin_done toolUseId=toolu_017Dw1neszyQG6Xibs9T1AHz outcome=ok durationMs=10
+2026-08-28T20:09:48.538Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:09:48.539Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:09:48.539Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:48.539Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:48.540Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:48.540Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:09:48.541Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:09:49.443Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:50.237Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:50.237Z [DEBUG] [API:timing] first byte after 1697ms
+2026-08-28T20:09:50.241Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01BaJFpxKvV1KiPq5S92pKLn permissionDecisionMs=0
+2026-08-28T20:09:50.241Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:09:50.244Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:50.464Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:50.943Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' completed successfully in 51s
+2026-08-28T20:09:50.944Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01LNgDc4SHT8x9iSdtc5BZjW outcome=ok durationMs=51038
+2026-08-28T20:09:50.947Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:09:50.948Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:09:50.948Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:50.949Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:50.950Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:50.950Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:09:50.950Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:09:51.467Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:51.668Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:09:52.470Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:53.472Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:54.474Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:55.477Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:55.521Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:09:55.521Z [DEBUG] [API:timing] first byte after 4571ms
+2026-08-28T20:09:55.524Z [INFO] [Stall] tool_dispatch_start tool=WebSearch toolUseId=toolu_01CuDeMMPq38E1U2BcYQh8wY permissionDecisionMs=0
+2026-08-28T20:09:55.525Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.5cc; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:09:55.525Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:55.525Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:55.528Z [INFO] [Stall] tool_dispatch_start tool=WebSearch toolUseId=toolu_014KJr1UZVoHzb2gsqDdXJA8 permissionDecisionMs=1
+2026-08-28T20:09:55.528Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.5cc; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:09:55.528Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:55.529Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:55.531Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:55.531Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:09:55.531Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:09:55.531Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:09:55.532Z [DEBUG] [API REQUEST] /v1/messages source=web_search_tool
+2026-08-28T20:09:55.533Z [DEBUG] [API REQUEST] /v1/messages source=web_search_tool
+2026-08-28T20:09:56.480Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:57.482Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:58.484Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:09:59.487Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:00.002Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.030Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.086Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.135Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.231Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.240Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.339Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.364Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.477Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.489Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:00.503Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.550Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:00.791Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:01.492Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:02.037Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:02.495Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:03.359Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:03.497Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:03.661Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:04.499Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:05.501Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:06.503Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:07.506Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:08.185Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:08.508Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:09.510Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:10.513Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:10.926Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:11.515Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:12.517Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:13.505Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:10:13.505Z [DEBUG] [API:timing] first byte after 17974ms
+2026-08-28T20:10:13.517Z [INFO] [Stall] tool_dispatch_end tool=WebSearch toolUseId=toolu_014KJr1UZVoHzb2gsqDdXJA8 outcome=ok durationMs=17989
+2026-08-28T20:10:13.524Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:14.530Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:15.534Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:16.536Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:17.538Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:18.541Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:19.191Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:10:19.191Z [DEBUG] [API:timing] first byte after 23661ms
+2026-08-28T20:10:19.198Z [INFO] [Stall] tool_dispatch_end tool=WebSearch toolUseId=toolu_01CuDeMMPq38E1U2BcYQh8wY outcome=ok durationMs=23674
+2026-08-28T20:10:19.201Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:10:19.202Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:10:19.202Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:10:19.202Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:10:19.203Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:10:19.203Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:10:19.204Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:10:19.548Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:20.242Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:10:20.550Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:21.553Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:21.669Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:22.555Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:23.557Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:24.559Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:25.562Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:26.564Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:27.566Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:28.569Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:29.571Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:30.004Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.030Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.086Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.135Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.231Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.240Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.339Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.364Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.477Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.504Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.550Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:30.573Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:30.791Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:31.575Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:32.041Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:32.580Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:33.359Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:33.584Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:33.661Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:34.588Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:35.590Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:36.593Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:37.595Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:38.185Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:38.598Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:39.600Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:40.602Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:40.926Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:41.605Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:42.607Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:43.610Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:44.613Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:45.616Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:46.618Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:47.621Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:48.623Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:49.204Z [WARN] Slow first byte: no stream chunk 30.0s after request sent (attempt 1)
+2026-08-28T20:10:49.625Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:50.242Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:10:50.627Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:51.630Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:51.669Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:10:52.633Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:53.636Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:54.641Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:55.644Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:56.646Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:57.649Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:58.651Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:10:59.654Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:00.004Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.030Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.086Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.135Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.231Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.240Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.249Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:00.249Z [DEBUG] [API:timing] first byte after 41046ms
+2026-08-28T20:11:00.261Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__kin_done toolUseId=toolu_01PYgz68rMizgGwXc4YPUjKi permissionDecisionMs=0
+2026-08-28T20:11:00.261Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: kin_done
+2026-08-28T20:11:00.263Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:00.267Z [DEBUG] MCP server "kin_runtime": Tool 'kin_done' completed successfully in 6ms
+2026-08-28T20:11:00.268Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__kin_done toolUseId=toolu_01PYgz68rMizgGwXc4YPUjKi outcome=ok durationMs=8
+2026-08-28T20:11:00.270Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:11:00.271Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:11:00.271Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:00.272Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:00.273Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:00.273Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:11:00.274Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:11:00.339Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.364Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.477Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.504Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.550Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:00.656Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:00.792Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:01.658Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:02.041Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:02.576Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:02.576Z [DEBUG] [API:timing] first byte after 2303ms
+2026-08-28T20:11:02.580Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_016xSHduiEnEXG5VY2UbWaqo permissionDecisionMs=0
+2026-08-28T20:11:02.580Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:11:02.583Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:02.661Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:02.684Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' completed successfully in 2m 2s
+2026-08-28T20:11:02.685Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__slot_wait toolUseId=toolu_019LaZgwCDxMGaQskG4r1RMS outcome=ok durationMs=122688
+2026-08-28T20:11:02.688Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:11:02.689Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:11:02.689Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:02.689Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:02.690Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:02.690Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:11:02.691Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:11:03.359Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:03.661Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:03.662Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:04.665Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:05.668Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:06.672Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:07.674Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:08.185Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:08.678Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:09.681Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:09.741Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:09.741Z [DEBUG] [API:timing] first byte after 7051ms
+2026-08-28T20:11:09.747Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__kin_done toolUseId=toolu_01SfBYo5vzUfkr8UgDucMxzF permissionDecisionMs=0
+2026-08-28T20:11:09.748Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: kin_done
+2026-08-28T20:11:09.750Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:09.754Z [DEBUG] MCP server "kin_runtime": Tool 'kin_done' completed successfully in 6ms
+2026-08-28T20:11:09.754Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__kin_done toolUseId=toolu_01SfBYo5vzUfkr8UgDucMxzF outcome=ok durationMs=7
+2026-08-28T20:11:09.756Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:11:09.757Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:11:09.758Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:09.758Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:09.760Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:09.760Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:11:09.761Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:11:10.683Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:10.926Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:11.503Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:11.503Z [DEBUG] [API:timing] first byte after 1744ms
+2026-08-28T20:11:11.506Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01Em5kxJur9RKt57B1kZ2tQv permissionDecisionMs=1
+2026-08-28T20:11:11.507Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:11:11.509Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:11.689Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:12.165Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' completed successfully in 2m 12s
+2026-08-28T20:11:12.166Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01J2NKCcyPC4N9oD5zHq182m outcome=ok durationMs=132137
+2026-08-28T20:11:12.169Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:11:12.169Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:11:12.170Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:12.170Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:12.171Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:12.172Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:11:12.173Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:11:12.693Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:13.696Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:14.698Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:15.701Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:16.423Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:16.423Z [DEBUG] [API:timing] first byte after 4253ms
+2026-08-28T20:11:16.430Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__kin_done toolUseId=toolu_01X1ijxGp42yH1fSEvg2XJU8 permissionDecisionMs=0
+2026-08-28T20:11:16.430Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: kin_done
+2026-08-28T20:11:16.432Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:16.436Z [DEBUG] MCP server "kin_runtime": Tool 'kin_done' completed successfully in 6ms
+2026-08-28T20:11:16.436Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__kin_done toolUseId=toolu_01X1ijxGp42yH1fSEvg2XJU8 outcome=ok durationMs=7
+2026-08-28T20:11:16.439Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:11:16.441Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:11:16.441Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:16.441Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:16.442Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:16.443Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:11:16.444Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:11:16.703Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:17.706Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:18.397Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:18.397Z [DEBUG] [API:timing] first byte after 1954ms
+2026-08-28T20:11:18.403Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01EUz4YcMFhDw4V5v7bc47qC permissionDecisionMs=1
+2026-08-28T20:11:18.405Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:11:18.412Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:18.708Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:18.846Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' completed successfully in 2m 18s
+2026-08-28T20:11:18.847Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__slot_wait toolUseId=toolu_019ji4KDY4gkiQwcKVsWQM8j outcome=ok durationMs=138765
+2026-08-28T20:11:18.851Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:11:18.852Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:11:18.852Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:18.852Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:18.853Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:18.853Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:11:18.854Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:11:19.711Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:20.242Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:11:20.714Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:21.669Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:21.716Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:22.719Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:23.721Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:24.724Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:25.726Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:26.729Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:27.139Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:27.139Z [DEBUG] [API:timing] first byte after 8286ms
+2026-08-28T20:11:27.147Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__kin_done toolUseId=toolu_01N3mcrETx8aHqzem3eGuJ6L permissionDecisionMs=1
+2026-08-28T20:11:27.148Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: kin_done
+2026-08-28T20:11:27.149Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:27.153Z [DEBUG] MCP server "kin_runtime": Tool 'kin_done' completed successfully in 5ms
+2026-08-28T20:11:27.153Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__kin_done toolUseId=toolu_01N3mcrETx8aHqzem3eGuJ6L outcome=ok durationMs=6
+2026-08-28T20:11:27.155Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:11:27.157Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:11:27.157Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:27.158Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:27.159Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:27.161Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:11:27.162Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:11:27.742Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:28.746Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:28.891Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:28.891Z [DEBUG] [API:timing] first byte after 1732ms
+2026-08-28T20:11:28.895Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01HHJ4cJoMoyFsRaPPzYgN9z permissionDecisionMs=0
+2026-08-28T20:11:28.895Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:11:28.897Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:29.563Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' completed successfully in 2m 29s
+2026-08-28T20:11:29.564Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__slot_wait toolUseId=toolu_01QF8SLMpW216JHLqYxFAPqx outcome=ok durationMs=149430
+2026-08-28T20:11:29.566Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:11:29.568Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:11:29.568Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:29.568Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:29.569Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:29.569Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:11:29.569Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:11:29.753Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:30.231Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:30.240Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:30.339Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:30.364Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:30.478Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:30.504Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:30.551Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:30.758Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:30.792Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:31.763Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:32.041Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:32.581Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:11:32.739Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:32.739Z [DEBUG] [API:timing] first byte after 3171ms
+2026-08-28T20:11:32.743Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__client_tool toolUseId=toolu_01AS1awMDnVaTmvfQUyrfMDL permissionDecisionMs=0
+2026-08-28T20:11:32.743Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: client_tool
+2026-08-28T20:11:32.745Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:32.752Z [DEBUG] MCP server "kin_runtime": Tool 'client_tool' completed successfully in 9ms
+2026-08-28T20:11:32.753Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__client_tool toolUseId=toolu_01AS1awMDnVaTmvfQUyrfMDL outcome=ok durationMs=10
+2026-08-28T20:11:32.756Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:11:32.757Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:11:32.757Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:32.757Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:32.758Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:32.758Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:11:32.759Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:11:32.766Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:33.360Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:33.661Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:33.770Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:34.774Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:35.195Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:35.195Z [DEBUG] [API:timing] first byte after 2437ms
+2026-08-28T20:11:35.199Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__kin_done toolUseId=toolu_01G6dNk4oX593orY1WTo9RPo permissionDecisionMs=0
+2026-08-28T20:11:35.200Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: kin_done
+2026-08-28T20:11:35.202Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:35.205Z [DEBUG] MCP server "kin_runtime": Tool 'kin_done' completed successfully in 5ms
+2026-08-28T20:11:35.206Z [INFO] [Stall] tool_dispatch_end tool=mcp__kin_runtime__kin_done toolUseId=toolu_01G6dNk4oX593orY1WTo9RPo outcome=ok durationMs=6
+2026-08-28T20:11:35.208Z [DEBUG] autocompact: tokens=[REDACTED] level=ok effectiveWindow=180000
+2026-08-28T20:11:35.209Z [DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;
+2026-08-28T20:11:35.209Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:35.209Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:35.210Z [DEBUG] Fast mode unavailable: Fast mode is not available in the Agent SDK
+2026-08-28T20:11:35.210Z [DEBUG] [API:timing] dispatching to firstParty model=claude-sonnet-5
+2026-08-28T20:11:35.211Z [DEBUG] [API REQUEST] /v1/messages source=agent:custom:kin-slot
+2026-08-28T20:11:35.776Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:36.779Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:37.343Z [DEBUG] Stream started - received first chunk
+2026-08-28T20:11:37.344Z [DEBUG] [API:timing] first byte after 2133ms
+2026-08-28T20:11:37.347Z [INFO] [Stall] tool_dispatch_start tool=mcp__kin_runtime__slot_wait toolUseId=toolu_014mr9QdHtbW7yCrCTi5emxR permissionDecisionMs=1
+2026-08-28T20:11:37.347Z [DEBUG] MCP server "kin_runtime": Calling MCP tool: slot_wait
+2026-08-28T20:11:37.349Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:37.782Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:38.185Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:38.786Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:39.790Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:40.794Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:40.926Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:41.507Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:11:41.807Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:42.812Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:43.816Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:44.824Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:45.827Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:46.829Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:47.832Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:48.405Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:11:48.834Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:49.836Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:50.242Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:11:50.840Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:51.669Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:11:51.842Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:52.844Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:53.847Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:54.851Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:55.855Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:56.858Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:57.861Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:58.863Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:11:58.895Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:11:59.866Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:00.232Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:00.240Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:00.339Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:00.364Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:00.478Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:00.504Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:00.551Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:00.792Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:00.869Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:01.871Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:02.044Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:02.581Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:12:02.874Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:03.360Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:03.662Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:03.876Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:04.879Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:05.881Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:06.884Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:07.348Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (30s elapsed)
+2026-08-28T20:12:07.886Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:08.186Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:08.892Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:09.895Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:10.897Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:10.926Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:11.507Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:12:11.899Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:12.901Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:13.904Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:14.906Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:15.909Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:16.920Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:17.923Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:18.405Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:12:18.925Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:19.928Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:20.242Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:12:20.930Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:21.669Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:21.933Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:22.936Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:23.939Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:24.945Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:25.951Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:26.957Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:27.960Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:28.896Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:12:28.965Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:29.968Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:30.232Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:30.242Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:30.339Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:30.365Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:30.478Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:30.504Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:30.551Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:30.793Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:30.971Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:31.974Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:32.044Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:32.581Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:12:32.977Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:33.360Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:33.662Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:33.980Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:34.983Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:35.985Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:36.994Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:37.348Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (60s elapsed)
+2026-08-28T20:12:37.997Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:38.186Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:39.001Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:40.004Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:40.926Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:41.006Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:41.507Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:12:42.010Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:43.019Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:44.024Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:45.027Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:46.032Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:47.036Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:48.039Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:48.405Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:12:49.043Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:50.047Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:50.243Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:12:51.050Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:51.669Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:12:52.054Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:53.056Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:54.059Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:55.061Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:56.064Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:57.068Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:58.072Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:12:58.896Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:12:59.075Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:00.079Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:00.232Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:00.242Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:00.340Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:00.365Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:00.478Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:00.504Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:00.551Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:00.794Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:01.084Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:02.044Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:02.088Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:02.581Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:13:03.091Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:03.360Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:03.662Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:04.093Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:05.096Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:06.098Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:07.100Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:07.348Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (90s elapsed)
+2026-08-28T20:13:08.102Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:08.186Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:09.105Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:10.107Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:10.926Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:11.109Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:11.507Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:13:12.112Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:13.115Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:14.118Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:15.120Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:16.123Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:17.125Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:18.127Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:18.406Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:13:19.129Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:20.132Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:20.243Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (210s elapsed)
+2026-08-28T20:13:21.134Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:21.669Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:22.137Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:23.142Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:24.145Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:25.148Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:26.151Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:27.153Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:28.156Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:28.896Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:13:29.158Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:30.163Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:30.232Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:30.242Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:30.340Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:30.365Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:30.478Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:30.504Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:30.551Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:30.794Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:31.166Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:32.045Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:32.169Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:32.581Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:13:33.171Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:33.360Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:33.662Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:34.174Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:35.176Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:36.179Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:37.181Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:37.348Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (120s elapsed)
+2026-08-28T20:13:38.186Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:38.187Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:39.190Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:40.192Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:40.926Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:41.196Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:41.508Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:13:42.199Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:43.201Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:44.211Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:45.230Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:46.232Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:47.235Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:48.239Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:48.406Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:13:49.241Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:50.243Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (240s elapsed)
+2026-08-28T20:13:50.244Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:51.247Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:51.670Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (270s elapsed)
+2026-08-28T20:13:52.250Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:53.252Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:54.254Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:55.257Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:56.259Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:57.267Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:58.274Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:13:58.896Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:13:59.276Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:14:00.232Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:00.242Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:00.279Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:14:00.340Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:00.365Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:00.478Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:00.504Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:00.551Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:00.794Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:01.283Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:14:02.045Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:02.285Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:14:02.581Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (180s elapsed)
+2026-08-28T20:14:03.287Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:14:03.360Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:03.662Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:04.290Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:14:05.292Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:14:06.295Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:14:07.301Z [DEBUG] MCP server "kin_runtime": No token data found
+2026-08-28T20:14:07.348Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (150s elapsed)
+2026-08-28T20:14:08.186Z [DEBUG] MCP server "kin_runtime": Tool 'slot_wait' still running (300s elapsed)
+2026-08-28T20:14:08.303Z [DEBUG] MCP server "kin_runtime": No token data found

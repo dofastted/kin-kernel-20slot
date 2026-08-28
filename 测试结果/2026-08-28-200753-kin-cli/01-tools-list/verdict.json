@@ -1,0 +1,24 @@
+{
+  "id": "01-tools-list",
+  "title": "工具列表",
+  "http": 200,
+  "ms": 4630,
+  "clean": true,
+  "failed": [],
+  "stop": "end_turn",
+  "model": "claude-sonnet-5",
+  "tools": [],
+  "text": "根据当前这次请求的配置，tools 字段为空列表，因此在本次任务中我没有可调用的工具。",
+  "thinking_len": 0,
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 296,
+    "cache_creation_input_tokens": 615,
+    "cache_read_input_tokens": 2518
+  },
+  "error": null,
+  "outbound_packets": 9,
+  "resume_http": null,
+  "resume_text": null,
+  "path": "kin-cli-observe + dump_proxy + SOCKS5"
+}

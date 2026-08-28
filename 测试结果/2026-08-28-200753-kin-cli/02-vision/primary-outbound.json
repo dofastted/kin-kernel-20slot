@@ -1,0 +1,25 @@
+{
+  "seq": 176,
+  "case": "02-vision",
+  "method": "POST",
+  "path": "/v1/messages?beta=true",
+  "status": 200,
+  "ms": 17018,
+  "req_bytes": 12977,
+  "resp_bytes": 12764,
+  "dir": "02-vision/outbound/176-POST-v1-messages",
+  "model": "claude-sonnet-5",
+  "user_head": "<system-reminder>\nAs you answer the user's questions, you can use the following context:\n# currentDate\nToday's date is 2026-08-28.\n\n      IMPORTANT: this context may or may not be relevant to your tas",
+  "tools": [
+    "WebSearch",
+    "mcp__kin_runtime__slot_wait",
+    "mcp__kin_runtime__client_tool",
+    "mcp__kin_runtime__kin_done",
+    "mcp__kin_runtime__kin_fail"
+  ],
+  "resp_tools": [
+    "mcp__kin_runtime__kin_done"
+  ],
+  "text_head": "这是一张 **Google 涂鸎 (Google Doodle)** 图片,名为 **\"World Cup 2026: The Art of the Bicycle Kick\"**(2026年世界杯:倒钩射门的艺术)。\n\n**背景信息:**\n- 这是 Google 在 2026 年 6 月 17 日发布的一系列世界杯主题涂鸦之一,用来庆祝 2026 年国际足联世界杯。\n- 该系列涂鸦每一期都聚焦足球的一项经典技巧/动作,例如点球、头球、长传、任意球弧线、铲球、踩单车过人等,而这一期专门展示\"倒钩射门\"(bicycle kick,也叫倒挂金钩/剪刀脚)。\n- 倒钩射门是足球中最具观赏性和技术难度",
+  "error": null
+}

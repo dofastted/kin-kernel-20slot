@@ -1,0 +1,84 @@
+event: message_start
+data: {"type":"message_start","message":{"model":"claude-sonnet-5","id":"msg_011CeVkmHo31Jz1po7VFXziA","type":"message","role":"assistant","content":[],"stop_reason":null,"stop_sequence":null,"stop_details":null,"usage":{"input_tokens":2,"cache_creation_input_tokens":1063,"cache_read_input_tokens":2518,"cache_creation":{"ephemeral_5m_input_tokens":1063,"ephemeral_1h_input_tokens":0},"output_tokens":2,"service_tier":"standard","inference_geo":"not_available"}}            }
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""} }
+
+event: ping
+data: {"type": "ping"}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"","estimated_tokens":100}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"","estimated_tokens":null}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"ErwDCqgBCBEYAipAYNE96GqA06S1hU0YhBAYBmpdCAm60RqPyZcwGxJMHK4vG54ZdgJR4mQwdPQBG3Kj7mTBgVKc1WO+1vWOJPl8dTIPY2xhdWRlLXNvbm5ldC01OABCCHRoaW5raW5nWiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWJyEDHsou4p9GYLjtQuMqnihWSIAQGoAfTWx9QGsAECEgyAzOFv8uQmP8yTI60aDNNim28NkVHb4UicNyIwVb6OJeo6MF4F9L6Y8jaFcmwT/SNTUo7MMaf2ueXbDLNOvAoY/NtS4yg0YLNZ/lxDKsABhL0zm+SbxKusEnYLGjmHrZPZgpDSlzLkbabboCuNa8me3dX4Xviejx2m7aeWeqclQBlxon2zpyWWcvDH3DdAkRRU71HsXvaS6x+l52fAbnK315CIegD9huWIyHFuPTorOBrTQ/PSVLuPAVhgv9l5T9ZABHLw/AB4/gdOrtb0C8iGy/N1cgXW44cuwrXny+sz5fq5SAcVXhFjtsW3OGdE4zzWcMtNafhYKgh6lHPr1eUs9wtxJR3Nj9fZXLnLy20UGAE="}           }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_01AS1awMDnVaTmvfQUyrfMDL","name":"mcp__kin_runtime__client_tool","input":{},"caller":{"type":"direct"}}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\"job_id\": \""}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"job_4a815"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"065345"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"c4690a"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"3df4828085"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"7842"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"6\""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":", \"name"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\": \"get_wea"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ther"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\""}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":", \"input\":"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":" {\"city\":\"东京"}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\",\"unit\":\""}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"celsius\""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"}}"}           }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1               }
+
+event: message_delta
+data: {"type":"message_delta","delta":{"stop_reason":"tool_use","stop_sequence":null,"stop_details":null},"usage":{"input_tokens":2,"cache_creation_input_tokens":1063,"cache_read_input_tokens":2518,"output_tokens":212,"output_tokens_details":{"thinking_tokens":71}},"context_management":{"applied_edits":[]}             }
+
+event: message_stop
+data: {"type":"message_stop"          }
+

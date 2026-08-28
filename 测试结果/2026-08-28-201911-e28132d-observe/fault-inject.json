@@ -1,0 +1,53 @@
+{
+  "ok": true,
+  "reason": "boot_failed",
+  "cli_spawned": false,
+  "readyz_503_samples": [
+    {
+      "t": 0.307,
+      "readyz": 503,
+      "ready": {
+        "reason": "boot_failed",
+        "status": "not_ready"
+      },
+      "relay_loopback": 200,
+      "claude": 0,
+      "relay": {
+        "correlate_hit": 0,
+        "correlate_miss": 0,
+        "digest_mismatch": 0,
+        "relay_healthy": false,
+        "relay_mode": "observe",
+        "tap_dropped": 0,
+        "tap_response_started": 0
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "event": "boot_failed",
+      "t": 0.307,
+      "readyz": 503,
+      "ready": {
+        "reason": "boot_failed",
+        "status": "not_ready"
+      },
+      "relay_loopback": 200,
+      "claude": 0,
+      "relay": {
+        "correlate_hit": 0,
+        "correlate_miss": 0,
+        "digest_mismatch": 0,
+        "relay_healthy": false,
+        "relay_mode": "observe",
+        "tap_dropped": 0,
+        "tap_response_started": 0
+      }
+    }
+  ],
+  "log_hits": [
+    "{\"timestamp\":\"2026-08-28T20:18:16.768976Z\",\"level\":\"INFO\",\"fields\":{\"message\":\"kin mcp listening\",\"mcp\":\"127.0.0.1:42609\"},\"target\":\"kin_kernel::provider::multiplex_cli\"}",
+    "{\"timestamp\":\"2026-08-28T20:18:16.881990Z\",\"level\":\"ERROR\",\"fields\":{\"message\":\"provider boot failed; marking kernel not ready\",\"err\":\"provider error: relay upstream preflight: error sending request for url (http://127.0.0.1:1/)\"},\"target\":\"kin_kernel\"}"
+  ],
+  "kernel_alive_at_end": false
+}

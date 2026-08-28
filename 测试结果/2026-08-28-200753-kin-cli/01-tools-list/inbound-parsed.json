@@ -1,0 +1,29 @@
+{
+  "status": 200,
+  "elapsed": 4.63,
+  "text": "根据当前这次请求的配置，tools 字段为空列表，因此在本次任务中我没有可调用的工具。",
+  "thinking": "",
+  "tool_uses": [],
+  "stop": "end_turn",
+  "model": "claude-sonnet-5",
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 296,
+    "cache_creation_input_tokens": 615,
+    "cache_read_input_tokens": 2518
+  },
+  "kin_done": {
+    "continuation": null,
+    "generation": 1,
+    "pid": 7554,
+    "session_id": "cap-01-tools-list",
+    "slot": "runtime-00"
+  },
+  "error": null,
+  "headers": {
+    "content-type": "text/event-stream",
+    "x-kin-session-id": "cap-01-tools-list",
+    "x-kin-slot": "runtime-00",
+    "x-kin-generation": "1"
+  }
+}

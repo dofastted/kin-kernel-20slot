@@ -1,0 +1,551 @@
+{
+  "commit": "e28132d6b0e583653e29522b3c8060d65610432e",
+  "ready": true,
+  "boot": {
+    "kernel_pid": 13300,
+    "relay_mode": "authoritative",
+    "health": {
+      "status": "ok",
+      "isolation": "subagent-pool",
+      "slots_per_worker": 20,
+      "workers": 1,
+      "relay": {
+        "correlate_hit": 0,
+        "correlate_miss": 41,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "authoritative",
+        "tap_dropped": 0,
+        "tap_response_started": 0
+      },
+      "memory": {
+        "admission": "allow",
+        "cgroup_bytes": 3436445696,
+        "claude_rss_bytes": 271175680,
+        "inflight_payload": 0,
+        "kernel_rss_bytes": 20312064,
+        "observed_bytes": 291487744,
+        "pending": 0,
+        "service_rss_bytes": 291487744
+      }
+    },
+    "claude_n": 1,
+    "claude": [
+      {
+        "pid": 13303,
+        "env": {
+          "ANTHROPIC_BASE_URL": "http://127.0.0.1:18082",
+          "KIN_RELAY_MODE": "authoritative",
+          "KIN_SOCKS5": "socks5h://<redacted>",
+          "NO_PROXY": "127.0.0.1,localhost",
+          "no_proxy": "127.0.0.1,localhost"
+        }
+      }
+    ],
+    "ready": true
+  },
+  "observe_ttfb": {
+    "first_token_ms": 1986,
+    "n_text_delta": 1,
+    "text": "observe-hello",
+    "status": 200
+  },
+  "scenes": {
+    "hello": {
+      "status": 200,
+      "elapsed": 1.471,
+      "text": "observe-hello",
+      "n_events": 7,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "n_text_delta": 1,
+      "delta_lens": [
+        13
+      ],
+      "max_delta": 13,
+      "first_token_ms": 1209,
+      "natural_stream": false,
+      "tool_uses": [],
+      "names": [],
+      "mcp_leak": [],
+      "kin_done": {
+        "continuation": null,
+        "generation": 1,
+        "pid": 13303,
+        "session_id": "auth-hello-1",
+        "slot": "runtime-00"
+      },
+      "saw_message_stop": true,
+      "error": null
+    },
+    "stream": {
+      "status": 200,
+      "elapsed": 1.617,
+      "text": "The quick brown fox jumps over the lazy dog while counting one two three four five six seven eight nine ten.",
+      "n_events": 7,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "n_text_delta": 1,
+      "delta_lens": [
+        108
+      ],
+      "max_delta": 108,
+      "first_token_ms": 1320,
+      "natural_stream": false,
+      "tool_uses": [],
+      "names": [],
+      "mcp_leak": [],
+      "kin_done": {
+        "continuation": null,
+        "generation": 1,
+        "pid": 13303,
+        "session_id": "auth-stream-1",
+        "slot": "runtime-00"
+      },
+      "saw_message_stop": true,
+      "error": null
+    },
+    "web_search": {
+      "status": 200,
+      "elapsed": 9.079,
+      "text": "今天 UTC 日期是 2026 年 8 月 28 日（星期五）。\n\nSources:\n- [Current UTC, Time Zone (Coordinated Universal Time)](https://www.timeanddate.com/worldclock/timezone/utc)\n- [UTC Time Now](https://www.utctime.net/)",
+      "n_events": 11,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_stop",
+        "content_block_start",
+        "content_block_stop",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "n_text_delta": 1,
+      "delta_lens": [
+        194
+      ],
+      "max_delta": 194,
+      "first_token_ms": 6957,
+      "natural_stream": false,
+      "tool_uses": [
+        {
+          "id": "toolu_01EKYK32SQYR5AG355oQD58e",
+          "name": "web_search",
+          "type": "server_tool_use"
+        },
+        {
+          "id": null,
+          "name": null,
+          "type": "web_search_tool_result"
+        }
+      ],
+      "names": [
+        "web_search"
+      ],
+      "mcp_leak": [],
+      "kin_done": {
+        "continuation": null,
+        "generation": 1,
+        "pid": 13303,
+        "session_id": "auth-websearch-1",
+        "slot": "runtime-00"
+      },
+      "saw_message_stop": true,
+      "error": null
+    },
+    "client_tool": {
+      "first": {
+        "status": 200,
+        "elapsed": 1.413,
+        "text": "",
+        "n_events": 6,
+        "types": [
+          "message_start",
+          "content_block_start",
+          "content_block_stop",
+          "message_delta",
+          "message_stop",
+          "kin.done"
+        ],
+        "n_text_delta": 0,
+        "delta_lens": [],
+        "max_delta": 0,
+        "first_token_ms": null,
+        "natural_stream": false,
+        "tool_uses": [
+          {
+            "id": "toolu_f9e4f24f72d64fb4a0799eeaa3432ad2",
+            "name": "get_weather",
+            "type": "tool_use"
+          }
+        ],
+        "names": [
+          "get_weather"
+        ],
+        "mcp_leak": [],
+        "kin_done": {
+          "continuation": "cont_abff63c830fd4af4b7b35c34683298cd",
+          "generation": 1,
+          "pid": 13303,
+          "session_id": "auth-tool-1",
+          "slot": "runtime-00"
+        },
+        "saw_message_stop": true,
+        "error": null
+      },
+      "resume": {
+        "status": 200,
+        "elapsed": 1.73,
+        "text": "The weather in Tokyo is 26°C.",
+        "n_events": 7,
+        "types": [
+          "message_start",
+          "content_block_start",
+          "content_block_delta",
+          "content_block_stop",
+          "message_delta",
+          "message_stop",
+          "kin.done"
+        ],
+        "n_text_delta": 1,
+        "delta_lens": [
+          29
+        ],
+        "max_delta": 29,
+        "first_token_ms": 1185,
+        "natural_stream": false,
+        "tool_uses": [],
+        "names": [],
+        "mcp_leak": [],
+        "kin_done": {
+          "continuation": null,
+          "generation": 1,
+          "pid": 13303,
+          "session_id": "auth-tool-1",
+          "slot": "runtime-00"
+        },
+        "saw_message_stop": true,
+        "error": null
+      }
+    }
+  },
+  "conc20": {
+    "n": 20,
+    "elapsed": 2.547,
+    "ok": 18,
+    "streamed_natural": 0,
+    "unique_texts": 18,
+    "expected_hits": 18,
+    "crosstalk_n": 1,
+    "tap_dropped_delta": 0,
+    "digest_mismatch": 0,
+    "rss_before": {
+      "admission": "allow",
+      "cgroup_bytes": 3441856512,
+      "claude_rss_bytes": 276426752,
+      "inflight_payload": 0,
+      "kernel_rss_bytes": 20705280,
+      "observed_bytes": 297132032,
+      "pending": 0,
+      "service_rss_bytes": 297132032
+    },
+    "rss_after": {
+      "admission": "allow",
+      "cgroup_bytes": 3471314944,
+      "claude_rss_bytes": 302751744,
+      "inflight_payload": 0,
+      "kernel_rss_bytes": 22933504,
+      "observed_bytes": 325685248,
+      "pending": 0,
+      "service_rss_bytes": 325685248
+    },
+    "rows": [
+      {
+        "i": 0,
+        "status": 200,
+        "text": "hello-00",
+        "n_text_delta": 1,
+        "first_token_ms": 2285,
+        "error": null
+      },
+      {
+        "i": 1,
+        "status": 200,
+        "text": "hello-01",
+        "n_text_delta": 1,
+        "first_token_ms": 2281,
+        "error": null
+      },
+      {
+        "i": 2,
+        "status": 200,
+        "text": "hello-02",
+        "n_text_delta": 1,
+        "first_token_ms": 2286,
+        "error": null
+      },
+      {
+        "i": 3,
+        "status": 200,
+        "text": "hello-03",
+        "n_text_delta": 1,
+        "first_token_ms": 2275,
+        "error": null
+      },
+      {
+        "i": 4,
+        "status": 200,
+        "text": "hello-04",
+        "n_text_delta": 1,
+        "first_token_ms": 2283,
+        "error": null
+      },
+      {
+        "i": 5,
+        "status": 200,
+        "text": "hello-05",
+        "n_text_delta": 1,
+        "first_token_ms": 2280,
+        "error": null
+      },
+      {
+        "i": 6,
+        "status": 200,
+        "text": "hello-06",
+        "n_text_delta": 1,
+        "first_token_ms": 2286,
+        "error": null
+      },
+      {
+        "i": 7,
+        "status": 200,
+        "text": "hello-07",
+        "n_text_delta": 1,
+        "first_token_ms": 2465,
+        "error": null
+      },
+      {
+        "i": 8,
+        "status": 200,
+        "text": "hello-08",
+        "n_text_delta": 1,
+        "first_token_ms": 2362,
+        "error": null
+      },
+      {
+        "i": 9,
+        "status": 200,
+        "text": "hello-09",
+        "n_text_delta": 1,
+        "first_token_ms": 2352,
+        "error": null
+      },
+      {
+        "i": 10,
+        "status": 200,
+        "text": "hello-10",
+        "n_text_delta": 1,
+        "first_token_ms": 2351,
+        "error": null
+      },
+      {
+        "i": 11,
+        "status": 200,
+        "text": "hello-11",
+        "n_text_delta": 1,
+        "first_token_ms": 2338,
+        "error": null
+      },
+      {
+        "i": 12,
+        "status": 200,
+        "text": "hello-12",
+        "n_text_delta": 1,
+        "first_token_ms": 2345,
+        "error": null
+      },
+      {
+        "i": 13,
+        "status": 200,
+        "text": "hello-13",
+        "n_text_delta": 1,
+        "first_token_ms": 2344,
+        "error": null
+      },
+      {
+        "i": 14,
+        "status": 200,
+        "text": "hello-14",
+        "n_text_delta": 1,
+        "first_token_ms": 2435,
+        "error": null
+      },
+      {
+        "i": 15,
+        "status": 200,
+        "text": "hello-16",
+        "n_text_delta": 1,
+        "first_token_ms": 2247,
+        "error": null
+      },
+      {
+        "i": 16,
+        "status": 200,
+        "text": "",
+        "n_text_delta": 0,
+        "first_token_ms": null,
+        "error": null
+      },
+      {
+        "i": 17,
+        "status": 200,
+        "text": "hello-17",
+        "n_text_delta": 1,
+        "first_token_ms": 2342,
+        "error": null
+      },
+      {
+        "i": 18,
+        "status": 503,
+        "text": "",
+        "n_text_delta": 0,
+        "first_token_ms": null,
+        "error": "HTTP Error 503: Service Unavailable body={\"type\":\"error\",\"error\":{\"code\":\"no_capacity\",\"message\":\"no compatible capacity is currently available\",\"retryable\":true}}"
+      },
+      {
+        "i": 19,
+        "status": 200,
+        "text": "hello-19",
+        "n_text_delta": 1,
+        "first_token_ms": 2471,
+        "error": null
+      }
+    ]
+  },
+  "slow_client": {
+    "status": 200,
+    "elapsed": 10.539,
+    "stalled_sleep_applied": true,
+    "n_events_seen": 7,
+    "types": [
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop",
+      "kin.done"
+    ],
+    "text_len": 703,
+    "text_head": "Rivers are among the earth's most vital natural features, carving valleys and carrying freshwater from mountains to seas",
+    "error": null,
+    "explicit_fail": false,
+    "fake_success": false,
+    "ok": false
+  },
+  "final_relay": {
+    "correlate_hit": 26,
+    "correlate_miss": 101,
+    "digest_mismatch": 0,
+    "relay_healthy": true,
+    "relay_mode": "authoritative",
+    "tap_dropped": 0,
+    "tap_response_started": 26
+  },
+  "kernel_log": {
+    "interesting": [
+      "{\"timestamp\":\"2026-08-28T20:29:05.185345Z\",\"level\":\"INFO\",\"fields\":{\"message\":\"kin mcp listening\",\"mcp\":\"127.0.0.1:46095\"},\"target\":\"kin_kernel::provider::multiplex_cli\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:06.086556Z\",\"level\":\"INFO\",\"fields\":{\"message\":\"claude supervisor alive\",\"pid\":13303},\"target\":\"kin_kernel::provider::multiplex_cli\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:23.631022Z\",\"level\":\"INFO\",\"fields\":{\"message\":\"provider boot complete\"},\"target\":\"kin_kernel\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:24.454583Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_1aa1e00a3bd14d589c799a78dc94290f\",\"slot_id\":\"slot_e32b4df72a844baa856804996a065746\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:25.993327Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_5a7b76da112a49efa637cb489e10e94d\",\"slot_id\":\"slot_64d023f8d80646798cf7ae0e5dc50fdc\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:27.643880Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_180b2ebebc2d48e1ba4fb4d4634871e5\",\"slot_id\":\"slot_98ac0facecc04079bc3cd8053859f291\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:32.501009Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_180b2ebebc2d48e1ba4fb4d4634871e5\",\"slot_id\":\"slot_98ac0facecc04079bc3cd8053859f291\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:36.821018Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_3d6781a121924bc9b3f09eded800df68\",\"slot_id\":\"slot_207afef92cac4a818ad20b92ecd82f1d\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:38.060193Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_3d6781a121924bc9b3f09eded800df68\",\"slot_id\":\"slot_207afef92cac4a818ad20b92ecd82f1d\",\"turn_id\":1},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:39.812570Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_4d7cb45937dd4bcd915b1fd12b268d35\",\"slot_id\":\"slot_13497cd5f49e4fd8b4fd5c03750b35f3\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:39.909678Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_379c79c939084623b7ab4c28b92f0987\",\"slot_id\":\"slot_0230bf2a7308443fbbf126a5e4062cb1\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:39.910986Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_21965fe92b6e46a4ba774d6941d5a525\",\"slot_id\":\"slot_a675b527588b45698adc0c4656b4e323\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:39.977574Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_cba8759646ea4fc091adbe518cc4b773\",\"slot_id\":\"slot_a29a3daadc9546e1b68d636b038fcee2\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.234020Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_392098835a67430c9ba253eb94bcfd89\",\"slot_id\":\"slot_3978391171804b3a8c2510c185e10f20\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.236046Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_8466e96cbf5743c99befd37f4273b60f\",\"slot_id\":\"slot_cdbc73c2b5174dd891c61bf65693e159\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.236547Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_f10a0c67d68c4caab69993e02f033d49\",\"slot_id\":\"slot_c43de91786ee4d0e8c61e11a08d7e387\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.486909Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_c27a1509d72645b6b9f7eeb3c8d51c53\",\"slot_id\":\"slot_cbb68a3ce8ab42a1b12a10ee02aaa11e\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.568609Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_5337688617e74ac9a89523be49b51f3e\",\"slot_id\":\"slot_a9e54b7bd518414d874c887c2ee6ce13\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.651689Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_9adea00c8f8e4ca6b21eda432c8f05b5\",\"slot_id\":\"slot_a953fc1ad4df43d8ae09831fa7b700ad\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.650485Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_eeab5e6ee7164fdebcffafc3849ae2cd\",\"slot_id\":\"slot_9abd5afe5fa54729b46cb0c017e449f0\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.653498Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_c5e7d6b533fa4b3fb0aecc208a540613\",\"slot_id\":\"slot_fb696cdce57643a3881ccabc58a99f7c\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.727008Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_5f2a4c74b79945ad8fb94db51cffaa6a\",\"slot_id\":\"slot_92857a0233e148b4b031e8396f0b125c\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.990560Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_771b15dd97144297b4ef59d0bebde394\",\"slot_id\":\"slot_540ae50d219746ac929c35db6fee10b7\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:41.079932Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_0ffdb45674424bff902d2cfc68495003\",\"slot_id\":\"slot_af83e9fa5c114e06bec06650fd3701b5\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:41.161288Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_965142c50d6c4416a847331e0f9ac3c8\",\"slot_id\":\"slot_58d89f3c8b03406993e41c0b2b60d568\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:41.442565Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_1997abd12d034951bc30792129915bf6\",\"slot_id\":\"slot_e94e52cde929446982c2490e2ad4d732\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:41.469890Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_180e8b6cc29249dc802bda971ee38241\",\"slot_id\":\"slot_001659ae04db4530bd1d1c8d498ea78b\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:41.564333Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_52e66b89d2ac47a38a0bcc967bc28fcb\",\"slot_id\":\"slot_6c26778aa02349f6a4467b1496ee0e3d\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:42.422787Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_e040b51e20b449ceae645d47e7eea871\",\"slot_id\":\"slot_3f2fa5b184a7435aac6a0fb2ba1cfc7e\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}"
+    ],
+    "correlated": [
+      "{\"timestamp\":\"2026-08-28T20:29:24.454583Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_1aa1e00a3bd14d589c799a78dc94290f\",\"slot_id\":\"slot_e32b4df72a844baa856804996a065746\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:25.993327Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_5a7b76da112a49efa637cb489e10e94d\",\"slot_id\":\"slot_64d023f8d80646798cf7ae0e5dc50fdc\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:27.643880Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_180b2ebebc2d48e1ba4fb4d4634871e5\",\"slot_id\":\"slot_98ac0facecc04079bc3cd8053859f291\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:32.501009Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_180b2ebebc2d48e1ba4fb4d4634871e5\",\"slot_id\":\"slot_98ac0facecc04079bc3cd8053859f291\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:36.821018Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_3d6781a121924bc9b3f09eded800df68\",\"slot_id\":\"slot_207afef92cac4a818ad20b92ecd82f1d\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:38.060193Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_3d6781a121924bc9b3f09eded800df68\",\"slot_id\":\"slot_207afef92cac4a818ad20b92ecd82f1d\",\"turn_id\":1},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:39.812570Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_4d7cb45937dd4bcd915b1fd12b268d35\",\"slot_id\":\"slot_13497cd5f49e4fd8b4fd5c03750b35f3\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:39.909678Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_379c79c939084623b7ab4c28b92f0987\",\"slot_id\":\"slot_0230bf2a7308443fbbf126a5e4062cb1\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:39.910986Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_21965fe92b6e46a4ba774d6941d5a525\",\"slot_id\":\"slot_a675b527588b45698adc0c4656b4e323\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:39.977574Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_cba8759646ea4fc091adbe518cc4b773\",\"slot_id\":\"slot_a29a3daadc9546e1b68d636b038fcee2\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.234020Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_392098835a67430c9ba253eb94bcfd89\",\"slot_id\":\"slot_3978391171804b3a8c2510c185e10f20\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.236046Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_8466e96cbf5743c99befd37f4273b60f\",\"slot_id\":\"slot_cdbc73c2b5174dd891c61bf65693e159\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.236547Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_f10a0c67d68c4caab69993e02f033d49\",\"slot_id\":\"slot_c43de91786ee4d0e8c61e11a08d7e387\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.486909Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_c27a1509d72645b6b9f7eeb3c8d51c53\",\"slot_id\":\"slot_cbb68a3ce8ab42a1b12a10ee02aaa11e\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.568609Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_5337688617e74ac9a89523be49b51f3e\",\"slot_id\":\"slot_a9e54b7bd518414d874c887c2ee6ce13\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.651689Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_9adea00c8f8e4ca6b21eda432c8f05b5\",\"slot_id\":\"slot_a953fc1ad4df43d8ae09831fa7b700ad\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.650485Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_eeab5e6ee7164fdebcffafc3849ae2cd\",\"slot_id\":\"slot_9abd5afe5fa54729b46cb0c017e449f0\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.653498Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_c5e7d6b533fa4b3fb0aecc208a540613\",\"slot_id\":\"slot_fb696cdce57643a3881ccabc58a99f7c\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.727008Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_5f2a4c74b79945ad8fb94db51cffaa6a\",\"slot_id\":\"slot_92857a0233e148b4b031e8396f0b125c\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:40.990560Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_771b15dd97144297b4ef59d0bebde394\",\"slot_id\":\"slot_540ae50d219746ac929c35db6fee10b7\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:41.079932Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_0ffdb45674424bff902d2cfc68495003\",\"slot_id\":\"slot_af83e9fa5c114e06bec06650fd3701b5\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:41.161288Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_965142c50d6c4416a847331e0f9ac3c8\",\"slot_id\":\"slot_58d89f3c8b03406993e41c0b2b60d568\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:41.442565Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_1997abd12d034951bc30792129915bf6\",\"slot_id\":\"slot_e94e52cde929446982c2490e2ad4d732\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:41.469890Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_180e8b6cc29249dc802bda971ee38241\",\"slot_id\":\"slot_001659ae04db4530bd1d1c8d498ea78b\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:41.564333Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_52e66b89d2ac47a38a0bcc967bc28fcb\",\"slot_id\":\"slot_6c26778aa02349f6a4467b1496ee0e3d\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:29:42.422787Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_e040b51e20b449ceae645d47e7eea871\",\"slot_id\":\"slot_3f2fa5b184a7435aac6a0fb2ba1cfc7e\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}"
+    ],
+    "auth_leaks": [],
+    "n_lines": 67
+  },
+  "kernel_pid": 13300,
+  "checks": {
+    "boot_authoritative": true,
+    "natural_text_delta": false,
+    "hello_semantic": true,
+    "no_dup_trunc": true,
+    "websearch_events": true,
+    "tool_resume": true,
+    "conc20": false,
+    "slow_client": false,
+    "rss_not_over_4g": true,
+    "ttfb_extra_lt_50ms": true,
+    "digest_0": true,
+    "mcp_clean": true
+  },
+  "ok": false
+}

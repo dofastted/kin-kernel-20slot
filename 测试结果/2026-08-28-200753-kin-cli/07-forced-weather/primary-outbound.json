@@ -1,0 +1,25 @@
+{
+  "seq": 378,
+  "case": "07-forced-weather",
+  "method": "POST",
+  "path": "/v1/messages?beta=true",
+  "status": 200,
+  "ms": 2422,
+  "req_bytes": 11308,
+  "resp_bytes": 5407,
+  "dir": "07-forced-weather/outbound/378-POST-v1-messages",
+  "model": "claude-sonnet-5",
+  "user_head": "<system-reminder>\nAs you answer the user's questions, you can use the following context:\n# currentDate\nToday's date is 2026-08-28.\n\n      IMPORTANT: this context may or may not be relevant to your tas",
+  "tools": [
+    "WebSearch",
+    "mcp__kin_runtime__slot_wait",
+    "mcp__kin_runtime__client_tool",
+    "mcp__kin_runtime__kin_done",
+    "mcp__kin_runtime__kin_fail"
+  ],
+  "resp_tools": [
+    "mcp__kin_runtime__kin_done"
+  ],
+  "text_head": "",
+  "error": null
+}

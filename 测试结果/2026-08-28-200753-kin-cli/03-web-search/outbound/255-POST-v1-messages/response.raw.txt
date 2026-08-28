@@ -1,0 +1,264 @@
+event: message_start
+data: {"type":"message_start","message":{"model":"claude-sonnet-5","id":"msg_011CeVkg75yKRmGT77aFcKb1","type":"message","role":"assistant","content":[],"stop_reason":null,"stop_sequence":null,"stop_details":null,"usage":{"input_tokens":2,"cache_creation_input_tokens":4307,"cache_read_input_tokens":3211,"cache_creation":{"ephemeral_5m_input_tokens":4307,"ephemeral_1h_input_tokens":0},"output_tokens":2,"service_tier":"standard","inference_geo":"not_available"}}           }
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""} }
+
+event: ping
+data: {"type": "ping"}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"","estimated_tokens":50}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"","estimated_tokens":null}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"EsIDCqgBCBEYAipAq4dldyB2LDe2omFXp+j9UJo4KI3fzg2XEVseR0yMJfJQL2WWNnxhmtkNZUqQojQyxDnAcldsiuOhslUONIhhrDIPY2xhdWRlLXNvbm5ldC01OABCCHRoaW5raW5nWiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWJyEDHsou4p9GYLjtQuMqnihWSIAQGoAbXWx9QGsAECEgx8zmWQmKcwsQqcF/caDFMpaquz4OXvpuCmziIwWqiTmhOfEzbfV7nIzhDIxKN0DhCw0h9VH/wWv097cD27umdirmZx8YypZ2YF/XDyKsYBA28rXLPiQms2MfM5RgWMj9sAJ93ikipWNt3s266FKBgjE2dG0xlSkzzFM7IJVT/z0Ot6hV9ZKpX/MfCjWHQW8vMMibjqB4a33tyaGRHGtNv5qH5Rg9Stpl/PO8FAiCBnA6G8orKdqTOgfTozCLdUHY3XU8pbZfRllOwQIMldoBLUrKI8m4CbQmwElAxwGkpHX5VsOCBbZ86deDEJrKzmRjLWI60vqedY3XKjvF3gV/k9uYKZwtZjZNuev4ZooGrONGL6GSmaGAE="} }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0           }
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"text","text":""}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"根据最新消息，2026年苹果i"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"Phone产品线采用\"分阶段发布\"新策略，分为春季和秋季两批发布。\n\n## 一、2026年春季新品(已发布，"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"3月)\n\n**iPhone 17e**\n- 核心升级为A19芯片(唯一硬件迭代点)\n- 首次搭载苹果自研C"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"1X基带，大幅改善5G信号\n- 沿用6.1英寸60Hz OLED屏，"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"新增MagSafe磁吸充电\n- 出厂搭载iOS 26系统，支持5年系统更新\n- 可能"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"配备U1/U2超宽带芯片，支持精确查找功能\n- 其余保持简"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"配：单摄像头、60Hz屏幕、USB-2接口\n\n## 二、2026年秋季新品(预计9月发布)"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"\n\n**最大亮点：苹果首款折叠屏iPhone**\n- 内部代号\"iPhone Ultra\"/\"iPhone"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":" Fold\"，正式名称未公布\n- 书本式对开折叠设计，钛合金机身\n- 折叠时约"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"5.5英寸，展开约7.8英寸\n- 主打\"无折痕\"显示屏\n- 售价预计"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"超过2000美元(约合人民币1.4万+)\n\n**iPhone 18 Pro / Pro Max**\n- 搭载A20 Pro芯片，采用2nm制"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"程工艺，性能提升约15%\n- 首次搭载苹果自研C2调制解调器，支持NR"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"-NTN非地面网络，卫星连接功能扩展至普通网络场景（不限于紧急求救"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"）\n- 灵动岛缩小，Face ID泛光照明器可能移至屏幕下方\n- 主摄可能升级为可变光"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"圈镜头，长焦镜头光圈也可能加大\n- 前置摄像头升级至2400万"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"像素\n- Pro Max电池容量提升，据称主电池达4800mAh(双电芯设计)\n- 相"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"机控制按键简化，取消电容触控和触觉反馈，仅保留压感功能\n- 颜色方面可能推出深"}      }
+
+event: ping
+data: {"type": "ping"}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"红色/樱桃红特殊配色，另有银白色、"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"靛蓝色等选项\n\n**重要变化：标准版iPhone 18延期**\n- 标准版iPhone 18、iPhone 18e以"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"及第二代iPhone Air可能推迟到2027年春季才发布，不再与Pro系列同期上市\n\n## 三、软件层面\n- 新机"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"将出厂预装聚焦Apple Intelligence的系统，包括基于大语言模型重"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"构的新版Siri\n- 因内存成本上涨，基础款内存可能仅从预期的12"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"GB降级为9GB左右\n\n总体来看，2026年"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"苹果iPhone产品线呈现\"折叠屏突破高端市场 + 平价机型下沉\"的双线"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"策略，全年新品数量传闻多达20-25款，覆盖手机、平板、Mac及可穿戴设备等"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"品类。\n\nSources:\n- [苹果2026年产品路线图展望：12款新品与全"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"新系统将至](https://m.cnmo.com/news/805276.html)\n- [苹果秋季发布会预告：除"}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"了折叠屏 iPhone，还有这 10 款新品](https://zhuanlan.zhihu.com/p/2071631505516975"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"521)\n- [苹果2026年首场科技春晚来了！四款重磅"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"新品抢先看](https://news.mydrivers.com/1/1106/1"}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"106176.htm)\n- [最新傳聞懶人包！新一代 iPhone 上市時間、規"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"格、價格](https://www.miko3c.com/news-detail/apple-iphone18-pro-max-launch-specs-price-review/)\n- [i"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"Phone 18 Pro Launching Next Month With These 12 New Features - MacRumors](https://www.macrumors.com/2026/08/02/iphone-18-pro-next-month-12-new-features/)\n- [iPh"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"one 18 Pro: Six new features are coming next month - 9to5Mac](https://9to5mac.com/2026/08/17/iphone-18-pro-six-new-features-are-coming-this-fall/)\n- [iPhone 18 series"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":": the 5 biggest rumors so far - TechRadar](https://www.techradar.com/phones/iphone/iphone-18-series-the-5-biggest-rumors-so-far-from-camera-up"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"grades-to-new-display-tech)\n- [Apple's iPhone 18 Release Schedule - MacRumors](https://www.macrumors.com/guide/iphone-18-release-schedule/)"} }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1 }
+
+event: content_block_start
+data: {"type":"content_block_start","index":2,"content_block":{"type":"tool_use","id":"toolu_01PYgz68rMizgGwXc4YPUjKi","name":"mcp__kin_runtime__kin_done","input":{},"caller":{"type":"direct"}}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":""}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"{\"job_"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"id\":"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" \"job_"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"5288eff32f1"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"04c7493"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"519f"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"9cfcb5a35"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"6\""}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":", \"stop_rea"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"son\": \"end_"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"tur"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"n\""}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":", \"f"}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"inal_"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"digest\": \"Pr"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ov"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"id"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ed comp"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"rehensiv"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"e summary i"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"n Chinese o"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"f 2026 iPho"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ne new featu"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"res (spr"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ing"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" iPhon"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"e 17e"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" + fall "}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"iPhon"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"e 18 Pr"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"o/Pro Max"}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"/fo"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ldable iPh"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"one Fol"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"d), "}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"with sourc"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"es cited.\"}"}   }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":2              }
+
+event: message_delta
+data: {"type":"message_delta","delta":{"stop_reason":"tool_use","stop_sequence":null,"stop_details":null},"usage":{"input_tokens":2,"cache_creation_input_tokens":4307,"cache_read_input_tokens":3211,"output_tokens":1784,"output_tokens_details":{"thinking_tokens":62}},"context_management":{"applied_edits":[]}           }
+
+event: message_stop
+data: {"type":"message_stop"  }
+

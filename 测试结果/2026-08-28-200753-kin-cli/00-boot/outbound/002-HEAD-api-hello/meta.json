@@ -1,0 +1,22 @@
+{
+  "seq": 2,
+  "case": "00-boot",
+  "ts": 1787947676.0727844,
+  "iso": "2026-08-28T20:07:56Z",
+  "method": "HEAD",
+  "path": "/api/hello",
+  "upstream": "https://api.anthropic.com/api/hello",
+  "status": 200,
+  "elapsed_ms": 328,
+  "req_bytes": 0,
+  "resp_bytes": 0,
+  "resp_decoded_bytes": 0,
+  "accept_encoding_stripped": true,
+  "error": null,
+  "request_summary": {
+    "json": false,
+    "bytes": 0,
+    "head": ""
+  },
+  "response_preview": null
+}

@@ -1,0 +1,29 @@
+{
+  "status": 200,
+  "elapsed": 7.073,
+  "text": "",
+  "thinking": "",
+  "tool_uses": [],
+  "stop": "end_turn",
+  "model": "claude-sonnet-5",
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 538,
+    "cache_creation_input_tokens": 677,
+    "cache_read_input_tokens": 2518
+  },
+  "kin_done": {
+    "continuation": null,
+    "generation": 1,
+    "pid": 7554,
+    "session_id": "cap-04-identity",
+    "slot": "runtime-00"
+  },
+  "error": null,
+  "headers": {
+    "content-type": "text/event-stream",
+    "x-kin-session-id": "cap-04-identity",
+    "x-kin-slot": "runtime-00",
+    "x-kin-generation": "1"
+  }
+}

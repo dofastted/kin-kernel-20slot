@@ -1,0 +1,63 @@
+event: message_start
+data: {"type":"message_start","message":{"model":"claude-sonnet-5","id":"msg_011CeVkbd2tzxaJEuoq1buxX","type":"message","role":"assistant","content":[],"stop_reason":null,"stop_sequence":null,"stop_details":null,"usage":{"input_tokens":2,"cache_creation_input_tokens":753,"cache_read_input_tokens":2518,"cache_creation":{"ephemeral_5m_input_tokens":753,"ephemeral_1h_input_tokens":0},"output_tokens":3,"service_tier":"standard","inference_geo":"not_available"}}              }
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""}         }
+
+event: ping
+data: {"type": "ping"}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"","estimated_tokens":50}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"","estimated_tokens":null}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"Eq0DCqgBCBEYAipACryAteT946gqJKXJECWEouv2vjbK3fya6FafNTK7oCHa/DOknbd4jFaGpD78haFcHgCQdyq38n924LQ37K0gizIPY2xhdWRlLXNvbm5ldC01OABCCHRoaW5raW5nWiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWJyEDHsou4p9GYLjtQuMqnihWSIAQGoAfDVx9QGsAECEgxBsUqqp7mlm7HD/h0aDMyBnfWb3oD/LWZHliIwTyWM41oT8JyJs9liGeo5Qtikl2Aaz+UIySsu5PQ4oppDV8dSkcu1s8PpDRqArpqhKrEBehIJ4pnKyBS7+iTU7ZDX/XyImDGUw6wQb5mhR67+2uOMX7cSWiJEBSjsMl0qMVA6PINAeGTWVlwBr+jPXWlRcpTtQMqXJWyk475dJ5GZ+isC7Qt/AMRsIfcELlhJl9k6U/HUkYL4A6kzEgQsx5sj/0fGmd2e3+YbNpdN4W988om9y8P1K5XjxX8uQEG/tQN1+gALqWgFGHWMshI51fFipSdu6qmXEMXJSirGACqj6JyAGAE="}     }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0            }
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_01MunCqo6geVuYbUms9K3ynK","name":"WebSearch","input":{},"caller":{"type":"direct"}}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\"que"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ry\": \"Googl"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"e Doodle Wor"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ld Cup "}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"2026"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":" \\\"The Art o"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"f the Bicyc"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"le Kick"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\\\"\"}"}       }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1          }
+
+event: message_delta
+data: {"type":"message_delta","delta":{"stop_reason":"tool_use","stop_sequence":null,"stop_details":null},"usage":{"input_tokens":2,"cache_creation_input_tokens":753,"cache_read_input_tokens":2518,"output_tokens":140,"output_tokens_details":{"thinking_tokens":61}},"context_management":{"applied_edits":[]}       }
+
+event: message_stop
+data: {"type":"message_stop"          }
+

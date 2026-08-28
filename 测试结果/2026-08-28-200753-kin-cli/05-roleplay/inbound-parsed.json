@@ -1,0 +1,29 @@
+{
+  "status": 200,
+  "elapsed": 4.275,
+  "text": "您好，欢迎光临，请出示您的通行卡或者说一下您要走哪条路线，我这就给您办理。前方注意减速，谢谢配合！",
+  "thinking": "",
+  "tool_uses": [],
+  "stop": "end_turn",
+  "model": "claude-sonnet-5",
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 223,
+    "cache_creation_input_tokens": 596,
+    "cache_read_input_tokens": 2518
+  },
+  "kin_done": {
+    "continuation": null,
+    "generation": 1,
+    "pid": 7554,
+    "session_id": "cap-05-roleplay",
+    "slot": "runtime-00"
+  },
+  "error": null,
+  "headers": {
+    "content-type": "text/event-stream",
+    "x-kin-session-id": "cap-05-roleplay",
+    "x-kin-slot": "runtime-00",
+    "x-kin-generation": "1"
+  }
+}

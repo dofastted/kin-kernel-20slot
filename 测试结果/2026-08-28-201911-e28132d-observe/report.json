@@ -1,0 +1,430 @@
+{
+  "commit": "e28132d6b0e583653e29522b3c8060d65610432e",
+  "focus": [
+    "readyz_gating",
+    "upstream_preflight",
+    "observe_correlate_three_scenes",
+    "no_proxy_fix"
+  ],
+  "ready": true,
+  "boot": {
+    "kernel_pid": 11214,
+    "readyz_booting": [
+      {
+        "t": 1787948300.4489155,
+        "body": {
+          "reason": "booting",
+          "status": "not_ready"
+        },
+        "relay_loopback": 200
+      },
+      {
+        "t": 1787948300.8537486,
+        "body": {
+          "reason": "booting",
+          "status": "not_ready"
+        },
+        "relay_loopback": 200
+      },
+      {
+        "t": 1787948301.2795157,
+        "body": {
+          "reason": "booting",
+          "status": "not_ready"
+        },
+        "relay_loopback": 200
+      },
+      {
+        "t": 1787948301.8178427,
+        "body": {
+          "reason": "booting",
+          "status": "not_ready"
+        },
+        "relay_loopback": 200
+      },
+      {
+        "t": 1787948302.3388264,
+        "body": {
+          "reason": "booting",
+          "status": "not_ready"
+        },
+        "relay_loopback": 200
+      },
+      {
+        "t": 1787948302.8442068,
+        "body": {
+          "reason": "booting",
+          "status": "not_ready"
+        },
+        "relay_loopback": 200
+      }
+    ],
+    "relay_first": {
+      "ts": 1787948300.4489167,
+      "loopback": "ok",
+      "claude_n": 0,
+      "before_cli": true,
+      "readyz": {
+        "reason": "booting",
+        "status": "not_ready"
+      }
+    },
+    "cli_second": {
+      "ts": 1787948300.8537498,
+      "claude": [
+        {
+          "pid": 11217,
+          "env": {
+            "ANTHROPIC_BASE_URL": "http://127.0.0.1:18082",
+            "KIN_RELAY_MODE": "observe",
+            "KIN_SOCKS5": "socks5h://<redacted>",
+            "NO_PROXY": "127.0.0.1,localhost",
+            "no_proxy": "127.0.0.1,localhost"
+          }
+        }
+      ]
+    },
+    "provider_boot": {
+      "ts": 1787948331.3091276,
+      "health": {
+        "capabilities": {
+          "cancel_receipt": true,
+          "multiplex_slots": true,
+          "native_tool_wait": true,
+          "resume": true,
+          "streaming": true
+        },
+        "isolation": "subagent-pool",
+        "limits": {
+          "client_channel": 32,
+          "event_channel": 128,
+          "max_body_bytes": 8388608,
+          "max_tool_result_bytes": 4194304,
+          "per_connection_buffer": 524288,
+          "slot_max_jobs": 50,
+          "slot_max_lifetime_secs": 1800
+        },
+        "memory": {
+          "admission": "allow",
+          "cgroup_bytes": 3377545216,
+          "claude_rss_bytes": 268095488,
+          "inflight_payload": 0,
+          "kernel_rss_bytes": 19984384,
+          "observed_bytes": 288079872,
+          "pending": 0,
+          "service_rss_bytes": 288079872
+        },
+        "provider": "local_cli",
+        "relay": {
+          "correlate_hit": 0,
+          "correlate_miss": 52,
+          "digest_mismatch": 0,
+          "relay_healthy": true,
+          "relay_mode": "observe",
+          "tap_dropped": 0,
+          "tap_response_started": 0
+        },
+        "slots_per_worker": 20,
+        "status": "ok",
+        "workers": 1
+      },
+      "ready": {
+        "status": "ready"
+      }
+    },
+    "socks5_only": {
+      "claude_count": 1,
+      "procs": [
+        {
+          "pid": 11217,
+          "has_HTTPS_PROXY": false,
+          "has_HTTP_PROXY": false,
+          "ANTHROPIC_BASE_URL": "http://127.0.0.1:18082",
+          "has_ANTHROPIC_API_KEY": false,
+          "has_CLAUDE_CODE_OAUTH_TOKEN": false
+        }
+      ],
+      "ok": true
+    }
+  },
+  "timeline": [
+    {
+      "event": "kernel_spawn",
+      "ts": 1787948299.8364592,
+      "pid": 11214
+    },
+    {
+      "event": "relay_healthy",
+      "ts": 1787948300.448918,
+      "before_cli": true
+    },
+    {
+      "event": "cli_spawned",
+      "ts": 1787948300.8537505,
+      "n": 1
+    },
+    {
+      "event": "provider_boot_complete",
+      "ts": 1787948331.3091357
+    }
+  ],
+  "scenes": {
+    "hello": {
+      "status": 200,
+      "elapsed": 2.555,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "n_events": 10,
+      "text": "observe-hello",
+      "tool_uses": [],
+      "kin_done": {
+        "continuation": null,
+        "generation": 1,
+        "pid": 11217,
+        "session_id": "obs-hello-1",
+        "slot": "runtime-00"
+      },
+      "error": null,
+      "relay_before": {
+        "correlate_hit": 0,
+        "correlate_miss": 52,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "observe",
+        "tap_dropped": 0,
+        "tap_response_started": 0
+      },
+      "relay_after": {
+        "correlate_hit": 1,
+        "correlate_miss": 55,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "observe",
+        "tap_dropped": 0,
+        "tap_response_started": 1
+      },
+      "delta": {
+        "correlate_hit": 1,
+        "correlate_miss": 3,
+        "tap_response_started": 1
+      }
+    },
+    "web_search": {
+      "status": 200,
+      "elapsed": 10.745,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_stop",
+        "content_block_start",
+        "content_block_stop",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "n_events": 11,
+      "text": "今天 UTC 日期是 2026 年 8 月 28 日（星期五）。\n\nSources:\n- [Current UTC, Time Zone (Coordinated Universal Time)](https://www.timeanddate.com/worldclock/timezone/utc)\n- [UTC Time Now](https://www.utctime.net/)",
+      "tool_uses": [
+        {
+          "id": "toolu_01CMtXtw1oJq8WUbNseG94Cw",
+          "name": "web_search"
+        }
+      ],
+      "kin_done": {
+        "continuation": null,
+        "generation": 1,
+        "pid": 11217,
+        "session_id": "obs-websearch-1",
+        "slot": "runtime-00"
+      },
+      "error": null,
+      "relay_before": {
+        "correlate_hit": 1,
+        "correlate_miss": 55,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "observe",
+        "tap_dropped": 0,
+        "tap_response_started": 1
+      },
+      "relay_after": {
+        "correlate_hit": 3,
+        "correlate_miss": 67,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "observe",
+        "tap_dropped": 0,
+        "tap_response_started": 3
+      },
+      "delta": {
+        "correlate_hit": 2,
+        "correlate_miss": 12,
+        "tap_response_started": 2
+      }
+    },
+    "client_tool": {
+      "first": {
+        "status": 200,
+        "elapsed": 2.001,
+        "types": [
+          "message_start",
+          "content_block_start",
+          "content_block_stop",
+          "message_delta",
+          "message_stop",
+          "kin.done"
+        ],
+        "n_events": 6,
+        "text": "",
+        "tool_uses": [
+          {
+            "id": "toolu_c13ffbd299a54d00a25801ab52569c24",
+            "name": "get_weather"
+          }
+        ],
+        "kin_done": {
+          "continuation": "cont_bdd4e71211384757810a44f25f71e347",
+          "generation": 1,
+          "pid": 11217,
+          "session_id": "obs-tool-1",
+          "slot": "runtime-00"
+        },
+        "error": null
+      },
+      "resume": {
+        "status": 200,
+        "elapsed": 2.422,
+        "types": [
+          "message_start",
+          "content_block_start",
+          "content_block_delta",
+          "content_block_stop",
+          "message_delta",
+          "message_stop",
+          "kin.done"
+        ],
+        "n_events": 7,
+        "text": "The current weather in Tokyo is 26°C.",
+        "tool_uses": [],
+        "kin_done": {
+          "continuation": null,
+          "generation": 1,
+          "pid": 11217,
+          "session_id": "obs-tool-1",
+          "slot": "runtime-00"
+        },
+        "error": null
+      },
+      "relay_before": {
+        "correlate_hit": 3,
+        "correlate_miss": 67,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "observe",
+        "tap_dropped": 0,
+        "tap_response_started": 3
+      },
+      "relay_mid": {
+        "correlate_hit": 4,
+        "correlate_miss": 70,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "observe",
+        "tap_dropped": 0,
+        "tap_response_started": 4
+      },
+      "relay_after": {
+        "correlate_hit": 5,
+        "correlate_miss": 72,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "observe",
+        "tap_dropped": 0,
+        "tap_response_started": 5
+      },
+      "delta": {
+        "correlate_hit": 2,
+        "correlate_miss": 5,
+        "tap_response_started": 2
+      }
+    }
+  },
+  "kernel_log": {
+    "interesting": [
+      "{\"timestamp\":\"2026-08-28T20:18:19.840483Z\",\"level\":\"INFO\",\"fields\":{\"message\":\"kin mcp listening\",\"mcp\":\"127.0.0.1:39755\"},\"target\":\"kin_kernel::provider::multiplex_cli\"}",
+      "{\"timestamp\":\"2026-08-28T20:18:20.717845Z\",\"level\":\"INFO\",\"fields\":{\"message\":\"claude supervisor alive\",\"pid\":11217},\"target\":\"kin_kernel::provider::multiplex_cli\"}",
+      "{\"timestamp\":\"2026-08-28T20:18:50.943228Z\",\"level\":\"INFO\",\"fields\":{\"message\":\"provider boot complete\"},\"target\":\"kin_kernel\"}",
+      "{\"timestamp\":\"2026-08-28T20:18:52.752173Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_4874c2638ec541ae9c1f0fa0e0a7d45e\",\"slot_id\":\"slot_a96f4dee21bc4b4baa74b31597740bc4\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:18:55.268596Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_c38c8db8a8f94204b6421181a76d1a6a\",\"slot_id\":\"slot_3739a076acc84c9ab5ccfda6ab7c3090\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:19:02.067588Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_c38c8db8a8f94204b6421181a76d1a6a\",\"slot_id\":\"slot_3739a076acc84c9ab5ccfda6ab7c3090\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:19:06.023790Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_a662e587eca148c685bcea23bf79558f\",\"slot_id\":\"slot_1d1a2d1475c947d3b63fe49e9d2949ed\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:19:07.825472Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_a662e587eca148c685bcea23bf79558f\",\"slot_id\":\"slot_1d1a2d1475c947d3b63fe49e9d2949ed\",\"turn_id\":1},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}"
+    ],
+    "correlated": [
+      "{\"timestamp\":\"2026-08-28T20:18:52.752173Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_4874c2638ec541ae9c1f0fa0e0a7d45e\",\"slot_id\":\"slot_a96f4dee21bc4b4baa74b31597740bc4\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:18:55.268596Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_c38c8db8a8f94204b6421181a76d1a6a\",\"slot_id\":\"slot_3739a076acc84c9ab5ccfda6ab7c3090\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:19:02.067588Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_c38c8db8a8f94204b6421181a76d1a6a\",\"slot_id\":\"slot_3739a076acc84c9ab5ccfda6ab7c3090\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:19:06.023790Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_a662e587eca148c685bcea23bf79558f\",\"slot_id\":\"slot_1d1a2d1475c947d3b63fe49e9d2949ed\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-28T20:19:07.825472Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_a662e587eca148c685bcea23bf79558f\",\"slot_id\":\"slot_1d1a2d1475c947d3b63fe49e9d2949ed\",\"turn_id\":1},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}"
+    ],
+    "auth_leaks": [],
+    "n_lines": 74
+  },
+  "healthz_final": {
+    "capabilities": {
+      "cancel_receipt": true,
+      "multiplex_slots": true,
+      "native_tool_wait": true,
+      "resume": true,
+      "streaming": true
+    },
+    "isolation": "subagent-pool",
+    "limits": {
+      "client_channel": 32,
+      "event_channel": 128,
+      "max_body_bytes": 8388608,
+      "max_tool_result_bytes": 4194304,
+      "per_connection_buffer": 524288,
+      "slot_max_jobs": 50,
+      "slot_max_lifetime_secs": 1800
+    },
+    "memory": {
+      "admission": "allow",
+      "cgroup_bytes": 3387695104,
+      "claude_rss_bytes": 272535552,
+      "inflight_payload": 0,
+      "kernel_rss_bytes": 20115456,
+      "observed_bytes": 292651008,
+      "pending": 0,
+      "service_rss_bytes": 292651008
+    },
+    "provider": "local_cli",
+    "relay": {
+      "correlate_hit": 5,
+      "correlate_miss": 72,
+      "digest_mismatch": 0,
+      "relay_healthy": true,
+      "relay_mode": "observe",
+      "tap_dropped": 0,
+      "tap_response_started": 5
+    },
+    "slots_per_worker": 20,
+    "status": "ok",
+    "workers": 1
+  },
+  "digest_mismatch": 0,
+  "kernel_pid": 11214
+}

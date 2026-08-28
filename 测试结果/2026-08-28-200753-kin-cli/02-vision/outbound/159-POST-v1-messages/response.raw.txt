@@ -1,0 +1,243 @@
+event: message_start
+data: {"type":"message_start","message":{"model":"claude-sonnet-5","id":"msg_011CeVkboXRQa8FBfVyfJX92","type":"message","role":"assistant","content":[],"stop_reason":null,"stop_sequence":null,"stop_details":null,"usage":{"input_tokens":3007,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"output_tokens":16,"service_tier":"standard","inference_geo":"not_available"}}    }
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"server_tool_use","id":"srvtoolu_01FHyVkRwCANxxbkkTwYeb84","name":"web_search","input":{}}            }
+
+event: ping
+data: {"type": "ping"}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":""}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{\""}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"que"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"ry\": \"Goog"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"le Doodl"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"e Wor"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"ld Cu"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"p 2026 "} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"\\\"The Ar"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"t of the "}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"Bicycle"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":" Kick\\\""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"\"}"}    }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0        }
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"web_search_tool_result","tool_use_id":"srvtoolu_01FHyVkRwCANxxbkkTwYeb84","content":[{"type":"web_search_result","title":"Google Doodles/2026 | Logopedia | Fandom","url":"https://logos.fandom.com/wiki/Google_Doodles/2026","encrypted_content":"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","page_age":"1 month ago"},{"type":"web_search_result","title":"Google Google World Cup 2026 GIF - Google Google world cup 2026 Google world cup 2026 the art of the bicycle kick - Discover & Share GIFs","url":"https://tenor.com/view/google-google-world-cup-2026-google-world-cup-2026-the-art-of-the-bicycle-kick-world-cup-2026-world-cup-2026-the-art-of-the-bicycle-kick-gif-5671287542579952688","encrypted_content":"Eq0HCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDBFXj/mlg9Eq92WR8BoMQ5PS63ooWOAN0CZYIjBkb+Yxiq/ZlrtP4y7cX89w8+6bJ6Mbj5DN/aLbHvh9ZJeEkgC7X/kpFu3lfQG8V2cqsAbn6s5MUSI5TACbam8ZZFFG/XQaIuHmleCIEioarBZ/S52AQ5GF4ycB9mlvvbLescAwFmKnUwwk5HzUsr8WdaEyGgCBajx9d71FsHGNBzrvdHqG18uPUhUfS/KoqUsEBAY5eaS0bQpcdgfoLA78RjKO2TWCkRguN2VFmjVkqntMpmVa7Of9UttT1NieEowp0O9+s/tYnuMrfR2UNSxvOGXqruvufDDvAcARznk1P4hax2ZZb5TXBrWYrXVJSwFXIjEd16t/13qIKHam63jrtwC2RWBZkgr8hq45JGZ1iCDVZlzXDPUpwwT15QcSQLYpk3d9JoG05xv/Uk06//Pv2JGvbJJv0Z2sEHhGm8rXtIjBlXlw/wbjYjJs+r/owViSMOVgzXUZILfIV+KC8f9oX0jKG/SxxNbcu4Z/RSfAONL9X8kg6pG31CNeE60hSVockAvMaAhwCOGskmdw1Z1eRnD+uzk0lvSMJaGWQIO6BH+n4WB39H0A4dFXiL8IpW4xSDRSZQYpmMbcu+8S9hIVK8o75L7qgKbioTGGcGrK1X0zGKcnmK9hJQs5ZqoAY8QrwDtpZI1QREMTdyhADLerkzMx8GoHBM2ib87EMhNPcjGAuJMzqX8R52hR/Sx6g/GvZW6ri0oRFyj9jujtOfgn5DmVInYbPyo5qv2FKullHXU+A9g5zS9kqwpzM/GZ7gO5AMp1yVrPJvn132MWsvSo5zQieP5CNZ9u+2EXuXvR6HzDrJJlROxWX7hrCne87h2yxq1jiVfDS60eol/+IsRmZfUze+AmfN/lRhrW6o7umFxDJ9r3J393O7bspb+f3ZNCeL78CiLPfllBN3zfceQhqnKD6sQVIK599xFPiYJiLMHBTz3mKpfMkmMiBFVh6kGdiOdJGSI4AA6t+sEAgxBh+ULqzOxi0xBjxtMR58TO7hXmOw+D4s8Og3wwaT7XnhKFnvHv7QjcuZbkq30O9P7J+8AOn9Ay0wtEuBtzDFQrMSAc9E8bpcSzoAFY/KAbvxvjqsyhHfpUQtvlkSgBvsLbU+sfHQFD9Uxjk2qSL8TSL7G12RGC4l9FLJl0r7KcYGLk6X8YAw==","page_age":"June 18, 2026"},{"type":"web_search_result","title":"World Cup 2026: The Art of the Bicycle Kick Doodle - Google Doodles","url":"https://doodles.google/doodle/world-cup-2026-the-art-of-the-bicycle-kick-617/","encrypted_content":"Er8JCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDFbY/XCpDRd/JWAFBxoMHe2avGTmtHJhZJd+IjBcz8wiXERaVcDqe6PoecC9GJT5rj8IFU2y1SI3kfFp8E3uNVXdZGnJDKZcCVxAU4Mqwgh82el9jDvj45mf5cVPqHVjppmLZRINXC4k11cKDXFcqErR3YYV4dKOaj9iKe/o3Dq0tIbwJzIugQxiyefMpY/BuHE7nJq4tRsvE+9L9AVo8IL9JcwN7tSoAXF3Sabs1tiMWw7YjHkTSdXJxg/OXMTcc+j5dIES5+LVUZSu+LpEZh+JQZPi2CRiAP2aIHc5+RB8tSEbtrzm8Nk9/2yS+K3vYDDli/E5mlVgQLs5HUeQMlf0oVvjxJh8LRbToRYDhSjfyugF/fvzD3D0kMeeXVdn63YsuBS5fPTNsy1nHqQUWbfOi6mnLrzJtqLsMPUK1vrjYHGrhCf3Zrrtpx9ux+8epav8N43slRifKdip3D1jXJ6ayPFvWhis0E3GRveJx+WIF/O93lis8BoRxvfr/Ww/lnqAiFGdRgTMN3UpCP0Ac7U6hjzPUNzct+IUGusVl83mlkYUlI7DmNG2D2qsQcbRv5R5gw0ErS4EWVD4B5539KCqyi8j/JEQPv9sJIK+Bm0B8Ub5HTQhbBh9wyxlgkJ6YQ2ajmAK+r9P45CtIBLfWLpn0GfVaivIudmnQX1uglHE0HzkCu8xVJFvmgh+bDgxnZjmRC6hFOkD3UPudKH7gaAUCYTySJQoFutm9YnYEf6BiX0l6ljV7alrAY/vMWj2HiZ8O7mzwUFR6U0REGdCSNOjqQWnRMjkFVl60EXxNhX9pcj4Y3N98wZx3dAm8uJ4WM3f63Pc7++l0CyaxITa7Ju4ig1YU8RGeReyYMvP9N0YpjHAntvQNmxgdYOWQYHQqDPJy1yzu6NkFvMgYMNmO1RSy8cZVTmd/aRGIzMf3O+fhb/SU8MuP2qKuyEZj4tf6XoIS2RFQk6S+u/dRCzijunPzvvh474vuXvc9RePSS6D8QQfTkhcGvDh6UQPPzp4sAnBLuxko9Rz8hgvioRpJY056Bu+XRl0Nur3KX2De95zvYzdHMPTccFLyXpT4+ahTm43i+Ytnw/6xfD1N8G9X3aFrlhRhGoUdQr+zg+aNQAIt10zxiI/ZFyORD+RT2cjUjV1qzDUFGGDQMb6wTa9M8Ln1NE1Gv0ZstEfBTwDF0eATedIocdFAxVA432rphuUjiuPlIV1QezNKEF1Umcqvyn/yFPoBIym6rNFaUZnDyhz9FAeagrSJ/qJ42ydg9XNRAX6vRdeseVDIkgl1+MO6nPz0C1R8p2UAxJ/ZXm/ugJ/xPvQere3WstLkBWRQV7i1RkJ8CpXFe12YStDhGPm4OxMz6NpUDLPeDIciVBQtPk4LAqLfCahvhxQ6lk0R+n4kA14BSIxWIQ15fiiCufyh1mmTVJHT2LvLBCxIWvqyrypucxf5C3U2EA4DWa7t7NyEka6X7ihCwNHXmlAOtevPcHv4QKiAfzxw69JKJCyNSh/rrsyPXU+yD/RcYCgUVMzMbOkC4aTREZlHhsku1Va1t/AGAM=","page_age":"June 17, 2026"},{"type":"web_search_result","title":"Au tour du retourné acrobatique (Bicycle Kick) d'illuminer la page d'accueil ! - UnSimpleClic","url":"https://www.unsimpleclic.com/au-tour-du-retourne-acrobatique-bicycle-kick-dilluminer-la-page-daccueil/","encrypted_content":"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","page_age":"June 17, 2026"},{"type":"web_search_result","title":"World Cup 2026: The art of the bicycle kick - YouTube","url":"https://www.youtube.com/watch?v=Te8biWBDDdo","encrypted_content":"Eo0CCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDP1l/o1SoVqd9GZk0RoMhdpNHVeoWvFanqjTIjDO4q56ta1mbDjRI9PWh6e/fu1znE67uCMkzRt3YAaEWLsF85CNgGvMJPkcI8NTB4YqkAH4YTnbBgxK4ffWTzOu0d42H344ST3VTjPzeS1+t9cuv5dHBclSSyE8NZ+jJE23Py+UNA+/vJhh1kiWWdzqkD7kWY24ukSRxJPJBOn07Jf+b5rTONoAsJl10tT6dkJcZItS4kMGRQ2TWCGk7l13EMgLTwa3vD/oReDyZLac5SJYYwdBNYcYSB4lE4zZ8c7+rMwYAw==","page_age":"June 17, 2026"},{"type":"web_search_result","title":"Bicycle kick","url":"https://en.wikipedia.org/wiki/Bicycle_kick","encrypted_content":"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","page_age":null},{"type":"web_search_result","title":"Scorpion kick (association football)","url":"https://en.wikipedia.org/wiki/Scorpion_kick_(association_football)","encrypted_content":"EsEHCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDG7ecyAaq/xqWXz91RoMB2tqB3qlGxNoEdvHIjDDzVNbOSHbFsV/dWCdDhgS0ibucTCEPO5sseanTsnuAWkKMpjl0kwqBVm4kgdemfYqxAZUHhWjyr9wBT96ZKlx9m5eEn0x2KVYxZqPbNy+2BplR79oyRhWMKFjaDBuXtI+pao/yHUvdTwy+5Tg5NUNDCKYTmsTj8uO2tVpOIA77MUst7NiKXpOBTZ0KSL4P4BpkBu1mFZxq21pcQWoFIJHXmFRQlczO2npnflKClFS33hefb5OxUhrd0ZpXalBBIlhQM87tTkWAdVuC2viS747JtxDDq0ysIoTQY1w6XmRTyvHvw0gtb2CrGXexA8g9/XkoQAPWuTNCr+GGVXsl6TlwdV4wyLjeg3IpH46QgM1Tib2AQaQQJuJog+cZqTRjVhA2cFKHxK/y/1WeuLvYlqdEE49Py+EcFvoVg20zHiLW9S1DZ1SYyST+IAkyF7BrMhM9IicA58vMoW042QZtTHboznccTSF7H+NGO8fLU6EDjzkr6fiKvi4eeorBezj872bC0ZDAMqyxtPsrHb/Q4ljpJzeunCkkhDW4DM5AGZB2f9G/eravwPBT45NUNIOPRKyY8z10FkDTL9zhkH5PZn2HxgLRcomTTXrMB7zXZKeSsU0omCh4Z3FuvnrcF39oIKicNUcaxPMA1RaIGCvcUA9y52o8gRDGTPONY5NN7cEwrqkOj/S4aT327ny4Mu/FaPk1q1jHLyEMy69WeTnwIaMCPOh9rw2fVzHFol2PqfAA//0mbjE0p19oXpICkbyxiKnuotTS5Nmgk741jvvn6iXRtQp868lDy3zEefxmhvS9OdpH42NNnFtUF074ewwBpEaM1cR71CJAxN1k/nrYI3CqILAZOph2T2w1IgxeecMTS6X13TpTxHoUtkWE1114TckZXj2wUxQ8IPm5dZObM9darQgwyQB/VNoKjVfC8JWOo8zfaJqQBSh3t8dVsQHUKb44qJyFKwQKs1cAbQKxmP64Xez7sgGJrLN7dEF57gHDYH+riSnWHuI2HrscdFcF7AnlcF587YrpvJD8ppA0X7cgQn5R2O6cPA6vIu5upUTP1d34NFVlZqyFbByeV90tma55jhEnSje3DlL7WuvviDaWEH7Q9RqxlrMRE4nsZi3hlOn5RFgmTcPKMnbRXCmFltMmrr7mnJMex38UiSZw0va6iPMLdNZqhgD","page_age":null}],"caller":{"type":"direct"}} }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1  }
+
+event: content_block_start
+data: {"type":"content_block_start","index":2,"content_block":{"type":"text","text":""}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"Here's what"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":" I found about the \""}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"World"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":" Cup "}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"2026: The Art of the Bicycle Kick\" Google Doodle:\n\n**Overview:** This Doodle was part of a series celebrating the 2026"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":" FIFA World Cup, with each installment highlighting a different iconic football skill/move. "}             }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":2        }
+
+event: content_block_start
+data: {"type":"content_block_start","index":3,"content_block":{"citations":[],"type":"text","text":""}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"The Doodle World Cup 2026: The Art of the Bicycle Kick launched Jun 17, 2026 · Select a color and discover Doodles that match. ","url":"https://doodles.google/doodle/world-cup-2026-the-art-of-the-bicycle-kick-617/","title":"World Cup 2026: The Art of the Bicycle Kick Doodle - Google Doodles","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDHj5rz982xcL6tOxMhoMQPczDUmC6ytm79hAIjDtcUkd71sdL+ALzcwhS23EsrsllemEw5HYg3qQ0WSwhqRhWBf6Fnt/A0YDPfUxIGEqEzKiRQUaMqbReHCx5gtApLt3mJIYBA=="}}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"text_delta","text":"The Doodle World Cup 2026: The"}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"text_delta","text":" Art of the Bicycle Kick launched on June 17, 2026."}  }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":3        }
+
+event: content_block_start
+data: {"type":"content_block_start","index":4,"content_block":{"type":"text","text":""}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":4,"delta":{"type":"text_delta","text":"\n\n**What it celebrates:** "}         }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":4             }
+
+event: content_block_start
+data: {"type":"content_block_start","index":5,"content_block":{"citations":[],"type":"text","text":""}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":5,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"This Doodle celebrates the 2026 FIFA World Cup and features the bicycle kick, an acrobatic strike where a player jumps and pedals their leg in a sciss...","url":"https://doodles.google/doodle/world-cup-2026-the-art-of-the-bicycle-kick-617/","title":"World Cup 2026: The Art of the Bicycle Kick Doodle - Google Doodles","encrypted_index":"EpEBCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDLkuhNFJlsbIeniGgBoMfMAkeY7Ni3agwT52IjD3KMTuTNzOlC1Q5jcH/0Gxp/PBateVMfDMCWTespoHnVMSAEmJ22NZLmgG4CTusFoqFcucyViejTa2FCINb60S6oevLpjbExgE"}}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":5,"delta":{"type":"text_delta","text":"The Doodle celebrates the 2026 FIF"}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":5,"delta":{"type":"text_delta","text":"A World Cup and features the bicycle kick, an acrobatic strike where a player jumps and pedals their leg in a scissor-like motion to kick the ball backwards — a show-stopping move that"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":5,"delta":{"type":"text_delta","text":" demands peak athleticism, perfect timing, and a daredevil attitude."}           }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":5          }
+
+event: content_block_start
+data: {"type":"content_block_start","index":6,"content_block":{"type":"text","text":""}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":6,"delta":{"type":"text_delta","text":"\n\n**Part of a broader series:** This was one of many World"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":6,"delta":{"type":"text_delta","text":" Cup-themed Doodles Google rolled out during the tournament. Based on the Logopedia archive, the series included doodles like "}       }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":6   }
+
+event: content_block_start
+data: {"type":"content_block_start","index":7,"content_block":{"citations":[],"type":"text","text":""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"World Cup 2026: The Art of the Penalty Kick (16th) - Doodle used on search results · World Cup 2026: France Match Day (16th) World Cup 2026: Argentina...","url":"https://logos.fandom.com/wiki/Google_Doodles/2026","title":"Google Doodles/2026 | Logopedia | Fandom","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDCr+ezcbyaq/OkLCBxoMMAiySab5dqnS3SzoIjAD+orLY97uLXaryrs9I36cFqZKLWdtaiTZuOmS4wxipeIHs7DnFDUDunMZiOPazScqE1kXP5rwbNAIHsKGQ8EiTf7SRJ8YBA=="}}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"text_delta","text":"World Cup 2026: The Art of the Penalty"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"text_delta","text":" Kick, France Match Day, Argentina Match Day, Portugal Match Day, England Match Day, The Art of the Diving Header, The Art of the Long Ball, The Art of the Curler, Knee Slide, The Art of the Sliding Tackle,"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"text_delta","text":" and The Art of the Step Over"}  }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":7             }
+
+event: content_block_start
+data: {"type":"content_block_start","index":8,"content_block":{"type":"text","text":""}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":8,"delta":{"type":"text_delta","text":" — each spotlighting a different skill or match day during the tournament.\n\n**About the bicycle kick itself:** For context on the move being"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":8,"delta":{"type":"text_delta","text":" celebrated, "}    }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":8            }
+
+event: content_block_start
+data: {"type":"content_block_start","index":9,"content_block":{"citations":[],"type":"text","text":""}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":9,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"In\n[association football](https://en.wikipedia.org/wiki/Association_football), a bicycle kick, also known as an overhead kick, scissors kick and in [A...","url":"https://en.wikipedia.org/wiki/Bicycle_kick","title":"Bicycle kick","encrypted_index":"EpEBCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDERVLOL5S1z4TPsa+hoMgsxaeT7SJpfHijo0IjCfafYZYsP5LvZLcRz0a7ox4uUEAdmBQx4sI/K1WdGOBVWQ79WQvIjOguVIB9g5AcUqFV99PpdPbzQs3eteh4rIrf9vz0LwHxgE"}}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":9,"delta":{"type":"text_delta","text":"a bicycle kick, also known as an overhead kick or scissors kick, is an acrobatic strike where a player kicks an airborne ball rearward in"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":9,"delta":{"type":"text_delta","text":" midair, achieved by throwing the body backward into the air and making a shearing movement with the legs to get the ball-striking leg in front of the other."}        }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":9     }
+
+event: content_block_start
+data: {"type":"content_block_start","index":10,"content_block":{"type":"text","text":""}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":10,"delta":{"type":"text_delta","text":" "} }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":10  }
+
+event: content_block_start
+data: {"type":"content_block_start","index":11,"content_block":{"citations":[],"type":"text","text":""}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":11,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Its complexity, and uncommon performance in competitive football matches, makes it one of association football's most celebrated skills. ","url":"https://en.wikipedia.org/wiki/Bicycle_kick","title":"Bicycle kick","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDMDW4GLoPqcjEh5QFRoMhcP4osnW2rhI0GngIjDenwji5Lb6SJHz/4Lp4bpE4yIE39zi1LNLzGre1OsqL6dwc+WigaURaj8kiIxf5O4qE8kKl9Lo+9XVm6AFhpK90uQDxAAYBA=="}}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":11,"delta":{"type":"text_delta","text":"Its complexity and rarity in competitive matches make it one of football's most celebrated skills."}              }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":11     }
+
+event: content_block_start
+data: {"type":"content_block_start","index":12,"content_block":{"type":"text","text":""}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":12,"delta":{"type":"text_delta","text":"\n\nNotably, "}        }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":12              }
+
+event: content_block_start
+data: {"type":"content_block_start","index":13,"content_block":{"citations":[],"type":"text","text":""}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Brazilian footballers [Leônidas](https://en.wikipedia.org/wiki/Leônidas_(footballer,_born_1913)) and [Pelé](https://en.wikipedia.org/wiki/Pelé) popula...","url":"https://en.wikipedia.org/wiki/Bicycle_kick","title":"Bicycle kick","encrypted_index":"EpABCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDFdNSf+9ZIxHRLlTthoMVmOCveHn93iPZemuIjATpdNcvR+S+Ibzx3pL7sNh03qKIbdBeKyogcZr6HyA2YR2lwj9R6YKxJkyZ5Hnh8AqFLhoy8D0AKgV1DjrNjmkECmeYy4MGAQ="}}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"text_delta","text":"Brazilian footballers"}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"text_delta","text":" Leônidas and Pelé popularized the"}       }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":13             }
+
+event: content_block_start
+data: {"type":"content_block_start","index":14,"content_block":{"type":"text","text":""}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":14,"delta":{"type":"text_delta","text":" move historically, which likely inspired its inclusion in this animated Doodle series celebrating the sport's art"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":14,"delta":{"type":"text_delta","text":"istry during the World Cup."}    }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":14          }
+
+event: message_delta
+data: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null,"stop_details":null},"usage":{"input_tokens":11442,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":840,"output_tokens_details":{"thinking_tokens":0},"server_tool_use":{"web_search_requests":1,"web_fetch_requests":0}},"context_management":{"applied_edits":[]}         }
+
+event: message_stop
+data: {"type":"message_stop"     }
+

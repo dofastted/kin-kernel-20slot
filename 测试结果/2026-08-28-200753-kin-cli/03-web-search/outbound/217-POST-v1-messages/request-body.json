@@ -1,0 +1,50 @@
+{
+  "model": "claude-sonnet-5",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Perform a web search for the query: 2026年 iPhone 新款 发布 新功能"
+        }
+      ]
+    }
+  ],
+  "system": [
+    {
+      "type": "text",
+      "text": "x-anthropic-billing-header: cc_version=2.1.250.5cc; cc_entrypoint=sdk-cli; cc_is_subagent=true;"
+    },
+    {
+      "type": "text",
+      "text": "You are a Claude agent, built on Anthropic's Claude Agent SDK."
+    },
+    {
+      "type": "text",
+      "text": "You are an assistant for performing a web search tool use"
+    }
+  ],
+  "tools": [
+    {
+      "type": "web_search_20250305",
+      "name": "web_search",
+      "max_uses": 8
+    }
+  ],
+  "tool_choice": {
+    "type": "tool",
+    "name": "web_search"
+  },
+  "metadata": {
+    "user_id": "{\"device_id\":\"6a27af91edaa4c54de787ff556a83de34fb3987f11ce315044b4c44008e03d8a\",\"account_uuid\":\"174d10b6-0dd8-4819-9311-7a70ccd97abd\",\"session_id\":\"050e9127-2fe1-4270-88a2-5fd08e988afe\"}"
+  },
+  "max_tokens": 64000,
+  "thinking": {
+    "type": "disabled"
+  },
+  "output_config": {
+    "effort": "high"
+  },
+  "stream": true
+}

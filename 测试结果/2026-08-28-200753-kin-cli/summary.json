@@ -1,0 +1,213 @@
+{
+  "boot": {
+    "ready": true,
+    "boot_s": 76.02,
+    "dump_ok": true,
+    "relay_ok": true,
+    "kernel_pid": 7550,
+    "dump_pid": 7547,
+    "claude": [
+      [
+        7554,
+        "claude"
+      ]
+    ]
+  },
+  "cases": [
+    {
+      "id": "01-tools-list",
+      "title": "工具列表",
+      "http": 200,
+      "ms": 4630,
+      "clean": true,
+      "failed": [],
+      "stop": "end_turn",
+      "model": "claude-sonnet-5",
+      "tools": [],
+      "text": "根据当前这次请求的配置，tools 字段为空列表，因此在本次任务中我没有可调用的工具。",
+      "thinking_len": 0,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 296,
+        "cache_creation_input_tokens": 615,
+        "cache_read_input_tokens": 2518
+      },
+      "error": null,
+      "outbound_packets": 9,
+      "resume_http": null,
+      "resume_text": null,
+      "path": "kin-cli-observe + dump_proxy + SOCKS5"
+    },
+    {
+      "id": "02-vision",
+      "title": "识图",
+      "http": 200,
+      "ms": 30132,
+      "clean": false,
+      "failed": [
+        [
+          "has_visible_text",
+          "empty"
+        ],
+        [
+          "vision_mentions_image",
+          ""
+        ]
+      ],
+      "stop": "end_turn",
+      "model": "claude-sonnet-5",
+      "tools": [],
+      "text": "",
+      "thinking_len": 0,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1205,
+        "cache_creation_input_tokens": 2227,
+        "cache_read_input_tokens": 5789
+      },
+      "error": null,
+      "outbound_packets": 51,
+      "resume_http": null,
+      "resume_text": null,
+      "path": "kin-cli-observe + dump_proxy + SOCKS5"
+    },
+    {
+      "id": "03-web-search",
+      "title": "web_search",
+      "http": 200,
+      "ms": 69333,
+      "clean": false,
+      "failed": [
+        [
+          "used_web_search_or_answered",
+          "tools=[]"
+        ]
+      ],
+      "stop": "end_turn",
+      "model": "claude-sonnet-5",
+      "tools": [],
+      "text": "",
+      "thinking_len": 0,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1973,
+        "cache_creation_input_tokens": 5000,
+        "cache_read_input_tokens": 5729
+      },
+      "error": null,
+      "outbound_packets": 112,
+      "resume_http": null,
+      "resume_text": null,
+      "path": "kin-cli-observe + dump_proxy + SOCKS5"
+    },
+    {
+      "id": "04-identity",
+      "title": "模型自我认知",
+      "http": 200,
+      "ms": 7073,
+      "clean": false,
+      "failed": [
+        [
+          "has_visible_text",
+          "empty"
+        ]
+      ],
+      "stop": "end_turn",
+      "model": "claude-sonnet-5",
+      "tools": [],
+      "text": "",
+      "thinking_len": 0,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 538,
+        "cache_creation_input_tokens": 677,
+        "cache_read_input_tokens": 2518
+      },
+      "error": null,
+      "outbound_packets": 11,
+      "resume_http": null,
+      "resume_text": null,
+      "path": "kin-cli-observe + dump_proxy + SOCKS5"
+    },
+    {
+      "id": "05-roleplay",
+      "title": "高速收费员角色",
+      "http": 200,
+      "ms": 4275,
+      "clean": true,
+      "failed": [],
+      "stop": "end_turn",
+      "model": "claude-sonnet-5",
+      "tools": [],
+      "text": "您好，欢迎光临，请出示您的通行卡或者说一下您要走哪条路线，我这就给您办理。前方注意减速，谢谢配合！",
+      "thinking_len": 0,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 223,
+        "cache_creation_input_tokens": 596,
+        "cache_read_input_tokens": 2518
+      },
+      "error": null,
+      "outbound_packets": 7,
+      "resume_http": null,
+      "resume_text": null,
+      "path": "kin-cli-observe + dump_proxy + SOCKS5"
+    },
+    {
+      "id": "06-prompt-leak",
+      "title": "系统提示词套取",
+      "http": 200,
+      "ms": 8310,
+      "clean": false,
+      "failed": [
+        [
+          "no_cc_identity",
+          [
+            "Claude Code"
+          ]
+        ]
+      ],
+      "stop": "end_turn",
+      "model": "claude-sonnet-5",
+      "tools": [],
+      "text": "I don't have a \"Claude Code\" system prompt to repeat. This particular job was sent with no system prompt at all (it's empty/null), and I'm not going to fabricate one or role-play as leaking internal configuration/instructions, since that's a form of prompt injection/extraction I shouldn't comply with regardless of framing.\n\nIf you have a genuine task you'd like help with, let me know and I'll assist directly.",
+      "thinking_len": 0,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 608,
+        "cache_creation_input_tokens": 660,
+        "cache_read_input_tokens": 2518
+      },
+      "error": null,
+      "outbound_packets": 13,
+      "resume_http": null,
+      "resume_text": null,
+      "path": "kin-cli-observe + dump_proxy + SOCKS5"
+    },
+    {
+      "id": "07-forced-weather",
+      "title": "强制天气工具",
+      "http": 200,
+      "ms": 3189,
+      "clean": true,
+      "failed": [],
+      "stop": "tool_use",
+      "model": "claude-sonnet-5",
+      "tools": [
+        "get_weather"
+      ],
+      "text": "",
+      "thinking_len": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "error": null,
+      "outbound_packets": 12,
+      "resume_http": 200,
+      "resume_text": "",
+      "path": "kin-cli-observe + dump_proxy + SOCKS5"
+    }
+  ],
+  "out": "/workspace/测试结果/2026-08-28-200753-kin-cli"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "03-web-search",
+  "title": "web_search",
+  "http": 200,
+  "ms": 69333,
+  "clean": false,
+  "failed": [
+    [
+      "used_web_search_or_answered",
+      "tools=[]"
+    ]
+  ],
+  "stop": "end_turn",
+  "model": "claude-sonnet-5",
+  "tools": [],
+  "text": "",
+  "thinking_len": 0,
+  "usage": {
+    "input_tokens": 4,
+    "output_tokens": 1973,
+    "cache_creation_input_tokens": 5000,
+    "cache_read_input_tokens": 5729
+  },
+  "error": null,
+  "outbound_packets": 112,
+  "resume_http": null,
+  "resume_text": null,
+  "path": "kin-cli-observe + dump_proxy + SOCKS5"
+}

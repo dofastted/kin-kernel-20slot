@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "elapsed": 3.189,
+  "text": "",
+  "thinking": "",
+  "tool_uses": [
+    {
+      "id": "toolu_8942fe473c8544329df3d742c57c1bed",
+      "name": "get_weather",
+      "type": "tool_use"
+    }
+  ],
+  "stop": "tool_use",
+  "model": "claude-sonnet-5",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0
+  },
+  "kin_done": {
+    "continuation": "cont_33e9aa3cc3344ed790253585a232e4c7",
+    "generation": 1,
+    "pid": 7554,
+    "session_id": "cap-07-forced-weather",
+    "slot": "runtime-00"
+  },
+  "error": null,
+  "headers": {
+    "content-type": "text/event-stream",
+    "x-kin-session-id": "cap-07-forced-weather",
+    "x-kin-slot": "runtime-00",
+    "x-kin-generation": "1"
+  }
+}

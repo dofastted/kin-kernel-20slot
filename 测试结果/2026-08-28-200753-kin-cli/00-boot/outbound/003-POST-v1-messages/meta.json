@@ -1,0 +1,99 @@
+{
+  "seq": 3,
+  "case": "00-boot",
+  "ts": 1787947679.2592113,
+  "iso": "2026-08-28T20:07:59Z",
+  "method": "POST",
+  "path": "/v1/messages?beta=true",
+  "upstream": "https://api.anthropic.com/v1/messages?beta=true",
+  "status": 200,
+  "elapsed_ms": 3263,
+  "req_bytes": 4290,
+  "resp_bytes": 1642,
+  "resp_decoded_bytes": 1642,
+  "accept_encoding_stripped": true,
+  "error": null,
+  "request_summary": {
+    "json": true,
+    "bytes": 4290,
+    "model": "claude-sonnet-5",
+    "stream": true,
+    "max_tokens": 64000,
+    "thinking": {
+      "type": "disabled"
+    },
+    "output_config": {
+      "effort": "high",
+      "format": {
+        "type": "json_schema",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "title"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "n_messages": 1,
+    "user_head": "<session>\nYou are the Kin runtime supervisor. Spawn exactly 20 background kin-slot agents with the Agent tool. Do not answer user questions. Keep 20 slots alive: when a kin-slot returns, spawn a repla",
+    "tools": [],
+    "n_tools": 0,
+    "system_blocks": [
+      {
+        "kind": "billing",
+        "chars": 74,
+        "head": "x-anthropic-billing-header: cc_version=2.1.250.725; cc_entrypoint=sdk-cli;"
+      },
+      {
+        "kind": "other",
+        "chars": 62,
+        "head": "You are a Claude agent, built on Anthropic's Claude Agent SDK."
+      },
+      {
+        "kind": "other",
+        "chars": 3059,
+        "head": "You are naming a coding session so the user can pick it out of a long list of sessions. The title is a name for what the session is about, not a sentence describing the task: a sho"
+      }
+    ],
+    "metadata_user_id": "{\"device_id\":\"6a27af91edaa4c54de787ff556a83de34fb3987f11ce315044b4c44008e03d8a\",\"account_uuid\":\"\",\"session_id\":\"050e9127-2fe1-4270-88a2-5fd08e988afe\"}",
+    "keys": [
+      "max_tokens",
+      "messages",
+      "metadata",
+      "model",
+      "output_config",
+      "stream",
+      "system",
+      "thinking",
+      "tools"
+    ]
+  },
+  "response_preview": {
+    "kind": "sse",
+    "model": "claude-sonnet-5",
+    "stop": "end_turn",
+    "tools": [],
+    "usage": {
+      "input_tokens": 1251,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 18,
+      "service_tier": "standard",
+      "inference_geo": "not_available",
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      }
+    },
+    "text_head": "{\"title\":\"Kin runtime supervisor\"}"
+  }
+}

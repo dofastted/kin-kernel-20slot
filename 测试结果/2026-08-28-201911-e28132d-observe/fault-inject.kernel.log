@@ -1,0 +1,4 @@
+{"timestamp":"2026-08-28T20:18:16.768468Z","level":"INFO","fields":{"message":"kin-kernel listening","address":"0.0.0.0:18081","workers":1,"slots_per_worker":20,"isolation":"subagent-pool","provider":"local_cli"},"target":"kin_kernel"}
+{"timestamp":"2026-08-28T20:18:16.768976Z","level":"INFO","fields":{"message":"kin mcp listening","mcp":"127.0.0.1:42609"},"target":"kin_kernel::provider::multiplex_cli"}
+{"timestamp":"2026-08-28T20:18:16.881990Z","level":"ERROR","fields":{"message":"provider boot failed; marking kernel not ready","err":"provider error: relay upstream preflight: error sending request for url (http://127.0.0.1:1/)"},"target":"kin_kernel"}
+{"timestamp":"2026-08-28T20:18:17.070249Z","level":"ERROR","fields":{"message":"response failed","classification":"Status code: 503 Service Unavailable","latency":"0 ms"},"target":"tower_http::trace::on_failure"}

@@ -1,0 +1,25 @@
+{
+  "seq": 325,
+  "case": "04-identity",
+  "method": "POST",
+  "path": "/v1/messages?beta=true",
+  "status": 200,
+  "ms": 7041,
+  "req_bytes": 8536,
+  "resp_bytes": 9656,
+  "dir": "04-identity/outbound/325-POST-v1-messages",
+  "model": "claude-sonnet-5",
+  "user_head": "<system-reminder>\nAs you answer the user's questions, you can use the following context:\n# currentDate\nToday's date is 2026-08-28.\n\n      IMPORTANT: this context may or may not be relevant to your tas",
+  "tools": [
+    "WebSearch",
+    "mcp__kin_runtime__slot_wait",
+    "mcp__kin_runtime__client_tool",
+    "mcp__kin_runtime__kin_done",
+    "mcp__kin_runtime__kin_fail"
+  ],
+  "resp_tools": [
+    "mcp__kin_runtime__kin_done"
+  ],
+  "text_head": "你好！\n\n**身份**：我是 Claude，由 Anthropic 开发的 AI 助手，基于 Claude Agent SDK 构建。\n\n**模型**：Sonnet 5（模型 ID：claude-sonnet-5）。\n\n**知识截止日期**：2026 年 1 月。\n\n**运行环境**：\n- 平台：Linux（内核 6.12.8+）\n- 当前作为一个持久化的 \"Kin request slot\" 运行，循环等待并处理分配给我的任务（job）\n- 工作目录：`/tmp/kin-cli/multiplex/cbb9534f-a42c-4947-9c9d-79bc8ec74de1`\n- 非 git 仓",
+  "error": null
+}

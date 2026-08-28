@@ -1,0 +1,33 @@
+{
+  "id": "02-vision",
+  "title": "识图",
+  "http": 200,
+  "ms": 30132,
+  "clean": false,
+  "failed": [
+    [
+      "has_visible_text",
+      "empty"
+    ],
+    [
+      "vision_mentions_image",
+      ""
+    ]
+  ],
+  "stop": "end_turn",
+  "model": "claude-sonnet-5",
+  "tools": [],
+  "text": "",
+  "thinking_len": 0,
+  "usage": {
+    "input_tokens": 4,
+    "output_tokens": 1205,
+    "cache_creation_input_tokens": 2227,
+    "cache_read_input_tokens": 5789
+  },
+  "error": null,
+  "outbound_packets": 51,
+  "resume_http": null,
+  "resume_text": null,
+  "path": "kin-cli-observe + dump_proxy + SOCKS5"
+}

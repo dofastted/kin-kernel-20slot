@@ -1,0 +1,14 @@
+{
+  "ready": true,
+  "boot_s": 76.02,
+  "dump_ok": true,
+  "relay_ok": true,
+  "kernel_pid": 7550,
+  "dump_pid": 7547,
+  "claude": [
+    [
+      7554,
+      "claude"
+    ]
+  ]
+}

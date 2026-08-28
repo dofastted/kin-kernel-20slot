@@ -1,0 +1,34 @@
+{
+  "status": 200,
+  "elapsed": 2.327,
+  "text": "observe-hello",
+  "n_events": 7,
+  "types": [
+    "message_start",
+    "content_block_start",
+    "content_block_delta",
+    "content_block_stop",
+    "message_delta",
+    "message_stop",
+    "kin.done"
+  ],
+  "n_text_delta": 1,
+  "delta_lens": [
+    13
+  ],
+  "max_delta": 13,
+  "first_token_ms": 1986,
+  "natural_stream": false,
+  "tool_uses": [],
+  "names": [],
+  "mcp_leak": [],
+  "kin_done": {
+    "continuation": null,
+    "generation": 1,
+    "pid": 11217,
+    "session_id": "obs-ttfb-1",
+    "slot": "runtime-00"
+  },
+  "saw_message_stop": true,
+  "error": null
+}

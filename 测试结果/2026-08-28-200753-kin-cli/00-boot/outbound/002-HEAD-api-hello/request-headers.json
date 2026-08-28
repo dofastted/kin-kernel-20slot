@@ -1,0 +1,6 @@
+{
+  "user-agent": "Bun/1.4.1",
+  "accept": "*/*",
+  "accept-encoding": "gzip, deflate, br, zstd",
+  "host": "127.0.0.1:18083"
+}

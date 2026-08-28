@@ -1,0 +1,24 @@
+{
+  "id": "07-forced-weather",
+  "title": "强制天气工具",
+  "http": 200,
+  "ms": 3189,
+  "clean": true,
+  "failed": [],
+  "stop": "tool_use",
+  "model": "claude-sonnet-5",
+  "tools": [
+    "get_weather"
+  ],
+  "text": "",
+  "thinking_len": 0,
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0
+  },
+  "error": null,
+  "outbound_packets": 12,
+  "resume_http": 200,
+  "resume_text": "",
+  "path": "kin-cli-observe + dump_proxy + SOCKS5"
+}

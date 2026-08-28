@@ -1,0 +1,2966 @@
+20:07:55 dump proxy listening on 127.0.0.1:18083 → socks5 72.1.181.43:5437 → api.anthropic.com
+20:07:55 → 001 00-boot GET / bytes=0
+20:07:55 http "GET /healthz HTTP/1.1" 200 -
+20:07:55 http "GET /healthz HTTP/1.1" 200 -
+20:07:55 ← 001 404 281ms 001-GET-root resp=0
+20:07:55 http "GET / HTTP/1.1" 404 -
+20:07:55 → 002 00-boot HEAD /api/hello bytes=0
+20:07:55 http "GET /healthz HTTP/1.1" 200 -
+20:07:55 → 003 00-boot POST /v1/messages?beta=true bytes=4290
+20:07:56 ← 002 200 328ms 002-HEAD-api-hello resp=0
+20:07:56 http "HEAD /api/hello HTTP/1.1" 200 -
+20:07:56 → 004 00-boot POST /v1/messages?beta=true bytes=105948
+20:07:56 http "GET /healthz HTTP/1.1" 200 -
+20:07:56 → 005 00-boot GET / bytes=0
+20:07:56 → 006 00-boot GET / bytes=0
+20:07:56 http "GET /healthz HTTP/1.1" 200 -
+20:07:56 ← 006 404 270ms 006-GET-root resp=0
+20:07:56 http "GET / HTTP/1.1" 404 -
+20:07:56 ← 005 404 293ms 005-GET-root resp=0
+20:07:56 http "GET / HTTP/1.1" 404 -
+20:07:57 http "GET /healthz HTTP/1.1" 200 -
+20:07:57 http "GET /healthz HTTP/1.1" 200 -
+20:07:57 → 007 00-boot GET / bytes=0
+20:07:57 → 008 00-boot GET / bytes=0
+20:07:58 ← 007 404 258ms 007-GET-root resp=0
+20:07:58 http "GET / HTTP/1.1" 404 -
+20:07:58 ← 008 404 280ms 008-GET-root resp=0
+20:07:58 http "GET / HTTP/1.1" 404 -
+20:07:58 http "GET /healthz HTTP/1.1" 200 -
+20:07:58 http "GET /healthz HTTP/1.1" 200 -
+20:07:59 → 009 00-boot GET / bytes=0
+20:07:59 → 010 00-boot GET / bytes=0
+20:07:59 ← 003 200 3263ms 003-POST-v1-messages resp=1642
+20:07:59 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:07:59 http "GET /healthz HTTP/1.1" 200 -
+20:07:59 ← 009 404 274ms 009-GET-root resp=0
+20:07:59 http "GET / HTTP/1.1" 404 -
+20:07:59 ← 010 404 304ms 010-GET-root resp=0
+20:07:59 http "GET / HTTP/1.1" 404 -
+20:07:59 write client fail seq=10 [Errno 32] Broken pipe
+20:07:59 http "GET /healthz HTTP/1.1" 200 -
+20:08:00 http "GET /healthz HTTP/1.1" 200 -
+20:08:00 → 011 00-boot GET / bytes=0
+20:08:00 → 012 00-boot GET / bytes=0
+20:08:00 ← 012 404 284ms 012-GET-root resp=0
+20:08:00 http "GET / HTTP/1.1" 404 -
+20:08:00 ← 011 404 287ms 011-GET-root resp=0
+20:08:00 http "GET / HTTP/1.1" 404 -
+20:08:00 http "GET /healthz HTTP/1.1" 200 -
+20:08:01 http "GET /healthz HTTP/1.1" 200 -
+20:08:01 → 013 00-boot GET / bytes=0
+20:08:01 → 014 00-boot GET / bytes=0
+20:08:01 http "GET /healthz HTTP/1.1" 200 -
+20:08:02 ← 014 404 277ms 014-GET-root resp=0
+20:08:02 http "GET / HTTP/1.1" 404 -
+20:08:02 ← 013 404 288ms 013-GET-root resp=0
+20:08:02 http "GET / HTTP/1.1" 404 -
+20:08:02 http "GET /healthz HTTP/1.1" 200 -
+20:08:02 http "GET /healthz HTTP/1.1" 200 -
+20:08:03 → 015 00-boot GET / bytes=0
+20:08:03 → 016 00-boot GET / bytes=0
+20:08:03 http "GET /healthz HTTP/1.1" 200 -
+20:08:03 ← 015 404 393ms 015-GET-root resp=0
+20:08:03 http "GET / HTTP/1.1" 404 -
+20:08:03 write client fail seq=15 [Errno 32] Broken pipe
+20:08:03 ← 016 404 404ms 016-GET-root resp=0
+20:08:03 http "GET / HTTP/1.1" 404 -
+20:08:03 write client fail seq=16 [Errno 32] Broken pipe
+20:08:03 http "GET /healthz HTTP/1.1" 200 -
+20:08:04 → 017 00-boot GET / bytes=0
+20:08:04 → 018 00-boot GET / bytes=0
+20:08:04 http "GET /healthz HTTP/1.1" 200 -
+20:08:04 ← 017 404 271ms 017-GET-root resp=0
+20:08:04 http "GET / HTTP/1.1" 404 -
+20:08:04 ← 018 404 293ms 018-GET-root resp=0
+20:08:04 http "GET / HTTP/1.1" 404 -
+20:08:04 http "GET /healthz HTTP/1.1" 200 -
+20:08:05 http "GET /healthz HTTP/1.1" 200 -
+20:08:05 → 019 00-boot GET / bytes=0
+20:08:05 → 020 00-boot GET / bytes=0
+20:08:05 http "GET /healthz HTTP/1.1" 200 -
+20:08:05 ← 020 404 279ms 020-GET-root resp=0
+20:08:05 http "GET / HTTP/1.1" 404 -
+20:08:05 ← 019 404 278ms 019-GET-root resp=0
+20:08:05 http "GET / HTTP/1.1" 404 -
+20:08:06 http "GET /healthz HTTP/1.1" 200 -
+20:08:06 http "GET /healthz HTTP/1.1" 200 -
+20:08:06 → 021 00-boot GET / bytes=0
+20:08:06 → 022 00-boot GET / bytes=0
+20:08:07 ← 022 404 287ms 022-GET-root resp=0
+20:08:07 http "GET / HTTP/1.1" 404 -
+20:08:07 ← 021 404 293ms 021-GET-root resp=0
+20:08:07 http "GET / HTTP/1.1" 404 -
+20:08:07 write client fail seq=21 [Errno 104] Connection reset by peer
+20:08:07 http "GET /healthz HTTP/1.1" 200 -
+20:08:07 http "GET /healthz HTTP/1.1" 200 -
+20:08:08 → 023 00-boot GET / bytes=0
+20:08:08 → 024 00-boot GET / bytes=0
+20:08:08 http "GET /healthz HTTP/1.1" 200 -
+20:08:08 ← 023 404 285ms 023-GET-root resp=0
+20:08:08 http "GET / HTTP/1.1" 404 -
+20:08:08 write client fail seq=23 [Errno 104] Connection reset by peer
+20:08:08 ← 024 404 292ms 024-GET-root resp=0
+20:08:08 http "GET / HTTP/1.1" 404 -
+20:08:09 http "GET /healthz HTTP/1.1" 200 -
+20:08:09 http "GET /healthz HTTP/1.1" 200 -
+20:08:09 → 025 00-boot GET / bytes=0
+20:08:09 → 026 00-boot GET / bytes=0
+20:08:09 ← 026 404 264ms 026-GET-root resp=0
+20:08:09 http "GET / HTTP/1.1" 404 -
+20:08:09 ← 025 404 286ms 025-GET-root resp=0
+20:08:09 http "GET / HTTP/1.1" 404 -
+20:08:10 http "GET /healthz HTTP/1.1" 200 -
+20:08:10 http "GET /healthz HTTP/1.1" 200 -
+20:08:10 → 027 00-boot GET / bytes=0
+20:08:10 → 028 00-boot GET / bytes=0
+20:08:11 http "GET /healthz HTTP/1.1" 200 -
+20:08:11 ← 027 404 248ms 027-GET-root resp=0
+20:08:11 http "GET / HTTP/1.1" 404 -
+20:08:11 write client fail seq=27 [Errno 104] Connection reset by peer
+20:08:11 ← 028 404 272ms 028-GET-root resp=0
+20:08:11 http "GET / HTTP/1.1" 404 -
+20:08:11 http "GET /healthz HTTP/1.1" 200 -
+20:08:12 http "GET /healthz HTTP/1.1" 200 -
+20:08:12 → 029 00-boot GET / bytes=0
+20:08:12 → 030 00-boot GET / bytes=0
+20:08:12 ← 029 404 282ms 029-GET-root resp=0
+20:08:12 http "GET / HTTP/1.1" 404 -
+20:08:12 write client fail seq=29 [Errno 104] Connection reset by peer
+20:08:12 ← 030 404 311ms 030-GET-root resp=0
+20:08:12 http "GET / HTTP/1.1" 404 -
+20:08:12 write client fail seq=30 [Errno 32] Broken pipe
+20:08:12 http "GET /healthz HTTP/1.1" 200 -
+20:08:13 http "GET /healthz HTTP/1.1" 200 -
+20:08:13 → 031 00-boot GET / bytes=0
+20:08:13 → 032 00-boot GET / bytes=0
+20:08:13 http "GET /healthz HTTP/1.1" 200 -
+20:08:13 ← 032 404 287ms 032-GET-root resp=0
+20:08:13 http "GET / HTTP/1.1" 404 -
+20:08:13 ← 031 404 299ms 031-GET-root resp=0
+20:08:13 http "GET / HTTP/1.1" 404 -
+20:08:13 write client fail seq=31 [Errno 32] Broken pipe
+20:08:14 http "GET /healthz HTTP/1.1" 200 -
+20:08:14 http "GET /healthz HTTP/1.1" 200 -
+20:08:14 → 033 00-boot GET / bytes=0
+20:08:14 → 034 00-boot GET / bytes=0
+20:08:15 ← 033 404 267ms 033-GET-root resp=0
+20:08:15 http "GET / HTTP/1.1" 404 -
+20:08:15 write client fail seq=33 [Errno 104] Connection reset by peer
+20:08:15 http "GET /healthz HTTP/1.1" 200 -
+20:08:15 ← 034 404 283ms 034-GET-root resp=0
+20:08:15 http "GET / HTTP/1.1" 404 -
+20:08:15 http "GET /healthz HTTP/1.1" 200 -
+20:08:16 → 035 00-boot GET / bytes=0
+20:08:16 → 036 00-boot GET / bytes=0
+20:08:16 http "GET /healthz HTTP/1.1" 200 -
+20:08:16 ← 035 404 280ms 035-GET-root resp=0
+20:08:16 http "GET / HTTP/1.1" 404 -
+20:08:16 ← 036 404 289ms 036-GET-root resp=0
+20:08:16 http "GET / HTTP/1.1" 404 -
+20:08:16 http "GET /healthz HTTP/1.1" 200 -
+20:08:17 http "GET /healthz HTTP/1.1" 200 -
+20:08:17 → 037 00-boot GET / bytes=0
+20:08:17 → 038 00-boot GET / bytes=0
+20:08:17 http "GET /healthz HTTP/1.1" 200 -
+20:08:17 ← 038 404 297ms 038-GET-root resp=0
+20:08:17 http "GET / HTTP/1.1" 404 -
+20:08:17 write client fail seq=38 [Errno 32] Broken pipe
+20:08:17 ← 037 404 303ms 037-GET-root resp=0
+20:08:17 http "GET / HTTP/1.1" 404 -
+20:08:17 write client fail seq=37 [Errno 32] Broken pipe
+20:08:18 http "GET /healthz HTTP/1.1" 200 -
+20:08:18 http "GET /healthz HTTP/1.1" 200 -
+20:08:18 → 039 00-boot GET / bytes=0
+20:08:18 → 040 00-boot GET / bytes=0
+20:08:18 ← 039 404 290ms 039-GET-root resp=0
+20:08:18 http "GET / HTTP/1.1" 404 -
+20:08:18 ← 040 404 300ms 040-GET-root resp=0
+20:08:18 http "GET / HTTP/1.1" 404 -
+20:08:18 write client fail seq=40 [Errno 32] Broken pipe
+20:08:19 http "GET /healthz HTTP/1.1" 200 -
+20:08:19 http "GET /healthz HTTP/1.1" 200 -
+20:08:19 → 041 00-boot GET / bytes=0
+20:08:19 → 042 00-boot GET / bytes=0
+20:08:20 http "GET /healthz HTTP/1.1" 200 -
+20:08:20 ← 041 404 322ms 041-GET-root resp=0
+20:08:20 http "GET / HTTP/1.1" 404 -
+20:08:20 write client fail seq=41 [Errno 32] Broken pipe
+20:08:20 ← 042 404 318ms 042-GET-root resp=0
+20:08:20 http "GET / HTTP/1.1" 404 -
+20:08:20 write client fail seq=42 [Errno 32] Broken pipe
+20:08:20 http "GET /healthz HTTP/1.1" 200 -
+20:08:21 http "GET /healthz HTTP/1.1" 200 -
+20:08:21 → 043 00-boot GET / bytes=0
+20:08:21 → 044 00-boot GET / bytes=0
+20:08:21 ← 043 404 293ms 043-GET-root resp=0
+20:08:21 http "GET / HTTP/1.1" 404 -
+20:08:21 ← 044 404 307ms 044-GET-root resp=0
+20:08:21 http "GET / HTTP/1.1" 404 -
+20:08:21 write client fail seq=44 [Errno 32] Broken pipe
+20:08:21 http "GET /healthz HTTP/1.1" 200 -
+20:08:22 http "GET /healthz HTTP/1.1" 200 -
+20:08:22 → 045 00-boot GET / bytes=0
+20:08:22 → 046 00-boot GET / bytes=0
+20:08:22 http "GET /healthz HTTP/1.1" 200 -
+20:08:22 ← 045 404 261ms 045-GET-root resp=0
+20:08:22 http "GET / HTTP/1.1" 404 -
+20:08:22 ← 046 404 310ms 046-GET-root resp=0
+20:08:22 http "GET / HTTP/1.1" 404 -
+20:08:22 write client fail seq=46 [Errno 32] Broken pipe
+20:08:23 http "GET /healthz HTTP/1.1" 200 -
+20:08:23 http "GET /healthz HTTP/1.1" 200 -
+20:08:23 → 047 00-boot GET / bytes=0
+20:08:23 → 048 00-boot GET / bytes=0
+20:08:24 ← 048 404 302ms 048-GET-root resp=0
+20:08:24 http "GET / HTTP/1.1" 404 -
+20:08:24 write client fail seq=48 [Errno 32] Broken pipe
+20:08:24 ← 047 404 315ms 047-GET-root resp=0
+20:08:24 http "GET / HTTP/1.1" 404 -
+20:08:24 write client fail seq=47 [Errno 32] Broken pipe
+20:08:24 http "GET /healthz HTTP/1.1" 200 -
+20:08:24 http "GET /healthz HTTP/1.1" 200 -
+20:08:25 → 049 00-boot GET / bytes=0
+20:08:25 → 050 00-boot GET / bytes=0
+20:08:25 http "GET /healthz HTTP/1.1" 200 -
+20:08:25 ← 050 404 288ms 050-GET-root resp=0
+20:08:25 http "GET / HTTP/1.1" 404 -
+20:08:25 ← 049 404 292ms 049-GET-root resp=0
+20:08:25 http "GET / HTTP/1.1" 404 -
+20:08:25 http "GET /healthz HTTP/1.1" 200 -
+20:08:26 http "GET /healthz HTTP/1.1" 200 -
+20:08:26 → 051 00-boot GET / bytes=0
+20:08:26 → 052 00-boot GET / bytes=0
+20:08:26 http "GET /healthz HTTP/1.1" 200 -
+20:08:26 ← 051 404 300ms 051-GET-root resp=0
+20:08:26 http "GET / HTTP/1.1" 404 -
+20:08:26 write client fail seq=51 [Errno 32] Broken pipe
+20:08:26 ← 052 404 310ms 052-GET-root resp=0
+20:08:26 http "GET / HTTP/1.1" 404 -
+20:08:26 write client fail seq=52 [Errno 32] Broken pipe
+20:08:27 http "GET /healthz HTTP/1.1" 200 -
+20:08:27 http "GET /healthz HTTP/1.1" 200 -
+20:08:27 → 053 00-boot GET / bytes=0
+20:08:27 → 054 00-boot GET / bytes=0
+20:08:28 ← 053 404 300ms 053-GET-root resp=0
+20:08:28 http "GET / HTTP/1.1" 404 -
+20:08:28 write client fail seq=53 [Errno 32] Broken pipe
+20:08:28 ← 054 404 308ms 054-GET-root resp=0
+20:08:28 http "GET / HTTP/1.1" 404 -
+20:08:28 write client fail seq=54 [Errno 32] Broken pipe
+20:08:28 http "GET /healthz HTTP/1.1" 200 -
+20:08:28 http "GET /healthz HTTP/1.1" 200 -
+20:08:29 → 055 00-boot GET / bytes=0
+20:08:29 → 056 00-boot GET / bytes=0
+20:08:29 http "GET /healthz HTTP/1.1" 200 -
+20:08:29 ← 055 404 279ms 055-GET-root resp=0
+20:08:29 http "GET / HTTP/1.1" 404 -
+20:08:29 ← 056 404 297ms 056-GET-root resp=0
+20:08:29 http "GET / HTTP/1.1" 404 -
+20:08:29 http "GET /healthz HTTP/1.1" 200 -
+20:08:30 http "GET /healthz HTTP/1.1" 200 -
+20:08:30 → 057 00-boot GET / bytes=0
+20:08:30 → 058 00-boot GET / bytes=0
+20:08:30 ← 058 404 249ms 058-GET-root resp=0
+20:08:30 http "GET / HTTP/1.1" 404 -
+20:08:30 ← 057 404 277ms 057-GET-root resp=0
+20:08:30 http "GET / HTTP/1.1" 404 -
+20:08:30 write client fail seq=57 [Errno 104] Connection reset by peer
+20:08:30 http "GET /healthz HTTP/1.1" 200 -
+20:08:31 http "GET /healthz HTTP/1.1" 200 -
+20:08:31 → 059 00-boot GET / bytes=0
+20:08:31 → 060 00-boot GET / bytes=0
+20:08:31 http "GET /healthz HTTP/1.1" 200 -
+20:08:31 ← 059 404 256ms 059-GET-root resp=0
+20:08:31 http "GET / HTTP/1.1" 404 -
+20:08:31 write client fail seq=59 [Errno 104] Connection reset by peer
+20:08:32 ← 060 404 304ms 060-GET-root resp=0
+20:08:32 http "GET / HTTP/1.1" 404 -
+20:08:32 write client fail seq=60 [Errno 32] Broken pipe
+20:08:32 http "GET /healthz HTTP/1.1" 200 -
+20:08:32 http "GET /healthz HTTP/1.1" 200 -
+20:08:33 → 061 00-boot GET / bytes=0
+20:08:33 → 062 00-boot GET / bytes=0
+20:08:33 ← 062 404 279ms 062-GET-root resp=0
+20:08:33 http "GET / HTTP/1.1" 404 -
+20:08:33 ← 061 404 296ms 061-GET-root resp=0
+20:08:33 http "GET / HTTP/1.1" 404 -
+20:08:33 write client fail seq=61 [Errno 32] Broken pipe
+20:08:33 http "GET /healthz HTTP/1.1" 200 -
+20:08:33 http "GET /healthz HTTP/1.1" 200 -
+20:08:34 → 063 00-boot GET / bytes=0
+20:08:34 → 064 00-boot GET / bytes=0
+20:08:34 http "GET /healthz HTTP/1.1" 200 -
+20:08:34 ← 063 404 266ms 063-GET-root resp=0
+20:08:34 http "GET / HTTP/1.1" 404 -
+20:08:34 ← 064 404 278ms 064-GET-root resp=0
+20:08:34 http "GET / HTTP/1.1" 404 -
+20:08:34 http "GET /healthz HTTP/1.1" 200 -
+20:08:35 http "GET /healthz HTTP/1.1" 200 -
+20:08:35 → 065 00-boot GET / bytes=0
+20:08:35 → 066 00-boot GET / bytes=0
+20:08:35 http "GET /healthz HTTP/1.1" 200 -
+20:08:35 ← 066 404 287ms 066-GET-root resp=0
+20:08:35 http "GET / HTTP/1.1" 404 -
+20:08:35 ← 065 404 318ms 065-GET-root resp=0
+20:08:35 http "GET / HTTP/1.1" 404 -
+20:08:35 write client fail seq=65 [Errno 32] Broken pipe
+20:08:36 http "GET /healthz HTTP/1.1" 200 -
+20:08:36 http "GET /healthz HTTP/1.1" 200 -
+20:08:36 → 067 00-boot GET / bytes=0
+20:08:36 → 068 00-boot GET / bytes=0
+20:08:37 ← 067 404 270ms 067-GET-root resp=0
+20:08:37 http "GET / HTTP/1.1" 404 -
+20:08:37 ← 068 404 276ms 068-GET-root resp=0
+20:08:37 http "GET / HTTP/1.1" 404 -
+20:08:37 http "GET /healthz HTTP/1.1" 200 -
+20:08:37 http "GET /healthz HTTP/1.1" 200 -
+20:08:38 → 069 00-boot GET / bytes=0
+20:08:38 → 070 00-boot GET / bytes=0
+20:08:38 http "GET /healthz HTTP/1.1" 200 -
+20:08:38 ← 069 404 279ms 069-GET-root resp=0
+20:08:38 http "GET / HTTP/1.1" 404 -
+20:08:38 write client fail seq=69 [Errno 104] Connection reset by peer
+20:08:38 ← 070 404 308ms 070-GET-root resp=0
+20:08:38 http "GET / HTTP/1.1" 404 -
+20:08:38 write client fail seq=70 [Errno 32] Broken pipe
+20:08:38 http "GET /healthz HTTP/1.1" 200 -
+20:08:39 http "GET /healthz HTTP/1.1" 200 -
+20:08:39 → 071 00-boot GET / bytes=0
+20:08:39 → 072 00-boot GET / bytes=0
+20:08:39 ← 072 404 287ms 072-GET-root resp=0
+20:08:39 http "GET / HTTP/1.1" 404 -
+20:08:39 ← 071 404 289ms 071-GET-root resp=0
+20:08:39 http "GET / HTTP/1.1" 404 -
+20:08:39 write client fail seq=71 [Errno 104] Connection reset by peer
+20:08:39 http "GET /healthz HTTP/1.1" 200 -
+20:08:40 http "GET /healthz HTTP/1.1" 200 -
+20:08:40 → 073 00-boot GET / bytes=0
+20:08:40 → 074 00-boot GET / bytes=0
+20:08:40 http "GET /healthz HTTP/1.1" 200 -
+20:08:41 ← 073 404 279ms 073-GET-root resp=0
+20:08:41 http "GET / HTTP/1.1" 404 -
+20:08:41 ← 074 404 297ms 074-GET-root resp=0
+20:08:41 http "GET / HTTP/1.1" 404 -
+20:08:41 write client fail seq=74 [Errno 32] Broken pipe
+20:08:41 http "GET /healthz HTTP/1.1" 200 -
+20:08:41 http "GET /healthz HTTP/1.1" 200 -
+20:08:42 → 075 00-boot GET / bytes=0
+20:08:42 → 076 00-boot GET / bytes=0
+20:08:42 http "GET /healthz HTTP/1.1" 200 -
+20:08:42 ← 076 404 336ms 076-GET-root resp=0
+20:08:42 http "GET / HTTP/1.1" 404 -
+20:08:42 write client fail seq=76 [Errno 32] Broken pipe
+20:08:42 ← 075 404 341ms 075-GET-root resp=0
+20:08:42 http "GET / HTTP/1.1" 404 -
+20:08:42 write client fail seq=75 [Errno 32] Broken pipe
+20:08:42 http "GET /healthz HTTP/1.1" 200 -
+20:08:43 → 077 00-boot GET / bytes=0
+20:08:43 → 078 00-boot GET / bytes=0
+20:08:43 http "GET /healthz HTTP/1.1" 200 -
+20:08:43 ← 077 404 256ms 077-GET-root resp=0
+20:08:43 http "GET / HTTP/1.1" 404 -
+20:08:43 write client fail seq=77 [Errno 104] Connection reset by peer
+20:08:43 ← 078 404 254ms 078-GET-root resp=0
+20:08:43 http "GET / HTTP/1.1" 404 -
+20:08:43 http "GET /healthz HTTP/1.1" 200 -
+20:08:44 http "GET /healthz HTTP/1.1" 200 -
+20:08:44 → 079 00-boot GET / bytes=0
+20:08:44 → 080 00-boot GET / bytes=0
+20:08:44 http "GET /healthz HTTP/1.1" 200 -
+20:08:45 ← 079 404 310ms 079-GET-root resp=0
+20:08:45 http "GET / HTTP/1.1" 404 -
+20:08:45 write client fail seq=79 [Errno 32] Broken pipe
+20:08:45 ← 080 404 324ms 080-GET-root resp=0
+20:08:45 http "GET / HTTP/1.1" 404 -
+20:08:45 write client fail seq=80 [Errno 32] Broken pipe
+20:08:45 http "GET /healthz HTTP/1.1" 200 -
+20:08:45 http "GET /healthz HTTP/1.1" 200 -
+20:08:45 → 081 00-boot GET / bytes=0
+20:08:45 → 082 00-boot GET / bytes=0
+20:08:46 ← 082 404 306ms 082-GET-root resp=0
+20:08:46 http "GET / HTTP/1.1" 404 -
+20:08:46 write client fail seq=82 [Errno 32] Broken pipe
+20:08:46 ← 081 404 318ms 081-GET-root resp=0
+20:08:46 http "GET / HTTP/1.1" 404 -
+20:08:46 write client fail seq=81 [Errno 32] Broken pipe
+20:08:46 http "GET /healthz HTTP/1.1" 200 -
+20:08:46 http "GET /healthz HTTP/1.1" 200 -
+20:08:47 → 083 00-boot GET / bytes=0
+20:08:47 → 084 00-boot GET / bytes=0
+20:08:47 http "GET /healthz HTTP/1.1" 200 -
+20:08:47 ← 084 404 329ms 084-GET-root resp=0
+20:08:47 http "GET / HTTP/1.1" 404 -
+20:08:47 write client fail seq=84 [Errno 32] Broken pipe
+20:08:47 ← 083 404 331ms 083-GET-root resp=0
+20:08:47 http "GET / HTTP/1.1" 404 -
+20:08:47 write client fail seq=83 [Errno 32] Broken pipe
+20:08:47 http "GET /healthz HTTP/1.1" 200 -
+20:08:48 http "GET /healthz HTTP/1.1" 200 -
+20:08:48 → 085 00-boot GET / bytes=0
+20:08:48 → 086 00-boot GET / bytes=0
+20:08:48 ← 085 404 267ms 085-GET-root resp=0
+20:08:48 http "GET / HTTP/1.1" 404 -
+20:08:48 ← 086 404 283ms 086-GET-root resp=0
+20:08:48 http "GET / HTTP/1.1" 404 -
+20:08:49 http "GET /healthz HTTP/1.1" 200 -
+20:08:49 http "GET /healthz HTTP/1.1" 200 -
+20:08:49 → 087 00-boot GET / bytes=0
+20:08:49 → 088 00-boot GET / bytes=0
+20:08:50 http "GET /healthz HTTP/1.1" 200 -
+20:08:50 ← 087 404 300ms 087-GET-root resp=0
+20:08:50 http "GET / HTTP/1.1" 404 -
+20:08:50 write client fail seq=87 [Errno 32] Broken pipe
+20:08:50 ← 088 404 317ms 088-GET-root resp=0
+20:08:50 http "GET / HTTP/1.1" 404 -
+20:08:50 write client fail seq=88 [Errno 32] Broken pipe
+20:08:50 http "GET /healthz HTTP/1.1" 200 -
+20:08:51 http "GET /healthz HTTP/1.1" 200 -
+20:08:51 → 089 00-boot GET / bytes=0
+20:08:51 → 090 00-boot GET / bytes=0
+20:08:51 ← 089 404 284ms 089-GET-root resp=0
+20:08:51 http "GET / HTTP/1.1" 404 -
+20:08:51 ← 090 404 302ms 090-GET-root resp=0
+20:08:51 http "GET / HTTP/1.1" 404 -
+20:08:51 write client fail seq=90 [Errno 32] Broken pipe
+20:08:51 http "GET /healthz HTTP/1.1" 200 -
+20:08:52 http "GET /healthz HTTP/1.1" 200 -
+20:08:52 → 091 00-boot GET / bytes=0
+20:08:52 → 092 00-boot GET / bytes=0
+20:08:52 http "GET /healthz HTTP/1.1" 200 -
+20:08:52 ← 092 404 283ms 092-GET-root resp=0
+20:08:52 http "GET / HTTP/1.1" 404 -
+20:08:52 ← 091 404 293ms 091-GET-root resp=0
+20:08:52 http "GET / HTTP/1.1" 404 -
+20:08:52 write client fail seq=91 [Errno 104] Connection reset by peer
+20:08:53 http "GET /healthz HTTP/1.1" 200 -
+20:08:53 http "GET /healthz HTTP/1.1" 200 -
+20:08:53 → 093 00-boot GET / bytes=0
+20:08:53 → 094 00-boot GET / bytes=0
+20:08:54 http "GET /healthz HTTP/1.1" 200 -
+20:08:54 ← 093 404 280ms 093-GET-root resp=0
+20:08:54 http "GET / HTTP/1.1" 404 -
+20:08:54 write client fail seq=93 [Errno 104] Connection reset by peer
+20:08:54 ← 094 404 284ms 094-GET-root resp=0
+20:08:54 http "GET / HTTP/1.1" 404 -
+20:08:54 http "GET /healthz HTTP/1.1" 200 -
+20:08:55 http "GET /healthz HTTP/1.1" 200 -
+20:08:55 → 095 00-boot GET / bytes=0
+20:08:55 → 096 00-boot GET / bytes=0
+20:08:55 ← 095 404 278ms 095-GET-root resp=0
+20:08:55 http "GET / HTTP/1.1" 404 -
+20:08:55 ← 096 404 294ms 096-GET-root resp=0
+20:08:55 http "GET / HTTP/1.1" 404 -
+20:08:55 http "GET /healthz HTTP/1.1" 200 -
+20:08:56 http "GET /healthz HTTP/1.1" 200 -
+20:08:56 → 097 00-boot GET / bytes=0
+20:08:56 → 098 00-boot GET / bytes=0
+20:08:56 http "GET /healthz HTTP/1.1" 200 -
+20:08:56 ← 098 404 315ms 098-GET-root resp=0
+20:08:56 http "GET / HTTP/1.1" 404 -
+20:08:56 write client fail seq=98 [Errno 32] Broken pipe
+20:08:56 ← 097 404 324ms 097-GET-root resp=0
+20:08:56 http "GET / HTTP/1.1" 404 -
+20:08:56 write client fail seq=97 [Errno 32] Broken pipe
+20:08:57 http "GET /healthz HTTP/1.1" 200 -
+20:08:57 ← 004 200 61258ms 004-POST-v1-messages resp=71140
+20:08:57 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:08:57 http "GET /healthz HTTP/1.1" 200 -
+20:08:57 → 099 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 100 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 101 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 102 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 103 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 104 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 105 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 106 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 107 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 108 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 109 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 110 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 111 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 112 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 113 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 114 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 115 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 116 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 117 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 118 00-boot POST /v1/messages?beta=true bytes=6719
+20:08:57 → 119 00-boot GET / bytes=0
+20:08:57 → 120 00-boot GET / bytes=0
+20:08:57 → 121 00-boot POST /v1/messages?beta=true bytes=135224
+20:08:58 http "GET /healthz HTTP/1.1" 200 -
+20:08:58 ← 119 404 658ms 119-GET-root resp=0
+20:08:58 http "GET / HTTP/1.1" 404 -
+20:08:58 write client fail seq=119 [Errno 32] Broken pipe
+20:08:58 ← 120 404 882ms 120-GET-root resp=0
+20:08:58 http "GET / HTTP/1.1" 404 -
+20:08:58 write client fail seq=120 [Errno 32] Broken pipe
+20:08:58 http "GET /healthz HTTP/1.1" 200 -
+20:08:59 → 122 00-boot GET / bytes=0
+20:08:59 → 123 00-boot GET / bytes=0
+20:08:59 http "GET /healthz HTTP/1.1" 200 -
+20:08:59 ← 122 404 263ms 122-GET-root resp=0
+20:08:59 http "GET / HTTP/1.1" 404 -
+20:08:59 ← 123 404 264ms 123-GET-root resp=0
+20:08:59 http "GET / HTTP/1.1" 404 -
+20:08:59 http "GET /healthz HTTP/1.1" 200 -
+20:08:59 ← 109 200 2167ms 109-POST-v1-messages resp=1371
+20:08:59 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:08:59 ← 113 200 2187ms 113-POST-v1-messages resp=1377
+20:08:59 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:08:59 ← 111 200 2192ms 111-POST-v1-messages resp=1377
+20:08:59 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:08:59 ← 102 200 2301ms 102-POST-v1-messages resp=1375
+20:08:59 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 ← 103 200 2328ms 103-POST-v1-messages resp=1381
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 ← 106 200 2377ms 106-POST-v1-messages resp=1374
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 ← 104 200 2428ms 104-POST-v1-messages resp=2467
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 ← 107 200 2514ms 107-POST-v1-messages resp=2449
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 ← 116 200 2504ms 116-POST-v1-messages resp=2479
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 http "GET /healthz HTTP/1.1" 200 -
+20:09:00 → 124 00-boot GET / bytes=0
+20:09:00 → 125 00-boot GET / bytes=0
+20:09:00 ← 118 200 2620ms 118-POST-v1-messages resp=3345
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 ← 099 200 2670ms 099-POST-v1-messages resp=1367
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 ← 100 200 2778ms 100-POST-v1-messages resp=1380
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 ← 115 200 2783ms 115-POST-v1-messages resp=2460
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 ← 112 200 2836ms 112-POST-v1-messages resp=1375
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:00 ← 125 404 285ms 125-GET-root resp=0
+20:09:00 http "GET / HTTP/1.1" 404 -
+20:09:00 ← 124 404 293ms 124-GET-root resp=0
+20:09:00 http "GET / HTTP/1.1" 404 -
+20:09:00 http "GET /healthz HTTP/1.1" 200 -
+20:09:00 ← 101 200 3082ms 101-POST-v1-messages resp=1363
+20:09:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:01 ← 121 200 3437ms 121-POST-v1-messages resp=1813
+20:09:01 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:01 http "GET /healthz HTTP/1.1" 200 -
+20:09:01 → 126 00-boot GET / bytes=0
+20:09:01 → 127 00-boot GET / bytes=0
+20:09:01 http "GET /healthz HTTP/1.1" 200 -
+20:09:01 ← 126 404 293ms 126-GET-root resp=0
+20:09:01 http "GET / HTTP/1.1" 404 -
+20:09:01 write client fail seq=126 [Errno 104] Connection reset by peer
+20:09:01 ← 127 404 300ms 127-GET-root resp=0
+20:09:01 http "GET / HTTP/1.1" 404 -
+20:09:01 write client fail seq=127 [Errno 32] Broken pipe
+20:09:02 ← 108 200 4319ms 108-POST-v1-messages resp=1348
+20:09:02 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:02 http "GET /healthz HTTP/1.1" 200 -
+20:09:02 http "GET /healthz HTTP/1.1" 200 -
+20:09:02 → 128 00-boot GET / bytes=0
+20:09:02 → 129 00-boot GET / bytes=0
+20:09:03 ← 128 404 267ms 128-GET-root resp=0
+20:09:03 http "GET / HTTP/1.1" 404 -
+20:09:03 ← 129 404 280ms 129-GET-root resp=0
+20:09:03 http "GET / HTTP/1.1" 404 -
+20:09:03 http "GET /healthz HTTP/1.1" 200 -
+20:09:03 ← 117 200 5643ms 117-POST-v1-messages resp=1364
+20:09:03 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:03 ← 114 200 5942ms 114-POST-v1-messages resp=1365
+20:09:03 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:03 http "GET /healthz HTTP/1.1" 200 -
+20:09:04 → 130 00-boot GET / bytes=0
+20:09:04 → 131 00-boot GET / bytes=0
+20:09:04 http "GET /healthz HTTP/1.1" 200 -
+20:09:04 ← 131 404 273ms 131-GET-root resp=0
+20:09:04 http "GET / HTTP/1.1" 404 -
+20:09:04 ← 130 404 288ms 130-GET-root resp=0
+20:09:04 http "GET / HTTP/1.1" 404 -
+20:09:04 http "GET /healthz HTTP/1.1" 200 -
+20:09:05 http "GET /healthz HTTP/1.1" 200 -
+20:09:05 → 132 00-boot GET / bytes=0
+20:09:05 → 133 00-boot GET / bytes=0
+20:09:05 ← 132 404 251ms 132-GET-root resp=0
+20:09:05 http "GET / HTTP/1.1" 404 -
+20:09:05 ← 133 404 281ms 133-GET-root resp=0
+20:09:05 http "GET / HTTP/1.1" 404 -
+20:09:05 http "GET /healthz HTTP/1.1" 200 -
+20:09:06 http "GET /healthz HTTP/1.1" 200 -
+20:09:06 → 134 00-boot GET / bytes=0
+20:09:06 → 135 00-boot GET / bytes=0
+20:09:06 http "GET /healthz HTTP/1.1" 200 -
+20:09:07 ← 134 404 299ms 134-GET-root resp=0
+20:09:07 http "GET / HTTP/1.1" 404 -
+20:09:07 write client fail seq=134 [Errno 32] Broken pipe
+20:09:07 ← 135 404 301ms 135-GET-root resp=0
+20:09:07 http "GET / HTTP/1.1" 404 -
+20:09:07 write client fail seq=135 [Errno 32] Broken pipe
+20:09:07 http "GET /healthz HTTP/1.1" 200 -
+20:09:07 http "GET /healthz HTTP/1.1" 200 -
+20:09:08 → 136 00-boot GET / bytes=0
+20:09:08 → 137 00-boot GET / bytes=0
+20:09:08 ← 105 200 10477ms 105-POST-v1-messages resp=2459
+20:09:08 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:08 http "GET /healthz HTTP/1.1" 200 -
+20:09:08 ← 136 404 292ms 136-GET-root resp=0
+20:09:08 http "GET / HTTP/1.1" 404 -
+20:09:08 ← 137 404 318ms 137-GET-root resp=0
+20:09:08 http "GET / HTTP/1.1" 404 -
+20:09:08 write client fail seq=137 [Errno 32] Broken pipe
+20:09:08 http "GET /healthz HTTP/1.1" 200 -
+20:09:09 http "GET /healthz HTTP/1.1" 200 -
+20:09:09 → 138 00-boot GET / bytes=0
+20:09:09 → 139 00-boot GET / bytes=0
+20:09:09 ← 138 404 241ms 138-GET-root resp=0
+20:09:09 http "GET / HTTP/1.1" 404 -
+20:09:09 write client fail seq=138 [Errno 104] Connection reset by peer
+20:09:09 ← 139 404 304ms 139-GET-root resp=0
+20:09:09 http "GET / HTTP/1.1" 404 -
+20:09:09 write client fail seq=139 [Errno 32] Broken pipe
+20:09:09 http "GET /healthz HTTP/1.1" 200 -
+20:09:10 http "GET /healthz HTTP/1.1" 200 -
+20:09:10 → 140 00-boot GET / bytes=0
+20:09:10 → 141 00-boot GET / bytes=0
+20:09:10 http "GET /healthz HTTP/1.1" 200 -
+20:09:10 ← 110 200 13210ms 110-POST-v1-messages resp=1383
+20:09:10 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:10 ← 140 404 282ms 140-GET-root resp=0
+20:09:10 http "GET / HTTP/1.1" 404 -
+20:09:11 ← 141 404 303ms 141-GET-root resp=0
+20:09:11 http "GET / HTTP/1.1" 404 -
+20:09:11 write client fail seq=141 [Errno 32] Broken pipe
+20:09:11 http "GET /healthz HTTP/1.1" 200 -
+20:09:11 → 142 01-tools-list POST /v1/messages?beta=true bytes=8312
+20:09:12 → 143 01-tools-list GET / bytes=0
+20:09:12 → 144 01-tools-list GET / bytes=0
+20:09:12 ← 143 404 283ms 143-GET-root resp=0
+20:09:12 http "GET / HTTP/1.1" 404 -
+20:09:12 ← 144 404 311ms 144-GET-root resp=0
+20:09:12 http "GET / HTTP/1.1" 404 -
+20:09:12 write client fail seq=144 [Errno 32] Broken pipe
+20:09:13 → 145 01-tools-list GET / bytes=0
+20:09:13 → 146 01-tools-list GET / bytes=0
+20:09:13 ← 146 404 305ms 146-GET-root resp=0
+20:09:13 http "GET / HTTP/1.1" 404 -
+20:09:13 write client fail seq=146 [Errno 32] Broken pipe
+20:09:13 ← 145 404 312ms 145-GET-root resp=0
+20:09:13 http "GET / HTTP/1.1" 404 -
+20:09:13 write client fail seq=145 [Errno 32] Broken pipe
+20:09:14 → 147 01-tools-list GET / bytes=0
+20:09:14 → 148 01-tools-list GET / bytes=0
+20:09:14 ← 148 404 304ms 148-GET-root resp=0
+20:09:14 http "GET / HTTP/1.1" 404 -
+20:09:14 write client fail seq=148 [Errno 32] Broken pipe
+20:09:14 ← 147 404 330ms 147-GET-root resp=0
+20:09:14 http "GET / HTTP/1.1" 404 -
+20:09:14 write client fail seq=147 [Errno 32] Broken pipe
+20:09:15 → 149 01-tools-list GET / bytes=0
+20:09:15 → 150 01-tools-list GET / bytes=0
+20:09:15 ← 142 200 4590ms 142-POST-v1-messages resp=6274
+20:09:15 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:16 → 151 01-tools-list POST /v1/messages?beta=true bytes=9820
+20:09:16 ← 149 404 286ms 149-GET-root resp=0
+20:09:16 http "GET / HTTP/1.1" 404 -
+20:09:16 ← 150 404 304ms 150-GET-root resp=0
+20:09:16 http "GET / HTTP/1.1" 404 -
+20:09:16 write client fail seq=150 [Errno 32] Broken pipe
+20:09:17 → 152 01-tools-list GET / bytes=0
+20:09:17 → 153 01-tools-list GET / bytes=0
+20:09:17 ← 152 404 302ms 152-GET-root resp=0
+20:09:17 http "GET / HTTP/1.1" 404 -
+20:09:17 write client fail seq=152 [Errno 32] Broken pipe
+20:09:17 ← 153 404 313ms 153-GET-root resp=0
+20:09:17 http "GET / HTTP/1.1" 404 -
+20:09:17 write client fail seq=153 [Errno 32] Broken pipe
+20:09:18 → 154 02-vision POST /v1/messages?beta=true bytes=8628
+20:09:18 → 155 02-vision GET / bytes=0
+20:09:18 → 156 02-vision GET / bytes=0
+20:09:18 ← 155 404 291ms 155-GET-root resp=0
+20:09:18 http "GET / HTTP/1.1" 404 -
+20:09:18 ← 156 404 299ms 156-GET-root resp=0
+20:09:18 http "GET / HTTP/1.1" 404 -
+20:09:18 write client fail seq=156 [Errno 32] Broken pipe
+20:09:19 → 157 02-vision GET / bytes=0
+20:09:19 → 158 02-vision GET / bytes=0
+20:09:20 ← 157 404 299ms 157-GET-root resp=0
+20:09:20 http "GET / HTTP/1.1" 404 -
+20:09:20 write client fail seq=157 [Errno 32] Broken pipe
+20:09:20 ← 158 404 301ms 158-GET-root resp=0
+20:09:20 http "GET / HTTP/1.1" 404 -
+20:09:20 write client fail seq=158 [Errno 32] Broken pipe
+20:09:20 ← 154 200 2401ms 154-POST-v1-messages resp=3936
+20:09:20 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:20 → 159 02-vision POST /v1/messages?beta=true bytes=939
+20:09:21 → 160 02-vision GET / bytes=0
+20:09:21 → 161 02-vision GET / bytes=0
+20:09:21 ← 161 404 281ms 161-GET-root resp=0
+20:09:21 http "GET / HTTP/1.1" 404 -
+20:09:21 ← 160 404 284ms 160-GET-root resp=0
+20:09:21 http "GET / HTTP/1.1" 404 -
+20:09:21 ← 151 200 5643ms 151-POST-v1-messages resp=1363
+20:09:21 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:22 → 162 02-vision GET / bytes=0
+20:09:22 → 163 02-vision GET / bytes=0
+20:09:22 ← 162 404 287ms 162-GET-root resp=0
+20:09:22 http "GET / HTTP/1.1" 404 -
+20:09:22 ← 163 404 289ms 163-GET-root resp=0
+20:09:22 http "GET / HTTP/1.1" 404 -
+20:09:23 → 164 02-vision GET / bytes=0
+20:09:23 → 165 02-vision GET / bytes=0
+20:09:24 ← 164 404 266ms 164-GET-root resp=0
+20:09:24 http "GET / HTTP/1.1" 404 -
+20:09:24 ← 165 404 288ms 165-GET-root resp=0
+20:09:24 http "GET / HTTP/1.1" 404 -
+20:09:25 → 166 02-vision GET / bytes=0
+20:09:25 → 167 02-vision GET / bytes=0
+20:09:25 ← 166 404 266ms 166-GET-root resp=0
+20:09:25 http "GET / HTTP/1.1" 404 -
+20:09:25 ← 167 404 282ms 167-GET-root resp=0
+20:09:25 http "GET / HTTP/1.1" 404 -
+20:09:26 → 168 02-vision GET / bytes=0
+20:09:26 → 169 02-vision GET / bytes=0
+20:09:26 ← 168 404 273ms 168-GET-root resp=0
+20:09:26 http "GET / HTTP/1.1" 404 -
+20:09:26 ← 169 404 298ms 169-GET-root resp=0
+20:09:26 http "GET / HTTP/1.1" 404 -
+20:09:26 write client fail seq=169 [Errno 32] Broken pipe
+20:09:27 → 170 02-vision GET / bytes=0
+20:09:27 → 171 02-vision GET / bytes=0
+20:09:27 ← 170 404 301ms 170-GET-root resp=0
+20:09:27 http "GET / HTTP/1.1" 404 -
+20:09:27 write client fail seq=170 [Errno 32] Broken pipe
+20:09:27 ← 171 404 304ms 171-GET-root resp=0
+20:09:27 http "GET / HTTP/1.1" 404 -
+20:09:27 write client fail seq=171 [Errno 32] Broken pipe
+20:09:28 → 172 02-vision GET / bytes=0
+20:09:28 → 173 02-vision GET / bytes=0
+20:09:29 ← 172 404 296ms 172-GET-root resp=0
+20:09:29 http "GET / HTTP/1.1" 404 -
+20:09:29 write client fail seq=172 [Errno 32] Broken pipe
+20:09:29 ← 173 404 293ms 173-GET-root resp=0
+20:09:29 http "GET / HTTP/1.1" 404 -
+20:09:29 write client fail seq=173 [Errno 32] Broken pipe
+20:09:30 → 174 02-vision GET / bytes=0
+20:09:30 → 175 02-vision GET / bytes=0
+20:09:30 ← 175 404 300ms 175-GET-root resp=0
+20:09:30 http "GET / HTTP/1.1" 404 -
+20:09:30 write client fail seq=175 [Errno 32] Broken pipe
+20:09:30 ← 174 404 309ms 174-GET-root resp=0
+20:09:30 http "GET / HTTP/1.1" 404 -
+20:09:30 write client fail seq=174 [Errno 32] Broken pipe
+20:09:31 ← 159 200 10588ms 159-POST-v1-messages resp=30261
+20:09:31 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:31 → 176 02-vision POST /v1/messages?beta=true bytes=12977
+20:09:31 → 177 02-vision GET / bytes=0
+20:09:31 → 178 02-vision GET / bytes=0
+20:09:31 ← 178 404 287ms 178-GET-root resp=0
+20:09:31 http "GET / HTTP/1.1" 404 -
+20:09:31 write client fail seq=178 [Errno 104] Connection reset by peer
+20:09:31 ← 177 404 310ms 177-GET-root resp=0
+20:09:31 http "GET / HTTP/1.1" 404 -
+20:09:31 write client fail seq=177 [Errno 32] Broken pipe
+20:09:32 → 179 02-vision GET / bytes=0
+20:09:32 → 180 02-vision GET / bytes=0
+20:09:33 ← 180 404 302ms 180-GET-root resp=0
+20:09:33 http "GET / HTTP/1.1" 404 -
+20:09:33 write client fail seq=180 [Errno 32] Broken pipe
+20:09:33 ← 179 404 314ms 179-GET-root resp=0
+20:09:33 http "GET / HTTP/1.1" 404 -
+20:09:33 write client fail seq=179 [Errno 32] Broken pipe
+20:09:34 → 181 02-vision GET / bytes=0
+20:09:34 → 182 02-vision GET / bytes=0
+20:09:34 ← 182 404 298ms 182-GET-root resp=0
+20:09:34 http "GET / HTTP/1.1" 404 -
+20:09:34 write client fail seq=182 [Errno 32] Broken pipe
+20:09:34 ← 181 404 318ms 181-GET-root resp=0
+20:09:34 http "GET / HTTP/1.1" 404 -
+20:09:34 write client fail seq=181 [Errno 32] Broken pipe
+20:09:35 → 183 02-vision GET / bytes=0
+20:09:35 → 184 02-vision GET / bytes=0
+20:09:35 ← 183 404 302ms 183-GET-root resp=0
+20:09:35 http "GET / HTTP/1.1" 404 -
+20:09:35 write client fail seq=183 [Errno 32] Broken pipe
+20:09:35 ← 184 404 321ms 184-GET-root resp=0
+20:09:35 http "GET / HTTP/1.1" 404 -
+20:09:35 write client fail seq=184 [Errno 32] Broken pipe
+20:09:36 → 185 02-vision GET / bytes=0
+20:09:36 → 186 02-vision GET / bytes=0
+20:09:37 ← 185 404 248ms 185-GET-root resp=0
+20:09:37 http "GET / HTTP/1.1" 404 -
+20:09:37 ← 186 404 282ms 186-GET-root resp=0
+20:09:37 http "GET / HTTP/1.1" 404 -
+20:09:38 → 187 02-vision GET / bytes=0
+20:09:38 → 188 02-vision GET / bytes=0
+20:09:38 ← 187 404 249ms 187-GET-root resp=0
+20:09:38 http "GET / HTTP/1.1" 404 -
+20:09:38 write client fail seq=187 [Errno 104] Connection reset by peer
+20:09:38 ← 188 404 288ms 188-GET-root resp=0
+20:09:38 http "GET / HTTP/1.1" 404 -
+20:09:39 → 189 02-vision GET / bytes=0
+20:09:39 → 190 02-vision GET / bytes=0
+20:09:39 ← 189 404 248ms 189-GET-root resp=0
+20:09:39 http "GET / HTTP/1.1" 404 -
+20:09:39 ← 190 404 283ms 190-GET-root resp=0
+20:09:39 http "GET / HTTP/1.1" 404 -
+20:09:40 → 191 02-vision GET / bytes=0
+20:09:40 → 192 02-vision GET / bytes=0
+20:09:41 ← 192 404 300ms 192-GET-root resp=0
+20:09:41 http "GET / HTTP/1.1" 404 -
+20:09:41 write client fail seq=192 [Errno 32] Broken pipe
+20:09:41 ← 191 404 299ms 191-GET-root resp=0
+20:09:41 http "GET / HTTP/1.1" 404 -
+20:09:41 write client fail seq=191 [Errno 32] Broken pipe
+20:09:42 → 193 02-vision GET / bytes=0
+20:09:42 → 194 02-vision GET / bytes=0
+20:09:42 ← 194 404 269ms 194-GET-root resp=0
+20:09:42 http "GET / HTTP/1.1" 404 -
+20:09:42 ← 193 404 289ms 193-GET-root resp=0
+20:09:42 http "GET / HTTP/1.1" 404 -
+20:09:43 → 195 02-vision GET / bytes=0
+20:09:43 → 196 02-vision GET / bytes=0
+20:09:43 ← 195 404 262ms 195-GET-root resp=0
+20:09:43 http "GET / HTTP/1.1" 404 -
+20:09:43 ← 196 404 291ms 196-GET-root resp=0
+20:09:43 http "GET / HTTP/1.1" 404 -
+20:09:44 → 197 02-vision GET / bytes=0
+20:09:44 → 198 02-vision GET / bytes=0
+20:09:44 ← 197 404 284ms 197-GET-root resp=0
+20:09:44 http "GET / HTTP/1.1" 404 -
+20:09:44 ← 198 404 286ms 198-GET-root resp=0
+20:09:44 http "GET / HTTP/1.1" 404 -
+20:09:45 → 199 02-vision GET / bytes=0
+20:09:45 → 200 02-vision GET / bytes=0
+20:09:46 ← 199 404 287ms 199-GET-root resp=0
+20:09:46 http "GET / HTTP/1.1" 404 -
+20:09:46 ← 200 404 291ms 200-GET-root resp=0
+20:09:46 http "GET / HTTP/1.1" 404 -
+20:09:47 → 201 02-vision GET / bytes=0
+20:09:47 → 202 02-vision GET / bytes=0
+20:09:47 ← 201 404 259ms 201-GET-root resp=0
+20:09:47 http "GET / HTTP/1.1" 404 -
+20:09:47 write client fail seq=201 [Errno 104] Connection reset by peer
+20:09:47 ← 202 404 289ms 202-GET-root resp=0
+20:09:47 http "GET / HTTP/1.1" 404 -
+20:09:48 → 203 02-vision GET / bytes=0
+20:09:48 ← 176 200 17018ms 176-POST-v1-messages resp=12764
+20:09:48 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:48 → 204 02-vision GET / bytes=0
+20:09:48 → 205 02-vision POST /v1/messages?beta=true bytes=16230
+20:09:48 ← 203 404 275ms 203-GET-root resp=0
+20:09:48 http "GET / HTTP/1.1" 404 -
+20:09:48 ← 204 404 299ms 204-GET-root resp=0
+20:09:48 http "GET / HTTP/1.1" 404 -
+20:09:48 write client fail seq=204 [Errno 32] Broken pipe
+20:09:49 → 206 02-vision GET / bytes=0
+20:09:49 → 207 02-vision GET / bytes=0
+20:09:50 ← 207 404 276ms 207-GET-root resp=0
+20:09:50 http "GET / HTTP/1.1" 404 -
+20:09:50 ← 206 404 311ms 206-GET-root resp=0
+20:09:50 http "GET / HTTP/1.1" 404 -
+20:09:50 write client fail seq=206 [Errno 32] Broken pipe
+20:09:50 ← 205 200 1687ms 205-POST-v1-messages resp=1383
+20:09:50 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:50 → 208 03-web-search POST /v1/messages?beta=true bytes=8531
+20:09:51 → 209 03-web-search GET / bytes=0
+20:09:51 → 210 03-web-search GET / bytes=0
+20:09:51 ← 210 404 309ms 210-GET-root resp=0
+20:09:51 http "GET / HTTP/1.1" 404 -
+20:09:51 write client fail seq=210 [Errno 32] Broken pipe
+20:09:51 ← 209 404 315ms 209-GET-root resp=0
+20:09:51 http "GET / HTTP/1.1" 404 -
+20:09:51 write client fail seq=209 [Errno 32] Broken pipe
+20:09:52 → 211 03-web-search GET / bytes=0
+20:09:52 → 212 03-web-search GET / bytes=0
+20:09:52 ← 212 404 297ms 212-GET-root resp=0
+20:09:52 http "GET / HTTP/1.1" 404 -
+20:09:52 ← 211 404 311ms 211-GET-root resp=0
+20:09:52 http "GET / HTTP/1.1" 404 -
+20:09:52 write client fail seq=211 [Errno 32] Broken pipe
+20:09:53 → 213 03-web-search GET / bytes=0
+20:09:53 → 214 03-web-search GET / bytes=0
+20:09:54 ← 214 404 292ms 214-GET-root resp=0
+20:09:54 http "GET / HTTP/1.1" 404 -
+20:09:54 ← 213 404 298ms 213-GET-root resp=0
+20:09:54 http "GET / HTTP/1.1" 404 -
+20:09:54 write client fail seq=213 [Errno 32] Broken pipe
+20:09:55 → 215 03-web-search GET / bytes=0
+20:09:55 → 216 03-web-search GET / bytes=0
+20:09:55 ← 215 404 282ms 215-GET-root resp=0
+20:09:55 http "GET / HTTP/1.1" 404 -
+20:09:55 ← 216 404 314ms 216-GET-root resp=0
+20:09:55 http "GET / HTTP/1.1" 404 -
+20:09:55 write client fail seq=216 [Errno 32] Broken pipe
+20:09:55 ← 208 200 4562ms 208-POST-v1-messages resp=5028
+20:09:55 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:09:55 → 217 03-web-search POST /v1/messages?beta=true bytes=917
+20:09:55 → 218 03-web-search POST /v1/messages?beta=true bytes=921
+20:09:56 → 219 03-web-search GET / bytes=0
+20:09:56 → 220 03-web-search GET / bytes=0
+20:09:56 ← 219 404 264ms 219-GET-root resp=0
+20:09:56 http "GET / HTTP/1.1" 404 -
+20:09:56 write client fail seq=219 [Errno 104] Connection reset by peer
+20:09:56 ← 220 404 288ms 220-GET-root resp=0
+20:09:56 http "GET / HTTP/1.1" 404 -
+20:09:57 → 221 03-web-search GET / bytes=0
+20:09:57 → 222 03-web-search GET / bytes=0
+20:09:57 ← 221 404 286ms 221-GET-root resp=0
+20:09:57 http "GET / HTTP/1.1" 404 -
+20:09:57 write client fail seq=221 [Errno 104] Connection reset by peer
+20:09:57 ← 222 404 303ms 222-GET-root resp=0
+20:09:57 http "GET / HTTP/1.1" 404 -
+20:09:57 write client fail seq=222 [Errno 32] Broken pipe
+20:09:58 → 223 03-web-search GET / bytes=0
+20:09:58 → 224 03-web-search GET / bytes=0
+20:09:59 ← 224 404 272ms 224-GET-root resp=0
+20:09:59 http "GET / HTTP/1.1" 404 -
+20:09:59 ← 223 404 280ms 223-GET-root resp=0
+20:09:59 http "GET / HTTP/1.1" 404 -
+20:09:59 write client fail seq=223 [Errno 104] Connection reset by peer
+20:10:00 → 225 03-web-search GET / bytes=0
+20:10:00 → 226 03-web-search GET / bytes=0
+20:10:00 ← 225 404 272ms 225-GET-root resp=0
+20:10:00 http "GET / HTTP/1.1" 404 -
+20:10:00 ← 226 404 279ms 226-GET-root resp=0
+20:10:00 http "GET / HTTP/1.1" 404 -
+20:10:01 → 227 03-web-search GET / bytes=0
+20:10:01 → 228 03-web-search GET / bytes=0
+20:10:01 ← 228 404 270ms 228-GET-root resp=0
+20:10:01 http "GET / HTTP/1.1" 404 -
+20:10:01 ← 227 404 289ms 227-GET-root resp=0
+20:10:01 http "GET / HTTP/1.1" 404 -
+20:10:01 write client fail seq=227 [Errno 104] Connection reset by peer
+20:10:02 → 229 03-web-search GET / bytes=0
+20:10:02 → 230 03-web-search GET / bytes=0
+20:10:03 ← 229 404 291ms 229-GET-root resp=0
+20:10:03 http "GET / HTTP/1.1" 404 -
+20:10:03 ← 230 404 313ms 230-GET-root resp=0
+20:10:03 http "GET / HTTP/1.1" 404 -
+20:10:03 write client fail seq=230 [Errno 32] Broken pipe
+20:10:04 → 231 03-web-search GET / bytes=0
+20:10:04 → 232 03-web-search GET / bytes=0
+20:10:04 ← 231 404 299ms 231-GET-root resp=0
+20:10:04 http "GET / HTTP/1.1" 404 -
+20:10:04 write client fail seq=231 [Errno 32] Broken pipe
+20:10:04 ← 232 404 303ms 232-GET-root resp=0
+20:10:04 http "GET / HTTP/1.1" 404 -
+20:10:04 write client fail seq=232 [Errno 32] Broken pipe
+20:10:05 → 233 03-web-search GET / bytes=0
+20:10:05 → 234 03-web-search GET / bytes=0
+20:10:05 ← 233 404 286ms 233-GET-root resp=0
+20:10:05 http "GET / HTTP/1.1" 404 -
+20:10:05 write client fail seq=233 [Errno 104] Connection reset by peer
+20:10:05 ← 234 404 288ms 234-GET-root resp=0
+20:10:05 http "GET / HTTP/1.1" 404 -
+20:10:06 → 235 03-web-search GET / bytes=0
+20:10:06 → 236 03-web-search GET / bytes=0
+20:10:07 ← 235 404 314ms 235-GET-root resp=0
+20:10:07 http "GET / HTTP/1.1" 404 -
+20:10:07 write client fail seq=235 [Errno 32] Broken pipe
+20:10:07 ← 236 404 326ms 236-GET-root resp=0
+20:10:07 http "GET / HTTP/1.1" 404 -
+20:10:07 write client fail seq=236 [Errno 32] Broken pipe
+20:10:08 → 237 03-web-search GET / bytes=0
+20:10:08 → 238 03-web-search GET / bytes=0
+20:10:08 ← 238 404 268ms 238-GET-root resp=0
+20:10:08 http "GET / HTTP/1.1" 404 -
+20:10:08 ← 237 404 287ms 237-GET-root resp=0
+20:10:08 http "GET / HTTP/1.1" 404 -
+20:10:08 write client fail seq=237 [Errno 104] Connection reset by peer
+20:10:09 → 239 03-web-search GET / bytes=0
+20:10:09 → 240 03-web-search GET / bytes=0
+20:10:09 ← 240 404 280ms 240-GET-root resp=0
+20:10:09 http "GET / HTTP/1.1" 404 -
+20:10:09 ← 239 404 316ms 239-GET-root resp=0
+20:10:09 http "GET / HTTP/1.1" 404 -
+20:10:09 write client fail seq=239 [Errno 32] Broken pipe
+20:10:10 → 241 03-web-search GET / bytes=0
+20:10:10 → 242 03-web-search GET / bytes=0
+20:10:10 ← 242 404 257ms 242-GET-root resp=0
+20:10:10 http "GET / HTTP/1.1" 404 -
+20:10:10 ← 241 404 286ms 241-GET-root resp=0
+20:10:10 http "GET / HTTP/1.1" 404 -
+20:10:11 → 243 03-web-search GET / bytes=0
+20:10:11 → 244 03-web-search GET / bytes=0
+20:10:12 ← 244 404 290ms 244-GET-root resp=0
+20:10:12 http "GET / HTTP/1.1" 404 -
+20:10:12 ← 243 404 295ms 243-GET-root resp=0
+20:10:12 http "GET / HTTP/1.1" 404 -
+20:10:12 write client fail seq=243 [Errno 32] Broken pipe
+20:10:13 → 245 03-web-search GET / bytes=0
+20:10:13 → 246 03-web-search GET / bytes=0
+20:10:13 ← 246 404 259ms 246-GET-root resp=0
+20:10:13 http "GET / HTTP/1.1" 404 -
+20:10:13 ← 218 200 17960ms 218-POST-v1-messages resp=62427
+20:10:13 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:10:13 ← 245 404 293ms 245-GET-root resp=0
+20:10:13 http "GET / HTTP/1.1" 404 -
+20:10:14 → 247 03-web-search GET / bytes=0
+20:10:14 → 248 03-web-search GET / bytes=0
+20:10:14 ← 247 404 265ms 247-GET-root resp=0
+20:10:14 http "GET / HTTP/1.1" 404 -
+20:10:14 ← 248 404 282ms 248-GET-root resp=0
+20:10:14 http "GET / HTTP/1.1" 404 -
+20:10:15 → 249 03-web-search GET / bytes=0
+20:10:15 → 250 03-web-search GET / bytes=0
+20:10:16 ← 249 404 317ms 249-GET-root resp=0
+20:10:16 http "GET / HTTP/1.1" 404 -
+20:10:16 write client fail seq=249 [Errno 32] Broken pipe
+20:10:16 ← 250 404 331ms 250-GET-root resp=0
+20:10:16 http "GET / HTTP/1.1" 404 -
+20:10:16 write client fail seq=250 [Errno 32] Broken pipe
+20:10:17 → 251 03-web-search GET / bytes=0
+20:10:17 → 252 03-web-search GET / bytes=0
+20:10:17 ← 251 404 290ms 251-GET-root resp=0
+20:10:17 http "GET / HTTP/1.1" 404 -
+20:10:17 ← 252 404 305ms 252-GET-root resp=0
+20:10:17 http "GET / HTTP/1.1" 404 -
+20:10:17 write client fail seq=252 [Errno 32] Broken pipe
+20:10:18 → 253 03-web-search GET / bytes=0
+20:10:18 → 254 03-web-search GET / bytes=0
+20:10:18 ← 254 404 288ms 254-GET-root resp=0
+20:10:18 http "GET / HTTP/1.1" 404 -
+20:10:18 ← 253 404 313ms 253-GET-root resp=0
+20:10:18 http "GET / HTTP/1.1" 404 -
+20:10:18 write client fail seq=253 [Errno 32] Broken pipe
+20:10:19 ← 217 200 23610ms 217-POST-v1-messages resp=47191
+20:10:19 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:10:19 → 255 03-web-search POST /v1/messages?beta=true bytes=19958
+20:10:19 → 256 03-web-search GET / bytes=0
+20:10:19 → 257 03-web-search GET / bytes=0
+20:10:20 ← 257 404 279ms 257-GET-root resp=0
+20:10:20 http "GET / HTTP/1.1" 404 -
+20:10:20 ← 256 404 292ms 256-GET-root resp=0
+20:10:20 http "GET / HTTP/1.1" 404 -
+20:10:20 write client fail seq=256 [Errno 104] Connection reset by peer
+20:10:21 → 258 03-web-search GET / bytes=0
+20:10:21 → 259 03-web-search GET / bytes=0
+20:10:21 ← 259 404 260ms 259-GET-root resp=0
+20:10:21 http "GET / HTTP/1.1" 404 -
+20:10:21 ← 258 404 286ms 258-GET-root resp=0
+20:10:21 http "GET / HTTP/1.1" 404 -
+20:10:21 write client fail seq=258 [Errno 104] Connection reset by peer
+20:10:22 → 260 03-web-search GET / bytes=0
+20:10:22 → 261 03-web-search GET / bytes=0
+20:10:22 ← 261 404 313ms 261-GET-root resp=0
+20:10:22 http "GET / HTTP/1.1" 404 -
+20:10:22 write client fail seq=261 [Errno 32] Broken pipe
+20:10:22 ← 260 404 316ms 260-GET-root resp=0
+20:10:22 http "GET / HTTP/1.1" 404 -
+20:10:22 write client fail seq=260 [Errno 32] Broken pipe
+20:10:23 → 262 03-web-search GET / bytes=0
+20:10:23 → 263 03-web-search GET / bytes=0
+20:10:23 ← 262 404 261ms 262-GET-root resp=0
+20:10:23 http "GET / HTTP/1.1" 404 -
+20:10:23 ← 263 404 322ms 263-GET-root resp=0
+20:10:23 http "GET / HTTP/1.1" 404 -
+20:10:23 write client fail seq=263 [Errno 32] Broken pipe
+20:10:24 → 264 03-web-search GET / bytes=0
+20:10:24 → 265 03-web-search GET / bytes=0
+20:10:25 ← 264 404 312ms 264-GET-root resp=0
+20:10:25 http "GET / HTTP/1.1" 404 -
+20:10:25 write client fail seq=264 [Errno 32] Broken pipe
+20:10:25 ← 265 404 317ms 265-GET-root resp=0
+20:10:25 http "GET / HTTP/1.1" 404 -
+20:10:25 write client fail seq=265 [Errno 32] Broken pipe
+20:10:26 → 266 03-web-search GET / bytes=0
+20:10:26 → 267 03-web-search GET / bytes=0
+20:10:26 ← 266 404 284ms 266-GET-root resp=0
+20:10:26 http "GET / HTTP/1.1" 404 -
+20:10:26 write client fail seq=266 [Errno 104] Connection reset by peer
+20:10:26 ← 267 404 300ms 267-GET-root resp=0
+20:10:26 http "GET / HTTP/1.1" 404 -
+20:10:26 write client fail seq=267 [Errno 32] Broken pipe
+20:10:27 → 268 03-web-search GET / bytes=0
+20:10:27 → 269 03-web-search GET / bytes=0
+20:10:27 ← 268 404 309ms 268-GET-root resp=0
+20:10:27 http "GET / HTTP/1.1" 404 -
+20:10:27 write client fail seq=268 [Errno 32] Broken pipe
+20:10:27 ← 269 404 320ms 269-GET-root resp=0
+20:10:27 http "GET / HTTP/1.1" 404 -
+20:10:27 write client fail seq=269 [Errno 32] Broken pipe
+20:10:28 → 270 03-web-search GET / bytes=0
+20:10:28 → 271 03-web-search GET / bytes=0
+20:10:29 ← 271 404 278ms 271-GET-root resp=0
+20:10:29 http "GET / HTTP/1.1" 404 -
+20:10:29 ← 270 404 317ms 270-GET-root resp=0
+20:10:29 http "GET / HTTP/1.1" 404 -
+20:10:29 write client fail seq=270 [Errno 32] Broken pipe
+20:10:30 → 272 03-web-search GET / bytes=0
+20:10:30 → 273 03-web-search GET / bytes=0
+20:10:30 ← 273 404 298ms 273-GET-root resp=0
+20:10:30 http "GET / HTTP/1.1" 404 -
+20:10:30 write client fail seq=273 [Errno 32] Broken pipe
+20:10:30 ← 272 404 299ms 272-GET-root resp=0
+20:10:30 http "GET / HTTP/1.1" 404 -
+20:10:30 write client fail seq=272 [Errno 32] Broken pipe
+20:10:31 → 274 03-web-search GET / bytes=0
+20:10:31 → 275 03-web-search GET / bytes=0
+20:10:31 ← 274 404 276ms 274-GET-root resp=0
+20:10:31 http "GET / HTTP/1.1" 404 -
+20:10:31 write client fail seq=274 [Errno 104] Connection reset by peer
+20:10:31 ← 275 404 282ms 275-GET-root resp=0
+20:10:31 http "GET / HTTP/1.1" 404 -
+20:10:32 → 276 03-web-search GET / bytes=0
+20:10:32 → 277 03-web-search GET / bytes=0
+20:10:33 ← 276 404 298ms 276-GET-root resp=0
+20:10:33 http "GET / HTTP/1.1" 404 -
+20:10:33 write client fail seq=276 [Errno 32] Broken pipe
+20:10:33 ← 277 404 304ms 277-GET-root resp=0
+20:10:33 http "GET / HTTP/1.1" 404 -
+20:10:33 write client fail seq=277 [Errno 32] Broken pipe
+20:10:34 → 278 03-web-search GET / bytes=0
+20:10:34 → 279 03-web-search GET / bytes=0
+20:10:34 ← 278 404 273ms 278-GET-root resp=0
+20:10:34 http "GET / HTTP/1.1" 404 -
+20:10:34 ← 279 404 281ms 279-GET-root resp=0
+20:10:34 http "GET / HTTP/1.1" 404 -
+20:10:35 → 280 03-web-search GET / bytes=0
+20:10:35 → 281 03-web-search GET / bytes=0
+20:10:35 ← 281 404 253ms 281-GET-root resp=0
+20:10:35 http "GET / HTTP/1.1" 404 -
+20:10:35 ← 280 404 310ms 280-GET-root resp=0
+20:10:35 http "GET / HTTP/1.1" 404 -
+20:10:35 write client fail seq=280 [Errno 32] Broken pipe
+20:10:36 → 282 03-web-search GET / bytes=0
+20:10:36 → 283 03-web-search GET / bytes=0
+20:10:36 ← 282 404 263ms 282-GET-root resp=0
+20:10:36 http "GET / HTTP/1.1" 404 -
+20:10:36 write client fail seq=282 [Errno 104] Connection reset by peer
+20:10:36 ← 283 404 267ms 283-GET-root resp=0
+20:10:36 http "GET / HTTP/1.1" 404 -
+20:10:37 → 284 03-web-search GET / bytes=0
+20:10:37 → 285 03-web-search GET / bytes=0
+20:10:38 ← 285 404 290ms 285-GET-root resp=0
+20:10:38 http "GET / HTTP/1.1" 404 -
+20:10:38 ← 284 404 294ms 284-GET-root resp=0
+20:10:38 http "GET / HTTP/1.1" 404 -
+20:10:39 → 286 03-web-search GET / bytes=0
+20:10:39 → 287 03-web-search GET / bytes=0
+20:10:39 ← 286 404 276ms 286-GET-root resp=0
+20:10:39 http "GET / HTTP/1.1" 404 -
+20:10:39 write client fail seq=286 [Errno 104] Connection reset by peer
+20:10:39 ← 287 404 288ms 287-GET-root resp=0
+20:10:39 http "GET / HTTP/1.1" 404 -
+20:10:40 → 288 03-web-search GET / bytes=0
+20:10:40 → 289 03-web-search GET / bytes=0
+20:10:40 ← 288 404 279ms 288-GET-root resp=0
+20:10:40 http "GET / HTTP/1.1" 404 -
+20:10:40 ← 289 404 295ms 289-GET-root resp=0
+20:10:40 http "GET / HTTP/1.1" 404 -
+20:10:41 → 290 03-web-search GET / bytes=0
+20:10:41 → 291 03-web-search GET / bytes=0
+20:10:42 ← 291 404 302ms 291-GET-root resp=0
+20:10:42 http "GET / HTTP/1.1" 404 -
+20:10:42 write client fail seq=291 [Errno 32] Broken pipe
+20:10:42 ← 290 404 358ms 290-GET-root resp=0
+20:10:42 http "GET / HTTP/1.1" 404 -
+20:10:42 write client fail seq=290 [Errno 32] Broken pipe
+20:10:43 → 292 03-web-search GET / bytes=0
+20:10:43 → 293 03-web-search GET / bytes=0
+20:10:43 ← 292 404 301ms 292-GET-root resp=0
+20:10:43 http "GET / HTTP/1.1" 404 -
+20:10:43 write client fail seq=292 [Errno 32] Broken pipe
+20:10:43 ← 293 404 307ms 293-GET-root resp=0
+20:10:43 http "GET / HTTP/1.1" 404 -
+20:10:43 write client fail seq=293 [Errno 32] Broken pipe
+20:10:44 → 294 03-web-search GET / bytes=0
+20:10:44 → 295 03-web-search GET / bytes=0
+20:10:44 ← 295 404 300ms 295-GET-root resp=0
+20:10:44 http "GET / HTTP/1.1" 404 -
+20:10:44 write client fail seq=295 [Errno 32] Broken pipe
+20:10:44 ← 294 404 303ms 294-GET-root resp=0
+20:10:44 http "GET / HTTP/1.1" 404 -
+20:10:44 write client fail seq=294 [Errno 32] Broken pipe
+20:10:45 → 296 03-web-search GET / bytes=0
+20:10:45 → 297 03-web-search GET / bytes=0
+20:10:46 ← 296 404 285ms 296-GET-root resp=0
+20:10:46 http "GET / HTTP/1.1" 404 -
+20:10:46 ← 297 404 296ms 297-GET-root resp=0
+20:10:46 http "GET / HTTP/1.1" 404 -
+20:10:47 → 298 03-web-search GET / bytes=0
+20:10:47 → 299 03-web-search GET / bytes=0
+20:10:47 ← 299 404 263ms 299-GET-root resp=0
+20:10:47 http "GET / HTTP/1.1" 404 -
+20:10:47 ← 298 404 276ms 298-GET-root resp=0
+20:10:47 http "GET / HTTP/1.1" 404 -
+20:10:48 → 300 03-web-search GET / bytes=0
+20:10:48 → 301 03-web-search GET / bytes=0
+20:10:48 ← 300 404 272ms 300-GET-root resp=0
+20:10:48 http "GET / HTTP/1.1" 404 -
+20:10:48 ← 301 404 284ms 301-GET-root resp=0
+20:10:48 http "GET / HTTP/1.1" 404 -
+20:10:49 → 302 03-web-search GET / bytes=0
+20:10:49 → 303 03-web-search GET / bytes=0
+20:10:49 ← 302 404 301ms 302-GET-root resp=0
+20:10:49 http "GET / HTTP/1.1" 404 -
+20:10:49 write client fail seq=302 [Errno 32] Broken pipe
+20:10:49 ← 303 404 311ms 303-GET-root resp=0
+20:10:49 http "GET / HTTP/1.1" 404 -
+20:10:49 write client fail seq=303 [Errno 32] Broken pipe
+20:10:50 → 304 03-web-search GET / bytes=0
+20:10:50 → 305 03-web-search GET / bytes=0
+20:10:51 ← 304 404 325ms 304-GET-root resp=0
+20:10:51 http "GET / HTTP/1.1" 404 -
+20:10:51 write client fail seq=304 [Errno 32] Broken pipe
+20:10:51 ← 305 404 331ms 305-GET-root resp=0
+20:10:51 http "GET / HTTP/1.1" 404 -
+20:10:51 write client fail seq=305 [Errno 32] Broken pipe
+20:10:52 → 306 03-web-search GET / bytes=0
+20:10:52 → 307 03-web-search GET / bytes=0
+20:10:52 ← 306 404 267ms 306-GET-root resp=0
+20:10:52 http "GET / HTTP/1.1" 404 -
+20:10:52 ← 307 404 265ms 307-GET-root resp=0
+20:10:52 http "GET / HTTP/1.1" 404 -
+20:10:53 → 308 03-web-search GET / bytes=0
+20:10:53 → 309 03-web-search GET / bytes=0
+20:10:53 ← 308 404 252ms 308-GET-root resp=0
+20:10:53 http "GET / HTTP/1.1" 404 -
+20:10:53 ← 309 404 288ms 309-GET-root resp=0
+20:10:53 http "GET / HTTP/1.1" 404 -
+20:10:54 → 310 03-web-search GET / bytes=0
+20:10:54 → 311 03-web-search GET / bytes=0
+20:10:55 ← 311 404 300ms 311-GET-root resp=0
+20:10:55 http "GET / HTTP/1.1" 404 -
+20:10:55 ← 310 404 302ms 310-GET-root resp=0
+20:10:55 http "GET / HTTP/1.1" 404 -
+20:10:55 write client fail seq=310 [Errno 32] Broken pipe
+20:10:55 write client fail seq=311 [Errno 32] Broken pipe
+20:10:56 → 312 03-web-search GET / bytes=0
+20:10:56 → 313 03-web-search GET / bytes=0
+20:10:56 ← 312 404 280ms 312-GET-root resp=0
+20:10:56 http "GET / HTTP/1.1" 404 -
+20:10:56 write client fail seq=312 [Errno 104] Connection reset by peer
+20:10:56 ← 313 404 303ms 313-GET-root resp=0
+20:10:56 http "GET / HTTP/1.1" 404 -
+20:10:56 write client fail seq=313 [Errno 32] Broken pipe
+20:10:57 → 314 03-web-search GET / bytes=0
+20:10:57 → 315 03-web-search GET / bytes=0
+20:10:57 ← 314 404 296ms 314-GET-root resp=0
+20:10:57 http "GET / HTTP/1.1" 404 -
+20:10:57 ← 315 404 304ms 315-GET-root resp=0
+20:10:57 http "GET / HTTP/1.1" 404 -
+20:10:57 write client fail seq=315 [Errno 32] Broken pipe
+20:10:58 → 316 03-web-search GET / bytes=0
+20:10:58 → 317 03-web-search GET / bytes=0
+20:10:59 ← 316 404 310ms 316-GET-root resp=0
+20:10:59 http "GET / HTTP/1.1" 404 -
+20:10:59 write client fail seq=316 [Errno 32] Broken pipe
+20:10:59 ← 317 404 342ms 317-GET-root resp=0
+20:10:59 http "GET / HTTP/1.1" 404 -
+20:10:59 write client fail seq=317 [Errno 32] Broken pipe
+20:11:00 → 318 03-web-search GET / bytes=0
+20:11:00 → 319 03-web-search GET / bytes=0
+20:11:00 ← 255 200 41036ms 255-POST-v1-messages resp=15937
+20:11:00 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:00 → 320 03-web-search POST /v1/messages?beta=true bytes=24636
+20:11:00 ← 318 404 290ms 318-GET-root resp=0
+20:11:00 http "GET / HTTP/1.1" 404 -
+20:11:00 ← 319 404 310ms 319-GET-root resp=0
+20:11:00 http "GET / HTTP/1.1" 404 -
+20:11:00 write client fail seq=319 [Errno 32] Broken pipe
+20:11:01 → 321 03-web-search GET / bytes=0
+20:11:01 → 322 03-web-search GET / bytes=0
+20:11:01 ← 321 404 272ms 321-GET-root resp=0
+20:11:01 http "GET / HTTP/1.1" 404 -
+20:11:01 ← 322 404 300ms 322-GET-root resp=0
+20:11:01 http "GET / HTTP/1.1" 404 -
+20:11:01 write client fail seq=322 [Errno 32] Broken pipe
+20:11:02 ← 320 200 2293ms 320-POST-v1-messages resp=1370
+20:11:02 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:02 → 323 03-web-search GET / bytes=0
+20:11:02 → 324 03-web-search GET / bytes=0
+20:11:02 → 325 04-identity POST /v1/messages?beta=true bytes=8536
+20:11:02 ← 324 404 253ms 324-GET-root resp=0
+20:11:02 http "GET / HTTP/1.1" 404 -
+20:11:02 ← 323 404 297ms 323-GET-root resp=0
+20:11:02 http "GET / HTTP/1.1" 404 -
+20:11:03 → 326 04-identity GET / bytes=0
+20:11:03 → 327 04-identity GET / bytes=0
+20:11:04 ← 327 404 258ms 327-GET-root resp=0
+20:11:04 http "GET / HTTP/1.1" 404 -
+20:11:04 ← 326 404 280ms 326-GET-root resp=0
+20:11:04 http "GET / HTTP/1.1" 404 -
+20:11:04 write client fail seq=326 [Errno 104] Connection reset by peer
+20:11:05 → 328 04-identity GET / bytes=0
+20:11:05 → 329 04-identity GET / bytes=0
+20:11:05 ← 328 404 254ms 328-GET-root resp=0
+20:11:05 http "GET / HTTP/1.1" 404 -
+20:11:05 ← 329 404 288ms 329-GET-root resp=0
+20:11:05 http "GET / HTTP/1.1" 404 -
+20:11:06 → 330 04-identity GET / bytes=0
+20:11:06 → 331 04-identity GET / bytes=0
+20:11:06 ← 331 404 284ms 331-GET-root resp=0
+20:11:06 http "GET / HTTP/1.1" 404 -
+20:11:06 ← 330 404 298ms 330-GET-root resp=0
+20:11:06 http "GET / HTTP/1.1" 404 -
+20:11:06 write client fail seq=330 [Errno 32] Broken pipe
+20:11:07 → 332 04-identity GET / bytes=0
+20:11:07 → 333 04-identity GET / bytes=0
+20:11:08 ← 333 404 281ms 333-GET-root resp=0
+20:11:08 http "GET / HTTP/1.1" 404 -
+20:11:08 ← 332 404 295ms 332-GET-root resp=0
+20:11:08 http "GET / HTTP/1.1" 404 -
+20:11:08 write client fail seq=332 [Errno 104] Connection reset by peer
+20:11:09 → 334 04-identity GET / bytes=0
+20:11:09 → 335 04-identity GET / bytes=0
+20:11:09 ← 334 404 307ms 334-GET-root resp=0
+20:11:09 http "GET / HTTP/1.1" 404 -
+20:11:09 write client fail seq=334 [Errno 32] Broken pipe
+20:11:09 ← 335 404 309ms 335-GET-root resp=0
+20:11:09 http "GET / HTTP/1.1" 404 -
+20:11:09 write client fail seq=335 [Errno 32] Broken pipe
+20:11:09 ← 325 200 7041ms 325-POST-v1-messages resp=9656
+20:11:09 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:09 → 336 04-identity POST /v1/messages?beta=true bytes=10458
+20:11:10 → 337 04-identity GET / bytes=0
+20:11:10 → 338 04-identity GET / bytes=0
+20:11:10 ← 337 404 325ms 337-GET-root resp=0
+20:11:10 http "GET / HTTP/1.1" 404 -
+20:11:10 write client fail seq=337 [Errno 32] Broken pipe
+20:11:10 ← 338 404 339ms 338-GET-root resp=0
+20:11:10 http "GET / HTTP/1.1" 404 -
+20:11:10 write client fail seq=338 [Errno 32] Broken pipe
+20:11:11 ← 336 200 1692ms 336-POST-v1-messages resp=1375
+20:11:11 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:11 → 339 04-identity GET / bytes=0
+20:11:11 → 340 04-identity GET / bytes=0
+20:11:12 ← 340 404 303ms 340-GET-root resp=0
+20:11:12 http "GET / HTTP/1.1" 404 -
+20:11:12 write client fail seq=340 [Errno 32] Broken pipe
+20:11:12 ← 339 404 317ms 339-GET-root resp=0
+20:11:12 http "GET / HTTP/1.1" 404 -
+20:11:12 write client fail seq=339 [Errno 32] Broken pipe
+20:11:12 → 341 05-roleplay POST /v1/messages?beta=true bytes=8294
+20:11:13 → 342 05-roleplay GET / bytes=0
+20:11:13 → 343 05-roleplay GET / bytes=0
+20:11:13 ← 343 404 293ms 343-GET-root resp=0
+20:11:13 http "GET / HTTP/1.1" 404 -
+20:11:13 ← 342 404 293ms 342-GET-root resp=0
+20:11:13 http "GET / HTTP/1.1" 404 -
+20:11:14 → 344 05-roleplay GET / bytes=0
+20:11:14 → 345 05-roleplay GET / bytes=0
+20:11:14 ← 345 404 285ms 345-GET-root resp=0
+20:11:14 http "GET / HTTP/1.1" 404 -
+20:11:14 ← 344 404 314ms 344-GET-root resp=0
+20:11:14 http "GET / HTTP/1.1" 404 -
+20:11:14 write client fail seq=344 [Errno 32] Broken pipe
+20:11:15 → 346 05-roleplay GET / bytes=0
+20:11:15 → 347 05-roleplay GET / bytes=0
+20:11:15 ← 347 404 239ms 347-GET-root resp=0
+20:11:15 http "GET / HTTP/1.1" 404 -
+20:11:15 ← 346 404 290ms 346-GET-root resp=0
+20:11:15 http "GET / HTTP/1.1" 404 -
+20:11:16 ← 341 200 4241ms 341-POST-v1-messages resp=6323
+20:11:16 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:16 → 348 05-roleplay POST /v1/messages?beta=true bytes=9433
+20:11:16 → 349 05-roleplay GET / bytes=0
+20:11:16 → 350 05-roleplay GET / bytes=0
+20:11:17 ← 349 404 322ms 349-GET-root resp=0
+20:11:17 http "GET / HTTP/1.1" 404 -
+20:11:17 write client fail seq=349 [Errno 32] Broken pipe
+20:11:17 ← 350 404 325ms 350-GET-root resp=0
+20:11:17 http "GET / HTTP/1.1" 404 -
+20:11:17 write client fail seq=350 [Errno 32] Broken pipe
+20:11:18 → 351 05-roleplay GET / bytes=0
+20:11:18 → 352 05-roleplay GET / bytes=0
+20:11:18 ← 348 200 1945ms 348-POST-v1-messages resp=1399
+20:11:18 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:18 ← 352 404 303ms 352-GET-root resp=0
+20:11:18 http "GET / HTTP/1.1" 404 -
+20:11:18 write client fail seq=352 [Errno 32] Broken pipe
+20:11:18 ← 351 404 315ms 351-GET-root resp=0
+20:11:18 http "GET / HTTP/1.1" 404 -
+20:11:18 write client fail seq=351 [Errno 32] Broken pipe
+20:11:18 → 353 06-prompt-leak POST /v1/messages?beta=true bytes=8473
+20:11:19 → 354 06-prompt-leak GET / bytes=0
+20:11:19 → 355 06-prompt-leak GET / bytes=0
+20:11:19 ← 355 404 304ms 355-GET-root resp=0
+20:11:19 http "GET / HTTP/1.1" 404 -
+20:11:19 write client fail seq=355 [Errno 32] Broken pipe
+20:11:19 ← 354 404 318ms 354-GET-root resp=0
+20:11:19 http "GET / HTTP/1.1" 404 -
+20:11:19 write client fail seq=354 [Errno 32] Broken pipe
+20:11:20 → 356 06-prompt-leak GET / bytes=0
+20:11:20 → 357 06-prompt-leak GET / bytes=0
+20:11:21 ← 357 404 279ms 357-GET-root resp=0
+20:11:21 http "GET / HTTP/1.1" 404 -
+20:11:21 ← 356 404 290ms 356-GET-root resp=0
+20:11:21 http "GET / HTTP/1.1" 404 -
+20:11:21 write client fail seq=356 [Errno 104] Connection reset by peer
+20:11:22 → 358 06-prompt-leak GET / bytes=0
+20:11:22 → 359 06-prompt-leak GET / bytes=0
+20:11:22 ← 358 404 306ms 358-GET-root resp=0
+20:11:22 http "GET / HTTP/1.1" 404 -
+20:11:22 write client fail seq=358 [Errno 32] Broken pipe
+20:11:22 ← 359 404 310ms 359-GET-root resp=0
+20:11:22 http "GET / HTTP/1.1" 404 -
+20:11:22 write client fail seq=359 [Errno 32] Broken pipe
+20:11:23 → 360 06-prompt-leak GET / bytes=0
+20:11:23 → 361 06-prompt-leak GET / bytes=0
+20:11:23 ← 360 404 287ms 360-GET-root resp=0
+20:11:23 http "GET / HTTP/1.1" 404 -
+20:11:23 ← 361 404 311ms 361-GET-root resp=0
+20:11:23 http "GET / HTTP/1.1" 404 -
+20:11:23 write client fail seq=361 [Errno 32] Broken pipe
+20:11:24 → 362 06-prompt-leak GET / bytes=0
+20:11:24 → 363 06-prompt-leak GET / bytes=0
+20:11:25 ← 363 404 300ms 363-GET-root resp=0
+20:11:25 ← 362 404 308ms 362-GET-root resp=0
+20:11:25 http "GET / HTTP/1.1" 404 -
+20:11:25 http "GET / HTTP/1.1" 404 -
+20:11:25 write client fail seq=362 [Errno 32] Broken pipe
+20:11:25 write client fail seq=363 [Errno 32] Broken pipe
+20:11:26 → 364 06-prompt-leak GET / bytes=0
+20:11:26 → 365 06-prompt-leak GET / bytes=0
+20:11:26 ← 364 404 307ms 364-GET-root resp=0
+20:11:26 http "GET / HTTP/1.1" 404 -
+20:11:26 write client fail seq=364 [Errno 32] Broken pipe
+20:11:26 ← 365 404 319ms 365-GET-root resp=0
+20:11:26 http "GET / HTTP/1.1" 404 -
+20:11:26 write client fail seq=365 [Errno 32] Broken pipe
+20:11:27 ← 353 200 8272ms 353-POST-v1-messages resp=15324
+20:11:27 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:27 → 366 06-prompt-leak POST /v1/messages?beta=true bytes=11055
+20:11:27 → 367 06-prompt-leak GET / bytes=0
+20:11:27 → 368 06-prompt-leak GET / bytes=0
+20:11:27 ← 368 404 282ms 368-GET-root resp=0
+20:11:27 http "GET / HTTP/1.1" 404 -
+20:11:27 ← 367 404 294ms 367-GET-root resp=0
+20:11:27 http "GET / HTTP/1.1" 404 -
+20:11:27 write client fail seq=367 [Errno 104] Connection reset by peer
+20:11:28 → 369 06-prompt-leak GET / bytes=0
+20:11:28 → 370 06-prompt-leak GET / bytes=0
+20:11:28 ← 366 200 1720ms 366-POST-v1-messages resp=1361
+20:11:28 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:29 ← 370 404 300ms 370-GET-root resp=0
+20:11:29 http "GET / HTTP/1.1" 404 -
+20:11:29 write client fail seq=370 [Errno 32] Broken pipe
+20:11:29 ← 369 404 310ms 369-GET-root resp=0
+20:11:29 http "GET / HTTP/1.1" 404 -
+20:11:29 write client fail seq=369 [Errno 32] Broken pipe
+20:11:29 → 371 07-forced-weather POST /v1/messages?beta=true bytes=10025
+20:11:30 → 372 07-forced-weather GET / bytes=0
+20:11:30 → 373 07-forced-weather GET / bytes=0
+20:11:30 ← 373 404 297ms 373-GET-root resp=0
+20:11:30 http "GET / HTTP/1.1" 404 -
+20:11:30 write client fail seq=373 [Errno 32] Broken pipe
+20:11:30 ← 372 404 300ms 372-GET-root resp=0
+20:11:30 http "GET / HTTP/1.1" 404 -
+20:11:30 write client fail seq=372 [Errno 32] Broken pipe
+20:11:31 → 374 07-forced-weather GET / bytes=0
+20:11:31 → 375 07-forced-weather GET / bytes=0
+20:11:31 ← 374 404 268ms 374-GET-root resp=0
+20:11:31 http "GET / HTTP/1.1" 404 -
+20:11:31 ← 375 404 272ms 375-GET-root resp=0
+20:11:31 http "GET / HTTP/1.1" 404 -
+20:11:32 → 376 07-forced-weather GET / bytes=0
+20:11:32 → 377 07-forced-weather GET / bytes=0
+20:11:32 ← 371 200 3155ms 371-POST-v1-messages resp=5007
+20:11:32 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:32 → 378 07-forced-weather POST /v1/messages?beta=true bytes=11308
+20:11:32 ← 376 404 276ms 376-GET-root resp=0
+20:11:32 http "GET / HTTP/1.1" 404 -
+20:11:32 ← 377 404 282ms 377-GET-root resp=0
+20:11:32 http "GET / HTTP/1.1" 404 -
+20:11:33 → 379 07-forced-weather GET / bytes=0
+20:11:33 → 380 07-forced-weather GET / bytes=0
+20:11:34 ← 380 404 303ms 380-GET-root resp=0
+20:11:34 http "GET / HTTP/1.1" 404 -
+20:11:34 write client fail seq=380 [Errno 32] Broken pipe
+20:11:34 ← 379 404 308ms 379-GET-root resp=0
+20:11:34 http "GET / HTTP/1.1" 404 -
+20:11:34 write client fail seq=379 [Errno 32] Broken pipe
+20:11:35 ← 378 200 2422ms 378-POST-v1-messages resp=5407
+20:11:35 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:35 → 381 07-forced-weather GET / bytes=0
+20:11:35 → 382 07-forced-weather GET / bytes=0
+20:11:35 → 383 07-forced-weather POST /v1/messages?beta=true bytes=11865
+20:11:35 ← 382 404 290ms 382-GET-root resp=0
+20:11:35 http "GET / HTTP/1.1" 404 -
+20:11:35 ← 381 404 317ms 381-GET-root resp=0
+20:11:35 http "GET / HTTP/1.1" 404 -
+20:11:35 write client fail seq=381 [Errno 32] Broken pipe
+20:11:36 → 384 zz-idle GET / bytes=0
+20:11:36 → 385 zz-idle GET / bytes=0
+20:11:36 ← 384 404 318ms 384-GET-root resp=0
+20:11:36 http "GET / HTTP/1.1" 404 -
+20:11:36 write client fail seq=384 [Errno 32] Broken pipe
+20:11:36 ← 385 404 322ms 385-GET-root resp=0
+20:11:36 http "GET / HTTP/1.1" 404 -
+20:11:36 write client fail seq=385 [Errno 32] Broken pipe
+20:11:37 ← 383 200 2123ms 383-POST-v1-messages resp=1368
+20:11:37 http "POST /v1/messages?beta=true HTTP/1.1" 200 -
+20:11:37 → 386 zz-idle GET / bytes=0
+20:11:37 → 387 zz-idle GET / bytes=0
+20:11:38 ← 387 404 272ms 387-GET-root resp=0
+20:11:38 http "GET / HTTP/1.1" 404 -
+20:11:38 ← 386 404 298ms 386-GET-root resp=0
+20:11:38 http "GET / HTTP/1.1" 404 -
+20:11:38 write client fail seq=386 [Errno 32] Broken pipe
+20:11:39 → 388 zz-idle GET / bytes=0
+20:11:39 → 389 zz-idle GET / bytes=0
+20:11:39 ← 388 404 278ms 388-GET-root resp=0
+20:11:39 http "GET / HTTP/1.1" 404 -
+20:11:39 ← 389 404 298ms 389-GET-root resp=0
+20:11:39 http "GET / HTTP/1.1" 404 -
+20:11:39 write client fail seq=389 [Errno 32] Broken pipe
+20:11:40 → 390 zz-idle GET / bytes=0
+20:11:40 → 391 zz-idle GET / bytes=0
+20:11:40 ← 391 404 267ms 391-GET-root resp=0
+20:11:40 http "GET / HTTP/1.1" 404 -
+20:11:40 ← 390 404 290ms 390-GET-root resp=0
+20:11:40 http "GET / HTTP/1.1" 404 -
+20:11:40 write client fail seq=390 [Errno 104] Connection reset by peer
+20:11:41 → 392 zz-idle GET / bytes=0
+20:11:41 → 393 zz-idle GET / bytes=0
+20:11:41 ← 393 404 287ms 393-GET-root resp=0
+20:11:41 http "GET / HTTP/1.1" 404 -
+20:11:41 ← 392 404 294ms 392-GET-root resp=0
+20:11:41 http "GET / HTTP/1.1" 404 -
+20:11:41 write client fail seq=392 [Errno 104] Connection reset by peer
+20:11:43 → 394 zz-idle GET / bytes=0
+20:11:43 → 395 zz-idle GET / bytes=0
+20:11:43 ← 395 404 630ms 395-GET-root resp=0
+20:11:43 http "GET / HTTP/1.1" 404 -
+20:11:43 write client fail seq=395 [Errno 32] Broken pipe
+20:11:43 ← 394 404 734ms 394-GET-root resp=0
+20:11:43 http "GET / HTTP/1.1" 404 -
+20:11:43 write client fail seq=394 [Errno 32] Broken pipe
+20:11:44 → 396 zz-idle GET / bytes=0
+20:11:44 → 397 zz-idle GET / bytes=0
+20:11:44 ← 397 404 276ms 397-GET-root resp=0
+20:11:44 http "GET / HTTP/1.1" 404 -
+20:11:44 ← 396 404 294ms 396-GET-root resp=0
+20:11:44 http "GET / HTTP/1.1" 404 -
+20:11:44 write client fail seq=396 [Errno 104] Connection reset by peer
+20:11:45 → 398 zz-idle GET / bytes=0
+20:11:45 → 399 zz-idle GET / bytes=0
+20:11:45 ← 398 404 288ms 398-GET-root resp=0
+20:11:45 http "GET / HTTP/1.1" 404 -
+20:11:45 ← 399 404 288ms 399-GET-root resp=0
+20:11:45 http "GET / HTTP/1.1" 404 -
+20:11:46 → 400 zz-idle GET / bytes=0
+20:11:46 → 401 zz-idle GET / bytes=0
+20:11:47 ← 400 404 299ms 400-GET-root resp=0
+20:11:47 http "GET / HTTP/1.1" 404 -
+20:11:47 write client fail seq=400 [Errno 32] Broken pipe
+20:11:47 ← 401 404 304ms 401-GET-root resp=0
+20:11:47 http "GET / HTTP/1.1" 404 -
+20:11:47 write client fail seq=401 [Errno 32] Broken pipe
+20:11:48 → 402 zz-idle GET / bytes=0
+20:11:48 → 403 zz-idle GET / bytes=0
+20:11:48 ← 403 404 302ms 403-GET-root resp=0
+20:11:48 http "GET / HTTP/1.1" 404 -
+20:11:48 write client fail seq=403 [Errno 32] Broken pipe
+20:11:48 ← 402 404 306ms 402-GET-root resp=0
+20:11:48 http "GET / HTTP/1.1" 404 -
+20:11:48 write client fail seq=402 [Errno 32] Broken pipe
+20:11:49 → 404 zz-idle GET / bytes=0
+20:11:49 → 405 zz-idle GET / bytes=0
+20:11:49 ← 404 404 281ms 404-GET-root resp=0
+20:11:49 http "GET / HTTP/1.1" 404 -
+20:11:49 ← 405 404 305ms 405-GET-root resp=0
+20:11:49 http "GET / HTTP/1.1" 404 -
+20:11:49 write client fail seq=405 [Errno 32] Broken pipe
+20:11:50 → 406 zz-idle GET / bytes=0
+20:11:50 → 407 zz-idle GET / bytes=0
+20:11:51 ← 406 404 279ms 406-GET-root resp=0
+20:11:51 http "GET / HTTP/1.1" 404 -
+20:11:51 ← 407 404 301ms 407-GET-root resp=0
+20:11:51 http "GET / HTTP/1.1" 404 -
+20:11:51 write client fail seq=407 [Errno 32] Broken pipe
+20:11:52 → 408 zz-idle GET / bytes=0
+20:11:52 → 409 zz-idle GET / bytes=0
+20:11:52 ← 408 404 301ms 408-GET-root resp=0
+20:11:52 http "GET / HTTP/1.1" 404 -
+20:11:52 write client fail seq=408 [Errno 32] Broken pipe
+20:11:52 ← 409 404 329ms 409-GET-root resp=0
+20:11:52 http "GET / HTTP/1.1" 404 -
+20:11:52 write client fail seq=409 [Errno 32] Broken pipe
+20:11:53 → 410 zz-idle GET / bytes=0
+20:11:53 → 411 zz-idle GET / bytes=0
+20:11:53 ← 410 404 325ms 410-GET-root resp=0
+20:11:53 http "GET / HTTP/1.1" 404 -
+20:11:53 write client fail seq=410 [Errno 32] Broken pipe
+20:11:53 ← 411 404 327ms 411-GET-root resp=0
+20:11:53 http "GET / HTTP/1.1" 404 -
+20:11:53 write client fail seq=411 [Errno 32] Broken pipe
+20:11:54 → 412 zz-idle GET / bytes=0
+20:11:54 → 413 zz-idle GET / bytes=0
+20:11:54 ← 413 404 260ms 413-GET-root resp=0
+20:11:54 http "GET / HTTP/1.1" 404 -
+20:11:54 write client fail seq=413 [Errno 104] Connection reset by peer
+20:11:55 ← 412 404 287ms 412-GET-root resp=0
+20:11:55 http "GET / HTTP/1.1" 404 -
+20:11:56 → 414 zz-idle GET / bytes=0
+20:11:56 → 415 zz-idle GET / bytes=0
+20:11:56 ← 415 404 286ms 415-GET-root resp=0
+20:11:56 http "GET / HTTP/1.1" 404 -
+20:11:56 ← 414 404 289ms 414-GET-root resp=0
+20:11:56 http "GET / HTTP/1.1" 404 -
+20:11:56 write client fail seq=414 [Errno 104] Connection reset by peer
+20:11:57 → 416 zz-idle GET / bytes=0
+20:11:57 → 417 zz-idle GET / bytes=0
+20:11:57 ← 417 404 279ms 417-GET-root resp=0
+20:11:57 http "GET / HTTP/1.1" 404 -
+20:11:57 ← 416 404 301ms 416-GET-root resp=0
+20:11:57 http "GET / HTTP/1.1" 404 -
+20:11:57 write client fail seq=416 [Errno 32] Broken pipe
+20:11:58 → 418 zz-idle GET / bytes=0
+20:11:58 → 419 zz-idle GET / bytes=0
+20:11:58 ← 418 404 270ms 418-GET-root resp=0
+20:11:58 http "GET / HTTP/1.1" 404 -
+20:11:58 write client fail seq=418 [Errno 104] Connection reset by peer
+20:11:58 ← 419 404 276ms 419-GET-root resp=0
+20:11:58 http "GET / HTTP/1.1" 404 -
+20:11:59 → 420 zz-idle GET / bytes=0
+20:11:59 → 421 zz-idle GET / bytes=0
+20:12:00 ← 420 404 294ms 420-GET-root resp=0
+20:12:00 http "GET / HTTP/1.1" 404 -
+20:12:00 ← 421 404 300ms 421-GET-root resp=0
+20:12:00 http "GET / HTTP/1.1" 404 -
+20:12:00 write client fail seq=421 [Errno 32] Broken pipe
+20:12:01 → 422 zz-idle GET / bytes=0
+20:12:01 → 423 zz-idle GET / bytes=0
+20:12:01 ← 423 404 294ms 423-GET-root resp=0
+20:12:01 http "GET / HTTP/1.1" 404 -
+20:12:01 ← 422 404 304ms 422-GET-root resp=0
+20:12:01 http "GET / HTTP/1.1" 404 -
+20:12:01 write client fail seq=422 [Errno 32] Broken pipe
+20:12:02 → 424 zz-idle GET / bytes=0
+20:12:02 → 425 zz-idle GET / bytes=0
+20:12:02 ← 425 404 277ms 425-GET-root resp=0
+20:12:02 http "GET / HTTP/1.1" 404 -
+20:12:02 ← 424 404 293ms 424-GET-root resp=0
+20:12:02 http "GET / HTTP/1.1" 404 -
+20:12:02 write client fail seq=424 [Errno 104] Connection reset by peer
+20:12:03 → 426 zz-idle GET / bytes=0
+20:12:03 → 427 zz-idle GET / bytes=0
+20:12:04 ← 426 404 279ms 426-GET-root resp=0
+20:12:04 http "GET / HTTP/1.1" 404 -
+20:12:04 write client fail seq=426 [Errno 104] Connection reset by peer
+20:12:04 ← 427 404 309ms 427-GET-root resp=0
+20:12:04 http "GET / HTTP/1.1" 404 -
+20:12:04 write client fail seq=427 [Errno 32] Broken pipe
+20:12:05 → 428 zz-idle GET / bytes=0
+20:12:05 → 429 zz-idle GET / bytes=0
+20:12:05 ← 428 404 259ms 428-GET-root resp=0
+20:12:05 http "GET / HTTP/1.1" 404 -
+20:12:05 ← 429 404 298ms 429-GET-root resp=0
+20:12:05 http "GET / HTTP/1.1" 404 -
+20:12:05 write client fail seq=429 [Errno 32] Broken pipe
+20:12:06 → 430 zz-idle GET / bytes=0
+20:12:06 → 431 zz-idle GET / bytes=0
+20:12:06 ← 430 404 309ms 430-GET-root resp=0
+20:12:06 http "GET / HTTP/1.1" 404 -
+20:12:06 write client fail seq=430 [Errno 32] Broken pipe
+20:12:06 ← 431 404 316ms 431-GET-root resp=0
+20:12:06 http "GET / HTTP/1.1" 404 -
+20:12:06 write client fail seq=431 [Errno 32] Broken pipe
+20:12:07 → 432 zz-idle GET / bytes=0
+20:12:07 → 433 zz-idle GET / bytes=0
+20:12:08 ← 432 404 296ms 432-GET-root resp=0
+20:12:08 http "GET / HTTP/1.1" 404 -
+20:12:08 write client fail seq=432 [Errno 32] Broken pipe
+20:12:08 ← 433 404 295ms 433-GET-root resp=0
+20:12:08 http "GET / HTTP/1.1" 404 -
+20:12:08 write client fail seq=433 [Errno 32] Broken pipe
+20:12:09 → 434 zz-idle GET / bytes=0
+20:12:09 → 435 zz-idle GET / bytes=0
+20:12:09 ← 434 404 265ms 434-GET-root resp=0
+20:12:09 http "GET / HTTP/1.1" 404 -
+20:12:09 ← 435 404 274ms 435-GET-root resp=0
+20:12:09 http "GET / HTTP/1.1" 404 -
+20:12:10 → 436 zz-idle GET / bytes=0
+20:12:10 → 437 zz-idle GET / bytes=0
+20:12:10 ← 436 404 282ms 436-GET-root resp=0
+20:12:10 http "GET / HTTP/1.1" 404 -
+20:12:10 write client fail seq=436 [Errno 104] Connection reset by peer
+20:12:10 ← 437 404 292ms 437-GET-root resp=0
+20:12:10 http "GET / HTTP/1.1" 404 -
+20:12:11 → 438 zz-idle GET / bytes=0
+20:12:11 → 439 zz-idle GET / bytes=0
+20:12:11 ← 438 404 296ms 438-GET-root resp=0
+20:12:11 http "GET / HTTP/1.1" 404 -
+20:12:11 write client fail seq=438 [Errno 104] Connection reset by peer
+20:12:11 ← 439 404 304ms 439-GET-root resp=0
+20:12:11 http "GET / HTTP/1.1" 404 -
+20:12:11 write client fail seq=439 [Errno 32] Broken pipe
+20:12:12 → 440 zz-idle GET / bytes=0
+20:12:12 → 441 zz-idle GET / bytes=0
+20:12:13 ← 440 404 269ms 440-GET-root resp=0
+20:12:13 http "GET / HTTP/1.1" 404 -
+20:12:13 ← 441 404 287ms 441-GET-root resp=0
+20:12:13 http "GET / HTTP/1.1" 404 -
+20:12:14 → 442 zz-idle GET / bytes=0
+20:12:14 → 443 zz-idle GET / bytes=0
+20:12:14 ← 442 404 294ms 442-GET-root resp=0
+20:12:14 http "GET / HTTP/1.1" 404 -
+20:12:14 ← 443 404 291ms 443-GET-root resp=0
+20:12:14 http "GET / HTTP/1.1" 404 -
+20:12:15 → 444 zz-idle GET / bytes=0
+20:12:15 → 445 zz-idle GET / bytes=0
+20:12:15 ← 444 404 294ms 444-GET-root resp=0
+20:12:15 http "GET / HTTP/1.1" 404 -
+20:12:15 write client fail seq=444 [Errno 104] Connection reset by peer
+20:12:15 ← 445 404 307ms 445-GET-root resp=0
+20:12:15 http "GET / HTTP/1.1" 404 -
+20:12:15 write client fail seq=445 [Errno 32] Broken pipe
+20:12:16 → 446 zz-idle GET / bytes=0
+20:12:16 → 447 zz-idle GET / bytes=0
+20:12:17 ← 447 404 305ms 447-GET-root resp=0
+20:12:17 http "GET / HTTP/1.1" 404 -
+20:12:17 write client fail seq=447 [Errno 32] Broken pipe
+20:12:17 ← 446 404 332ms 446-GET-root resp=0
+20:12:17 http "GET / HTTP/1.1" 404 -
+20:12:17 write client fail seq=446 [Errno 32] Broken pipe
+20:12:18 → 448 zz-idle GET / bytes=0
+20:12:18 → 449 zz-idle GET / bytes=0
+20:12:18 ← 448 404 268ms 448-GET-root resp=0
+20:12:18 http "GET / HTTP/1.1" 404 -
+20:12:18 write client fail seq=448 [Errno 104] Connection reset by peer
+20:12:18 ← 449 404 275ms 449-GET-root resp=0
+20:12:18 http "GET / HTTP/1.1" 404 -
+20:12:19 → 450 zz-idle GET / bytes=0
+20:12:19 → 451 zz-idle GET / bytes=0
+20:12:19 ← 451 404 257ms 451-GET-root resp=0
+20:12:19 http "GET / HTTP/1.1" 404 -
+20:12:19 ← 450 404 293ms 450-GET-root resp=0
+20:12:19 http "GET / HTTP/1.1" 404 -
+20:12:19 write client fail seq=450 [Errno 104] Connection reset by peer
+20:12:20 → 452 zz-idle GET / bytes=0
+20:12:20 → 453 zz-idle GET / bytes=0
+20:12:20 ← 452 404 261ms 452-GET-root resp=0
+20:12:20 http "GET / HTTP/1.1" 404 -
+20:12:21 ← 453 404 293ms 453-GET-root resp=0
+20:12:21 http "GET / HTTP/1.1" 404 -
+20:12:22 → 454 zz-idle GET / bytes=0
+20:12:22 → 455 zz-idle GET / bytes=0
+20:12:22 ← 454 404 283ms 454-GET-root resp=0
+20:12:22 http "GET / HTTP/1.1" 404 -
+20:12:22 write client fail seq=454 [Errno 104] Connection reset by peer
+20:12:22 ← 455 404 304ms 455-GET-root resp=0
+20:12:22 http "GET / HTTP/1.1" 404 -
+20:12:22 write client fail seq=455 [Errno 32] Broken pipe
+20:12:23 → 456 zz-idle GET / bytes=0
+20:12:23 → 457 zz-idle GET / bytes=0
+20:12:23 ← 457 404 312ms 457-GET-root resp=0
+20:12:23 http "GET / HTTP/1.1" 404 -
+20:12:23 write client fail seq=457 [Errno 32] Broken pipe
+20:12:23 ← 456 404 319ms 456-GET-root resp=0
+20:12:23 http "GET / HTTP/1.1" 404 -
+20:12:23 write client fail seq=456 [Errno 32] Broken pipe
+20:12:24 → 458 zz-idle GET / bytes=0
+20:12:24 → 459 zz-idle GET / bytes=0
+20:12:24 ← 459 404 300ms 459-GET-root resp=0
+20:12:24 http "GET / HTTP/1.1" 404 -
+20:12:24 write client fail seq=459 [Errno 32] Broken pipe
+20:12:24 ← 458 404 304ms 458-GET-root resp=0
+20:12:24 http "GET / HTTP/1.1" 404 -
+20:12:24 write client fail seq=458 [Errno 32] Broken pipe
+20:12:25 → 460 zz-idle GET / bytes=0
+20:12:25 → 461 zz-idle GET / bytes=0
+20:12:26 ← 461 404 398ms 461-GET-root resp=0
+20:12:26 http "GET / HTTP/1.1" 404 -
+20:12:26 write client fail seq=461 [Errno 32] Broken pipe
+20:12:26 ← 460 404 445ms 460-GET-root resp=0
+20:12:26 http "GET / HTTP/1.1" 404 -
+20:12:26 write client fail seq=460 [Errno 32] Broken pipe
+20:12:27 → 462 zz-idle GET / bytes=0
+20:12:27 → 463 zz-idle GET / bytes=0
+20:12:27 ← 462 404 349ms 462-GET-root resp=0
+20:12:27 http "GET / HTTP/1.1" 404 -
+20:12:27 write client fail seq=462 [Errno 32] Broken pipe
+20:12:27 ← 463 404 405ms 463-GET-root resp=0
+20:12:27 http "GET / HTTP/1.1" 404 -
+20:12:27 write client fail seq=463 [Errno 32] Broken pipe
+20:12:28 → 464 zz-idle GET / bytes=0
+20:12:28 → 465 zz-idle GET / bytes=0
+20:12:28 ← 464 404 296ms 464-GET-root resp=0
+20:12:28 http "GET / HTTP/1.1" 404 -
+20:12:28 ← 465 404 315ms 465-GET-root resp=0
+20:12:28 http "GET / HTTP/1.1" 404 -
+20:12:28 write client fail seq=465 [Errno 32] Broken pipe
+20:12:29 → 466 zz-idle GET / bytes=0
+20:12:29 → 467 zz-idle GET / bytes=0
+20:12:30 ← 467 404 308ms 467-GET-root resp=0
+20:12:30 http "GET / HTTP/1.1" 404 -
+20:12:30 write client fail seq=467 [Errno 32] Broken pipe
+20:12:30 ← 466 404 333ms 466-GET-root resp=0
+20:12:30 http "GET / HTTP/1.1" 404 -
+20:12:30 write client fail seq=466 [Errno 32] Broken pipe
+20:12:31 → 468 zz-idle GET / bytes=0
+20:12:31 → 469 zz-idle GET / bytes=0
+20:12:31 ← 469 404 336ms 469-GET-root resp=0
+20:12:31 http "GET / HTTP/1.1" 404 -
+20:12:31 write client fail seq=469 [Errno 32] Broken pipe
+20:12:31 ← 468 404 344ms 468-GET-root resp=0
+20:12:31 http "GET / HTTP/1.1" 404 -
+20:12:31 write client fail seq=468 [Errno 32] Broken pipe
+20:12:32 → 470 zz-idle GET / bytes=0
+20:12:32 → 471 zz-idle GET / bytes=0
+20:12:32 ← 471 404 261ms 471-GET-root resp=0
+20:12:32 http "GET / HTTP/1.1" 404 -
+20:12:32 ← 470 404 284ms 470-GET-root resp=0
+20:12:32 http "GET / HTTP/1.1" 404 -
+20:12:33 → 472 zz-idle GET / bytes=0
+20:12:33 → 473 zz-idle GET / bytes=0
+20:12:34 ← 473 404 319ms 473-GET-root resp=0
+20:12:34 http "GET / HTTP/1.1" 404 -
+20:12:34 write client fail seq=473 [Errno 32] Broken pipe
+20:12:34 ← 472 404 345ms 472-GET-root resp=0
+20:12:34 http "GET / HTTP/1.1" 404 -
+20:12:34 write client fail seq=472 [Errno 32] Broken pipe
+20:12:35 → 474 zz-idle GET / bytes=0
+20:12:35 → 475 zz-idle GET / bytes=0
+20:12:35 ← 475 404 277ms 475-GET-root resp=0
+20:12:35 http "GET / HTTP/1.1" 404 -
+20:12:35 ← 474 404 302ms 474-GET-root resp=0
+20:12:35 http "GET / HTTP/1.1" 404 -
+20:12:35 write client fail seq=474 [Errno 32] Broken pipe
+20:12:36 → 476 zz-idle GET / bytes=0
+20:12:36 → 477 zz-idle GET / bytes=0
+20:12:36 ← 477 404 274ms 477-GET-root resp=0
+20:12:36 http "GET / HTTP/1.1" 404 -
+20:12:36 ← 476 404 279ms 476-GET-root resp=0
+20:12:36 http "GET / HTTP/1.1" 404 -
+20:12:37 → 478 zz-idle GET / bytes=0
+20:12:37 → 479 zz-idle GET / bytes=0
+20:12:38 ← 478 404 298ms 478-GET-root resp=0
+20:12:38 http "GET / HTTP/1.1" 404 -
+20:12:38 write client fail seq=478 [Errno 32] Broken pipe
+20:12:38 ← 479 404 302ms 479-GET-root resp=0
+20:12:38 http "GET / HTTP/1.1" 404 -
+20:12:38 write client fail seq=479 [Errno 32] Broken pipe
+20:12:39 → 480 zz-idle GET / bytes=0
+20:12:39 → 481 zz-idle GET / bytes=0
+20:12:39 ← 481 404 296ms 481-GET-root resp=0
+20:12:39 http "GET / HTTP/1.1" 404 -
+20:12:39 ← 480 404 305ms 480-GET-root resp=0
+20:12:39 http "GET / HTTP/1.1" 404 -
+20:12:39 write client fail seq=480 [Errno 32] Broken pipe
+20:12:40 → 482 zz-idle GET / bytes=0
+20:12:40 → 483 zz-idle GET / bytes=0
+20:12:40 ← 483 404 277ms 483-GET-root resp=0
+20:12:40 http "GET / HTTP/1.1" 404 -
+20:12:40 ← 482 404 299ms 482-GET-root resp=0
+20:12:40 http "GET / HTTP/1.1" 404 -
+20:12:40 write client fail seq=482 [Errno 32] Broken pipe
+20:12:41 → 484 zz-idle GET / bytes=0
+20:12:41 → 485 zz-idle GET / bytes=0
+20:12:41 ← 485 404 292ms 485-GET-root resp=0
+20:12:41 http "GET / HTTP/1.1" 404 -
+20:12:41 write client fail seq=485 [Errno 32] Broken pipe
+20:12:41 ← 484 404 308ms 484-GET-root resp=0
+20:12:41 http "GET / HTTP/1.1" 404 -
+20:12:41 write client fail seq=484 [Errno 32] Broken pipe
+20:12:42 → 486 zz-idle GET / bytes=0
+20:12:42 → 487 zz-idle GET / bytes=0
+20:12:43 ← 487 404 291ms 487-GET-root resp=0
+20:12:43 http "GET / HTTP/1.1" 404 -
+20:12:43 ← 486 404 297ms 486-GET-root resp=0
+20:12:43 http "GET / HTTP/1.1" 404 -
+20:12:43 write client fail seq=486 [Errno 32] Broken pipe
+20:12:44 → 488 zz-idle GET / bytes=0
+20:12:44 → 489 zz-idle GET / bytes=0
+20:12:44 ← 489 404 253ms 489-GET-root resp=0
+20:12:44 http "GET / HTTP/1.1" 404 -
+20:12:44 ← 488 404 291ms 488-GET-root resp=0
+20:12:44 http "GET / HTTP/1.1" 404 -
+20:12:44 write client fail seq=488 [Errno 104] Connection reset by peer
+20:12:45 → 490 zz-idle GET / bytes=0
+20:12:45 → 491 zz-idle GET / bytes=0
+20:12:45 ← 490 404 286ms 490-GET-root resp=0
+20:12:45 http "GET / HTTP/1.1" 404 -
+20:12:45 write client fail seq=490 [Errno 32] Broken pipe
+20:12:45 ← 491 404 317ms 491-GET-root resp=0
+20:12:45 http "GET / HTTP/1.1" 404 -
+20:12:45 write client fail seq=491 [Errno 32] Broken pipe
+20:12:46 → 492 zz-idle GET / bytes=0
+20:12:46 → 493 zz-idle GET / bytes=0
+20:12:47 ← 492 404 306ms 492-GET-root resp=0
+20:12:47 http "GET / HTTP/1.1" 404 -
+20:12:47 write client fail seq=492 [Errno 32] Broken pipe
+20:12:47 ← 493 404 307ms 493-GET-root resp=0
+20:12:47 http "GET / HTTP/1.1" 404 -
+20:12:47 write client fail seq=493 [Errno 32] Broken pipe
+20:12:48 → 494 zz-idle GET / bytes=0
+20:12:48 → 495 zz-idle GET / bytes=0
+20:12:48 ← 495 404 308ms 495-GET-root resp=0
+20:12:48 http "GET / HTTP/1.1" 404 -
+20:12:48 write client fail seq=495 [Errno 32] Broken pipe
+20:12:48 ← 494 404 318ms 494-GET-root resp=0
+20:12:48 http "GET / HTTP/1.1" 404 -
+20:12:48 write client fail seq=494 [Errno 32] Broken pipe
+20:12:49 → 496 zz-idle GET / bytes=0
+20:12:49 → 497 zz-idle GET / bytes=0
+20:12:49 ← 497 404 280ms 497-GET-root resp=0
+20:12:49 http "GET / HTTP/1.1" 404 -
+20:12:49 ← 496 404 299ms 496-GET-root resp=0
+20:12:49 http "GET / HTTP/1.1" 404 -
+20:12:49 write client fail seq=496 [Errno 32] Broken pipe
+20:12:50 → 498 zz-idle GET / bytes=0
+20:12:50 → 499 zz-idle GET / bytes=0
+20:12:51 ← 499 404 274ms 499-GET-root resp=0
+20:12:51 http "GET / HTTP/1.1" 404 -
+20:12:51 ← 498 404 292ms 498-GET-root resp=0
+20:12:51 http "GET / HTTP/1.1" 404 -
+20:12:51 write client fail seq=498 [Errno 104] Connection reset by peer
+20:12:52 → 500 zz-idle GET / bytes=0
+20:12:52 → 501 zz-idle GET / bytes=0
+20:12:52 ← 501 404 267ms 501-GET-root resp=0
+20:12:52 http "GET / HTTP/1.1" 404 -
+20:12:52 ← 500 404 286ms 500-GET-root resp=0
+20:12:52 http "GET / HTTP/1.1" 404 -
+20:12:53 → 502 zz-idle GET / bytes=0
+20:12:53 → 503 zz-idle GET / bytes=0
+20:12:53 ← 503 404 253ms 503-GET-root resp=0
+20:12:53 http "GET / HTTP/1.1" 404 -
+20:12:53 ← 502 404 276ms 502-GET-root resp=0
+20:12:53 http "GET / HTTP/1.1" 404 -
+20:12:53 write client fail seq=502 [Errno 104] Connection reset by peer
+20:12:54 → 504 zz-idle GET / bytes=0
+20:12:54 → 505 zz-idle GET / bytes=0
+20:12:54 ← 504 404 269ms 504-GET-root resp=0
+20:12:54 http "GET / HTTP/1.1" 404 -
+20:12:54 ← 505 404 272ms 505-GET-root resp=0
+20:12:54 http "GET / HTTP/1.1" 404 -
+20:12:55 → 506 zz-idle GET / bytes=0
+20:12:55 → 507 zz-idle GET / bytes=0
+20:12:56 ← 507 404 293ms 507-GET-root resp=0
+20:12:56 http "GET / HTTP/1.1" 404 -
+20:12:56 ← 506 404 354ms 506-GET-root resp=0
+20:12:56 http "GET / HTTP/1.1" 404 -
+20:12:56 write client fail seq=506 [Errno 32] Broken pipe
+20:12:57 → 508 zz-idle GET / bytes=0
+20:12:57 → 509 zz-idle GET / bytes=0
+20:12:57 ← 508 404 276ms 508-GET-root resp=0
+20:12:57 http "GET / HTTP/1.1" 404 -
+20:12:57 ← 509 404 297ms 509-GET-root resp=0
+20:12:57 http "GET / HTTP/1.1" 404 -
+20:12:57 write client fail seq=509 [Errno 32] Broken pipe
+20:12:58 → 510 zz-idle GET / bytes=0
+20:12:58 → 511 zz-idle GET / bytes=0
+20:12:58 ← 510 404 290ms 510-GET-root resp=0
+20:12:58 http "GET / HTTP/1.1" 404 -
+20:12:58 write client fail seq=510 [Errno 104] Connection reset by peer
+20:12:58 ← 511 404 319ms 511-GET-root resp=0
+20:12:58 http "GET / HTTP/1.1" 404 -
+20:12:58 write client fail seq=511 [Errno 32] Broken pipe
+20:12:59 → 512 zz-idle GET / bytes=0
+20:12:59 → 513 zz-idle GET / bytes=0
+20:13:00 ← 513 404 287ms 513-GET-root resp=0
+20:13:00 http "GET / HTTP/1.1" 404 -
+20:13:00 ← 512 404 299ms 512-GET-root resp=0
+20:13:00 http "GET / HTTP/1.1" 404 -
+20:13:00 write client fail seq=512 [Errno 32] Broken pipe
+20:13:01 → 514 zz-idle GET / bytes=0
+20:13:01 → 515 zz-idle GET / bytes=0
+20:13:01 ← 514 404 306ms 514-GET-root resp=0
+20:13:01 http "GET / HTTP/1.1" 404 -
+20:13:01 write client fail seq=514 [Errno 32] Broken pipe
+20:13:01 ← 515 404 321ms 515-GET-root resp=0
+20:13:01 http "GET / HTTP/1.1" 404 -
+20:13:01 write client fail seq=515 [Errno 32] Broken pipe
+20:13:02 → 516 zz-idle GET / bytes=0
+20:13:02 → 517 zz-idle GET / bytes=0
+20:13:02 ← 517 404 253ms 517-GET-root resp=0
+20:13:02 http "GET / HTTP/1.1" 404 -
+20:13:02 ← 516 404 292ms 516-GET-root resp=0
+20:13:02 http "GET / HTTP/1.1" 404 -
+20:13:02 write client fail seq=516 [Errno 104] Connection reset by peer
+20:13:03 → 518 zz-idle GET / bytes=0
+20:13:03 → 519 zz-idle GET / bytes=0
+20:13:04 ← 518 404 297ms 518-GET-root resp=0
+20:13:04 http "GET / HTTP/1.1" 404 -
+20:13:04 write client fail seq=518 [Errno 32] Broken pipe
+20:13:04 ← 519 404 300ms 519-GET-root resp=0
+20:13:04 http "GET / HTTP/1.1" 404 -
+20:13:04 write client fail seq=519 [Errno 32] Broken pipe
+20:13:05 → 520 zz-idle GET / bytes=0
+20:13:05 → 521 zz-idle GET / bytes=0
+20:13:05 ← 520 404 385ms 520-GET-root resp=0
+20:13:05 http "GET / HTTP/1.1" 404 -
+20:13:05 write client fail seq=520 [Errno 32] Broken pipe
+20:13:05 ← 521 404 393ms 521-GET-root resp=0
+20:13:05 http "GET / HTTP/1.1" 404 -
+20:13:05 write client fail seq=521 [Errno 32] Broken pipe
+20:13:06 → 522 zz-idle GET / bytes=0
+20:13:06 → 523 zz-idle GET / bytes=0
+20:13:06 ← 523 404 288ms 523-GET-root resp=0
+20:13:06 http "GET / HTTP/1.1" 404 -
+20:13:06 ← 522 404 320ms 522-GET-root resp=0
+20:13:06 http "GET / HTTP/1.1" 404 -
+20:13:06 write client fail seq=522 [Errno 32] Broken pipe
+20:13:07 → 524 zz-idle GET / bytes=0
+20:13:07 → 525 zz-idle GET / bytes=0
+20:13:07 ← 524 404 271ms 524-GET-root resp=0
+20:13:07 http "GET / HTTP/1.1" 404 -
+20:13:07 write client fail seq=524 [Errno 104] Connection reset by peer
+20:13:07 ← 525 404 277ms 525-GET-root resp=0
+20:13:07 http "GET / HTTP/1.1" 404 -
+20:13:08 → 526 zz-idle GET / bytes=0
+20:13:08 → 527 zz-idle GET / bytes=0
+20:13:09 ← 527 404 295ms 527-GET-root resp=0
+20:13:09 http "GET / HTTP/1.1" 404 -
+20:13:09 ← 526 404 305ms 526-GET-root resp=0
+20:13:09 http "GET / HTTP/1.1" 404 -
+20:13:09 write client fail seq=526 [Errno 32] Broken pipe
+20:13:10 → 528 zz-idle GET / bytes=0
+20:13:10 → 529 zz-idle GET / bytes=0
+20:13:10 ← 529 404 294ms 529-GET-root resp=0
+20:13:10 http "GET / HTTP/1.1" 404 -
+20:13:10 ← 528 404 301ms 528-GET-root resp=0
+20:13:10 http "GET / HTTP/1.1" 404 -
+20:13:10 write client fail seq=528 [Errno 32] Broken pipe
+20:13:11 → 530 zz-idle GET / bytes=0
+20:13:11 → 531 zz-idle GET / bytes=0
+20:13:11 ← 531 404 292ms 531-GET-root resp=0
+20:13:11 http "GET / HTTP/1.1" 404 -
+20:13:11 ← 530 404 308ms 530-GET-root resp=0
+20:13:11 http "GET / HTTP/1.1" 404 -
+20:13:11 write client fail seq=530 [Errno 32] Broken pipe
+20:13:12 → 532 zz-idle GET / bytes=0
+20:13:12 → 533 zz-idle GET / bytes=0
+20:13:13 ← 532 404 288ms 532-GET-root resp=0
+20:13:13 http "GET / HTTP/1.1" 404 -
+20:13:13 ← 533 404 320ms 533-GET-root resp=0
+20:13:13 http "GET / HTTP/1.1" 404 -
+20:13:13 write client fail seq=533 [Errno 32] Broken pipe
+20:13:14 → 534 zz-idle GET / bytes=0
+20:13:14 → 535 zz-idle GET / bytes=0
+20:13:14 ← 534 404 265ms 534-GET-root resp=0
+20:13:14 http "GET / HTTP/1.1" 404 -
+20:13:14 ← 535 404 293ms 535-GET-root resp=0
+20:13:14 http "GET / HTTP/1.1" 404 -
+20:13:15 → 536 zz-idle GET / bytes=0
+20:13:15 → 537 zz-idle GET / bytes=0
+20:13:15 ← 536 404 290ms 536-GET-root resp=0
+20:13:15 http "GET / HTTP/1.1" 404 -
+20:13:15 ← 537 404 292ms 537-GET-root resp=0
+20:13:15 http "GET / HTTP/1.1" 404 -
+20:13:16 → 538 zz-idle GET / bytes=0
+20:13:16 → 539 zz-idle GET / bytes=0
+20:13:17 ← 539 404 289ms 539-GET-root resp=0
+20:13:17 http "GET / HTTP/1.1" 404 -
+20:13:17 ← 538 404 302ms 538-GET-root resp=0
+20:13:17 http "GET / HTTP/1.1" 404 -
+20:13:17 write client fail seq=538 [Errno 32] Broken pipe
+20:13:18 → 540 zz-idle GET / bytes=0
+20:13:18 → 541 zz-idle GET / bytes=0
+20:13:18 ← 540 404 300ms 540-GET-root resp=0
+20:13:18 http "GET / HTTP/1.1" 404 -
+20:13:18 write client fail seq=540 [Errno 32] Broken pipe
+20:13:18 ← 541 404 307ms 541-GET-root resp=0
+20:13:18 http "GET / HTTP/1.1" 404 -
+20:13:18 write client fail seq=541 [Errno 32] Broken pipe
+20:13:19 → 542 zz-idle GET / bytes=0
+20:13:19 → 543 zz-idle GET / bytes=0
+20:13:19 ← 542 404 255ms 542-GET-root resp=0
+20:13:19 http "GET / HTTP/1.1" 404 -
+20:13:19 ← 543 404 296ms 543-GET-root resp=0
+20:13:19 http "GET / HTTP/1.1" 404 -
+20:13:19 write client fail seq=543 [Errno 32] Broken pipe
+20:13:20 → 544 zz-idle GET / bytes=0
+20:13:20 → 545 zz-idle GET / bytes=0
+20:13:20 ← 544 404 287ms 544-GET-root resp=0
+20:13:20 http "GET / HTTP/1.1" 404 -
+20:13:20 write client fail seq=544 [Errno 104] Connection reset by peer
+20:13:20 ← 545 404 293ms 545-GET-root resp=0
+20:13:20 http "GET / HTTP/1.1" 404 -
+20:13:21 → 546 zz-idle GET / bytes=0
+20:13:21 → 547 zz-idle GET / bytes=0
+20:13:22 ← 546 404 300ms 546-GET-root resp=0
+20:13:22 http "GET / HTTP/1.1" 404 -
+20:13:22 write client fail seq=546 [Errno 32] Broken pipe
+20:13:22 ← 547 404 303ms 547-GET-root resp=0
+20:13:22 http "GET / HTTP/1.1" 404 -
+20:13:22 write client fail seq=547 [Errno 32] Broken pipe
+20:13:23 → 548 zz-idle GET / bytes=0
+20:13:23 → 549 zz-idle GET / bytes=0
+20:13:23 ← 548 404 300ms 548-GET-root resp=0
+20:13:23 http "GET / HTTP/1.1" 404 -
+20:13:23 write client fail seq=548 [Errno 32] Broken pipe
+20:13:23 ← 549 404 323ms 549-GET-root resp=0
+20:13:23 http "GET / HTTP/1.1" 404 -
+20:13:23 write client fail seq=549 [Errno 32] Broken pipe
+20:13:24 → 550 zz-idle GET / bytes=0
+20:13:24 → 551 zz-idle GET / bytes=0
+20:13:24 ← 550 404 288ms 550-GET-root resp=0
+20:13:24 http "GET / HTTP/1.1" 404 -
+20:13:24 ← 551 404 305ms 551-GET-root resp=0
+20:13:24 http "GET / HTTP/1.1" 404 -
+20:13:24 write client fail seq=551 [Errno 32] Broken pipe
+20:13:25 → 552 zz-idle GET / bytes=0
+20:13:25 → 553 zz-idle GET / bytes=0
+20:13:26 ← 552 404 295ms 552-GET-root resp=0
+20:13:26 http "GET / HTTP/1.1" 404 -
+20:13:26 ← 553 404 303ms 553-GET-root resp=0
+20:13:26 http "GET / HTTP/1.1" 404 -
+20:13:26 write client fail seq=553 [Errno 32] Broken pipe
+20:13:27 → 554 zz-idle GET / bytes=0
+20:13:27 → 555 zz-idle GET / bytes=0
+20:13:27 ← 554 404 292ms 554-GET-root resp=0
+20:13:27 http "GET / HTTP/1.1" 404 -
+20:13:27 ← 555 404 305ms 555-GET-root resp=0
+20:13:27 http "GET / HTTP/1.1" 404 -
+20:13:27 write client fail seq=555 [Errno 32] Broken pipe
+20:13:28 → 556 zz-idle GET / bytes=0
+20:13:28 → 557 zz-idle GET / bytes=0
+20:13:28 ← 557 404 294ms 557-GET-root resp=0
+20:13:28 http "GET / HTTP/1.1" 404 -
+20:13:28 ← 556 404 315ms 556-GET-root resp=0
+20:13:28 http "GET / HTTP/1.1" 404 -
+20:13:28 write client fail seq=556 [Errno 32] Broken pipe
+20:13:29 → 558 zz-idle GET / bytes=0
+20:13:29 → 559 zz-idle GET / bytes=0
+20:13:30 ← 558 404 273ms 558-GET-root resp=0
+20:13:30 http "GET / HTTP/1.1" 404 -
+20:13:30 ← 559 404 314ms 559-GET-root resp=0
+20:13:30 http "GET / HTTP/1.1" 404 -
+20:13:30 write client fail seq=559 [Errno 32] Broken pipe
+20:13:31 → 560 zz-idle GET / bytes=0
+20:13:31 → 561 zz-idle GET / bytes=0
+20:13:31 ← 560 404 280ms 560-GET-root resp=0
+20:13:31 http "GET / HTTP/1.1" 404 -
+20:13:31 write client fail seq=560 [Errno 104] Connection reset by peer
+20:13:31 ← 561 404 291ms 561-GET-root resp=0
+20:13:31 http "GET / HTTP/1.1" 404 -
+20:13:32 → 562 zz-idle GET / bytes=0
+20:13:32 → 563 zz-idle GET / bytes=0
+20:13:32 ← 563 404 287ms 563-GET-root resp=0
+20:13:32 http "GET / HTTP/1.1" 404 -
+20:13:32 ← 562 404 294ms 562-GET-root resp=0
+20:13:32 http "GET / HTTP/1.1" 404 -
+20:13:33 → 564 zz-idle GET / bytes=0
+20:13:33 → 565 zz-idle GET / bytes=0
+20:13:34 ← 565 404 307ms 565-GET-root resp=0
+20:13:34 http "GET / HTTP/1.1" 404 -
+20:13:34 write client fail seq=565 [Errno 32] Broken pipe
+20:13:34 ← 564 404 315ms 564-GET-root resp=0
+20:13:34 http "GET / HTTP/1.1" 404 -
+20:13:34 write client fail seq=564 [Errno 32] Broken pipe
+20:13:35 → 566 zz-idle GET / bytes=0
+20:13:35 → 567 zz-idle GET / bytes=0
+20:13:35 ← 566 404 294ms 566-GET-root resp=0
+20:13:35 http "GET / HTTP/1.1" 404 -
+20:13:35 ← 567 404 303ms 567-GET-root resp=0
+20:13:35 http "GET / HTTP/1.1" 404 -
+20:13:35 write client fail seq=567 [Errno 32] Broken pipe
+20:13:36 → 568 zz-idle GET / bytes=0
+20:13:36 → 569 zz-idle GET / bytes=0
+20:13:36 ← 569 404 304ms 569-GET-root resp=0
+20:13:36 http "GET / HTTP/1.1" 404 -
+20:13:36 write client fail seq=569 [Errno 32] Broken pipe
+20:13:36 ← 568 404 315ms 568-GET-root resp=0
+20:13:36 http "GET / HTTP/1.1" 404 -
+20:13:36 write client fail seq=568 [Errno 32] Broken pipe
+20:13:37 → 570 zz-idle GET / bytes=0
+20:13:37 → 571 zz-idle GET / bytes=0
+20:13:37 ← 571 404 280ms 571-GET-root resp=0
+20:13:37 http "GET / HTTP/1.1" 404 -
+20:13:37 ← 570 404 300ms 570-GET-root resp=0
+20:13:37 http "GET / HTTP/1.1" 404 -
+20:13:37 write client fail seq=570 [Errno 32] Broken pipe
+20:13:38 → 572 zz-idle GET / bytes=0
+20:13:38 → 573 zz-idle GET / bytes=0
+20:13:39 ← 572 404 294ms 572-GET-root resp=0
+20:13:39 http "GET / HTTP/1.1" 404 -
+20:13:39 ← 573 404 299ms 573-GET-root resp=0
+20:13:39 http "GET / HTTP/1.1" 404 -
+20:13:39 write client fail seq=573 [Errno 32] Broken pipe
+20:13:40 → 574 zz-idle GET / bytes=0
+20:13:40 → 575 zz-idle GET / bytes=0
+20:13:40 ← 575 404 282ms 575-GET-root resp=0
+20:13:40 http "GET / HTTP/1.1" 404 -
+20:13:40 ← 574 404 296ms 574-GET-root resp=0
+20:13:40 http "GET / HTTP/1.1" 404 -
+20:13:41 → 576 zz-idle GET / bytes=0
+20:13:41 → 577 zz-idle GET / bytes=0
+20:13:41 ← 577 404 271ms 577-GET-root resp=0
+20:13:41 http "GET / HTTP/1.1" 404 -
+20:13:41 ← 576 404 287ms 576-GET-root resp=0
+20:13:41 http "GET / HTTP/1.1" 404 -
+20:13:41 write client fail seq=576 [Errno 104] Connection reset by peer
+20:13:42 → 578 zz-idle GET / bytes=0
+20:13:42 → 579 zz-idle GET / bytes=0
+20:13:43 ← 579 404 259ms 579-GET-root resp=0
+20:13:43 http "GET / HTTP/1.1" 404 -
+20:13:43 ← 578 404 296ms 578-GET-root resp=0
+20:13:43 http "GET / HTTP/1.1" 404 -
+20:13:44 → 580 zz-idle GET / bytes=0
+20:13:44 → 581 zz-idle GET / bytes=0
+20:13:44 ← 580 404 332ms 580-GET-root resp=0
+20:13:44 ← 581 404 331ms 581-GET-root resp=0
+20:13:44 http "GET / HTTP/1.1" 404 -
+20:13:44 http "GET / HTTP/1.1" 404 -
+20:13:44 write client fail seq=580 [Errno 32] Broken pipe
+20:13:44 write client fail seq=581 [Errno 32] Broken pipe
+20:13:45 → 582 zz-idle GET / bytes=0
+20:13:45 → 583 zz-idle GET / bytes=0
+20:13:45 ← 583 404 294ms 583-GET-root resp=0
+20:13:45 http "GET / HTTP/1.1" 404 -
+20:13:45 ← 582 404 303ms 582-GET-root resp=0
+20:13:45 http "GET / HTTP/1.1" 404 -
+20:13:45 write client fail seq=582 [Errno 32] Broken pipe
+20:13:46 → 584 zz-idle GET / bytes=0
+20:13:46 → 585 zz-idle GET / bytes=0
+20:13:47 ← 585 404 289ms 585-GET-root resp=0
+20:13:47 http "GET / HTTP/1.1" 404 -
+20:13:47 ← 584 404 305ms 584-GET-root resp=0
+20:13:47 http "GET / HTTP/1.1" 404 -
+20:13:47 write client fail seq=584 [Errno 32] Broken pipe
+20:13:48 → 586 zz-idle GET / bytes=0
+20:13:48 → 587 zz-idle GET / bytes=0
+20:13:48 ← 587 404 320ms 587-GET-root resp=0
+20:13:48 http "GET / HTTP/1.1" 404 -
+20:13:48 write client fail seq=587 [Errno 32] Broken pipe
+20:13:48 ← 586 404 324ms 586-GET-root resp=0
+20:13:48 http "GET / HTTP/1.1" 404 -
+20:13:48 write client fail seq=586 [Errno 32] Broken pipe
+20:13:49 → 588 zz-idle GET / bytes=0
+20:13:49 → 589 zz-idle GET / bytes=0
+20:13:49 ← 589 404 294ms 589-GET-root resp=0
+20:13:49 http "GET / HTTP/1.1" 404 -
+20:13:49 ← 588 404 312ms 588-GET-root resp=0
+20:13:49 http "GET / HTTP/1.1" 404 -
+20:13:49 write client fail seq=588 [Errno 32] Broken pipe
+20:13:50 → 590 zz-idle GET / bytes=0
+20:13:50 → 591 zz-idle GET / bytes=0
+20:13:50 ← 591 404 294ms 591-GET-root resp=0
+20:13:50 http "GET / HTTP/1.1" 404 -
+20:13:50 ← 590 404 300ms 590-GET-root resp=0
+20:13:50 http "GET / HTTP/1.1" 404 -
+20:13:50 write client fail seq=590 [Errno 32] Broken pipe
+20:13:51 → 592 zz-idle GET / bytes=0
+20:13:51 → 593 zz-idle GET / bytes=0
+20:13:52 ← 593 404 284ms 593-GET-root resp=0
+20:13:52 http "GET / HTTP/1.1" 404 -
+20:13:52 ← 592 404 293ms 592-GET-root resp=0
+20:13:52 http "GET / HTTP/1.1" 404 -
+20:13:52 write client fail seq=592 [Errno 104] Connection reset by peer
+20:13:53 → 594 zz-idle GET / bytes=0
+20:13:53 → 595 zz-idle GET / bytes=0
+20:13:53 ← 595 404 265ms 595-GET-root resp=0
+20:13:53 http "GET / HTTP/1.1" 404 -
+20:13:53 ← 594 404 275ms 594-GET-root resp=0
+20:13:53 http "GET / HTTP/1.1" 404 -
+20:13:54 → 596 zz-idle GET / bytes=0
+20:13:54 → 597 zz-idle GET / bytes=0
+20:13:54 ← 597 404 282ms 597-GET-root resp=0
+20:13:54 http "GET / HTTP/1.1" 404 -
+20:13:54 ← 596 404 289ms 596-GET-root resp=0
+20:13:54 http "GET / HTTP/1.1" 404 -
+20:13:54 write client fail seq=596 [Errno 104] Connection reset by peer
+20:13:55 → 598 zz-idle GET / bytes=0
+20:13:55 → 599 zz-idle GET / bytes=0
+20:13:56 ← 599 404 269ms 599-GET-root resp=0
+20:13:56 http "GET / HTTP/1.1" 404 -
+20:13:56 ← 598 404 299ms 598-GET-root resp=0
+20:13:56 http "GET / HTTP/1.1" 404 -
+20:13:56 write client fail seq=598 [Errno 32] Broken pipe
+20:13:57 → 600 zz-idle GET / bytes=0
+20:13:57 → 601 zz-idle GET / bytes=0
+20:13:57 ← 601 404 297ms 601-GET-root resp=0
+20:13:57 http "GET / HTTP/1.1" 404 -
+20:13:57 write client fail seq=601 [Errno 32] Broken pipe
+20:13:57 ← 600 404 316ms 600-GET-root resp=0
+20:13:57 http "GET / HTTP/1.1" 404 -
+20:13:57 write client fail seq=600 [Errno 32] Broken pipe
+20:13:58 → 602 zz-idle GET / bytes=0
+20:13:58 → 603 zz-idle GET / bytes=0
+20:13:58 ← 602 404 267ms 602-GET-root resp=0
+20:13:58 http "GET / HTTP/1.1" 404 -
+20:13:58 ← 603 404 287ms 603-GET-root resp=0
+20:13:58 http "GET / HTTP/1.1" 404 -
+20:13:59 → 604 zz-idle GET / bytes=0
+20:13:59 → 605 zz-idle GET / bytes=0
+20:14:00 ← 605 404 302ms 605-GET-root resp=0
+20:14:00 http "GET / HTTP/1.1" 404 -
+20:14:00 write client fail seq=605 [Errno 32] Broken pipe
+20:14:00 ← 604 404 301ms 604-GET-root resp=0
+20:14:00 http "GET / HTTP/1.1" 404 -
+20:14:00 write client fail seq=604 [Errno 32] Broken pipe
+20:14:01 → 606 zz-idle GET / bytes=0
+20:14:01 → 607 zz-idle GET / bytes=0
+20:14:01 ← 606 404 321ms 606-GET-root resp=0
+20:14:01 http "GET / HTTP/1.1" 404 -
+20:14:01 write client fail seq=606 [Errno 32] Broken pipe
+20:14:01 ← 607 404 326ms 607-GET-root resp=0
+20:14:01 http "GET / HTTP/1.1" 404 -
+20:14:01 write client fail seq=607 [Errno 32] Broken pipe
+20:14:02 → 608 zz-idle GET / bytes=0
+20:14:02 → 609 zz-idle GET / bytes=0
+20:14:02 ← 609 404 279ms 609-GET-root resp=0
+20:14:02 http "GET / HTTP/1.1" 404 -
+20:14:02 ← 608 404 287ms 608-GET-root resp=0
+20:14:02 http "GET / HTTP/1.1" 404 -
+20:14:02 write client fail seq=608 [Errno 104] Connection reset by peer
+20:14:03 → 610 zz-idle GET / bytes=0
+20:14:03 → 611 zz-idle GET / bytes=0
+20:14:04 ← 611 404 368ms 611-GET-root resp=0
+20:14:04 http "GET / HTTP/1.1" 404 -
+20:14:04 write client fail seq=611 [Errno 32] Broken pipe
+20:14:04 ← 610 404 368ms 610-GET-root resp=0
+20:14:04 http "GET / HTTP/1.1" 404 -
+20:14:04 write client fail seq=610 [Errno 32] Broken pipe
+20:14:04 → 612 zz-idle GET / bytes=0
+20:14:04 → 613 zz-idle GET / bytes=0
+20:14:05 ← 612 404 295ms 612-GET-root resp=0
+20:14:05 http "GET / HTTP/1.1" 404 -
+20:14:05 write client fail seq=612 [Errno 104] Connection reset by peer
+20:14:05 ← 613 404 309ms 613-GET-root resp=0
+20:14:05 http "GET / HTTP/1.1" 404 -
+20:14:05 write client fail seq=613 [Errno 32] Broken pipe
+20:14:06 → 614 zz-idle GET / bytes=0
+20:14:06 → 615 zz-idle GET / bytes=0
+20:14:06 ← 614 404 280ms 614-GET-root resp=0
+20:14:06 http "GET / HTTP/1.1" 404 -
+20:14:06 ← 615 404 307ms 615-GET-root resp=0
+20:14:06 http "GET / HTTP/1.1" 404 -
+20:14:06 write client fail seq=615 [Errno 32] Broken pipe
+20:14:07 → 616 zz-idle GET / bytes=0
+20:14:07 → 617 zz-idle GET / bytes=0
+20:14:07 ← 616 404 285ms 616-GET-root resp=0
+20:14:07 http "GET / HTTP/1.1" 404 -
+20:14:07 ← 617 404 299ms 617-GET-root resp=0
+20:14:07 http "GET / HTTP/1.1" 404 -
+20:14:07 write client fail seq=617 [Errno 32] Broken pipe
+20:14:08 → 618 zz-idle GET / bytes=0
+20:14:09 ← 618 404 289ms 618-GET-root resp=0
+20:14:09 http "GET / HTTP/1.1" 404 -
+20:14:10 → 619 zz-idle GET / bytes=0
+20:14:10 ← 619 404 303ms 619-GET-root resp=0
+20:14:10 http "GET / HTTP/1.1" 404 -
+20:14:10 write client fail seq=619 [Errno 32] Broken pipe
+20:14:11 → 620 zz-idle GET / bytes=0
+20:14:11 ← 620 404 263ms 620-GET-root resp=0
+20:14:11 http "GET / HTTP/1.1" 404 -
+20:14:11 write client fail seq=620 [Errno 104] Connection reset by peer
+20:14:12 → 621 zz-idle GET / bytes=0
+20:14:13 ← 621 404 284ms 621-GET-root resp=0
+20:14:13 http "GET / HTTP/1.1" 404 -
+20:14:14 → 622 zz-idle GET / bytes=0
+20:14:14 ← 622 404 271ms 622-GET-root resp=0
+20:14:14 http "GET / HTTP/1.1" 404 -
+20:14:14 write client fail seq=622 [Errno 104] Connection reset by peer
+20:14:15 → 623 zz-idle GET / bytes=0
+20:14:15 ← 623 404 249ms 623-GET-root resp=0
+20:14:15 http "GET / HTTP/1.1" 404 -
+20:14:16 → 624 zz-idle GET / bytes=0
+20:14:16 ← 624 404 263ms 624-GET-root resp=0
+20:14:16 http "GET / HTTP/1.1" 404 -
+20:14:17 → 625 zz-idle GET / bytes=0
+20:14:18 ← 625 404 282ms 625-GET-root resp=0
+20:14:18 http "GET / HTTP/1.1" 404 -
+20:14:19 → 626 zz-idle GET / bytes=0
+20:14:19 ← 626 404 275ms 626-GET-root resp=0
+20:14:19 http "GET / HTTP/1.1" 404 -
+20:14:19 write client fail seq=626 [Errno 32] Broken pipe
+20:14:20 → 627 zz-idle GET / bytes=0
+20:14:20 ← 627 404 315ms 627-GET-root resp=0
+20:14:20 http "GET / HTTP/1.1" 404 -
+20:14:20 write client fail seq=627 [Errno 32] Broken pipe
+20:14:21 → 628 zz-idle GET / bytes=0
+20:14:22 ← 628 404 296ms 628-GET-root resp=0
+20:14:22 http "GET / HTTP/1.1" 404 -
+20:14:23 → 629 zz-idle GET / bytes=0
+20:14:23 ← 629 404 359ms 629-GET-root resp=0
+20:14:23 http "GET / HTTP/1.1" 404 -
+20:14:23 write client fail seq=629 [Errno 32] Broken pipe
+20:14:24 → 630 zz-idle GET / bytes=0
+20:14:24 ← 630 404 290ms 630-GET-root resp=0
+20:14:24 http "GET / HTTP/1.1" 404 -
+20:14:25 → 631 zz-idle GET / bytes=0
+20:14:25 ← 631 404 291ms 631-GET-root resp=0
+20:14:25 http "GET / HTTP/1.1" 404 -
+20:14:25 write client fail seq=631 [Errno 104] Connection reset by peer
+20:14:26 → 632 zz-idle GET / bytes=0
+20:14:27 ← 632 404 266ms 632-GET-root resp=0
+20:14:27 http "GET / HTTP/1.1" 404 -
+20:14:28 → 633 zz-idle GET / bytes=0
+20:14:28 ← 633 404 266ms 633-GET-root resp=0
+20:14:28 http "GET / HTTP/1.1" 404 -
+20:14:29 → 634 zz-idle GET / bytes=0
+20:14:29 ← 634 404 284ms 634-GET-root resp=0
+20:14:29 http "GET / HTTP/1.1" 404 -
+20:14:30 → 635 zz-idle GET / bytes=0
+20:14:31 ← 635 404 280ms 635-GET-root resp=0
+20:14:31 http "GET / HTTP/1.1" 404 -
+20:14:31 write client fail seq=635 [Errno 104] Connection reset by peer
+20:14:32 → 636 zz-idle GET / bytes=0
+20:14:32 ← 636 404 279ms 636-GET-root resp=0
+20:14:32 http "GET / HTTP/1.1" 404 -
+20:14:33 → 637 zz-idle GET / bytes=0
+20:14:33 ← 637 404 252ms 637-GET-root resp=0
+20:14:33 http "GET / HTTP/1.1" 404 -
+20:14:34 → 638 zz-idle GET / bytes=0
+20:14:34 ← 638 404 287ms 638-GET-root resp=0
+20:14:34 http "GET / HTTP/1.1" 404 -
+20:14:35 → 639 zz-idle GET / bytes=0
+20:14:36 ← 639 404 290ms 639-GET-root resp=0
+20:14:36 http "GET / HTTP/1.1" 404 -
+20:14:37 → 640 zz-idle GET / bytes=0
+20:14:37 ← 640 404 291ms 640-GET-root resp=0
+20:14:37 http "GET / HTTP/1.1" 404 -
+20:14:38 → 641 zz-idle GET / bytes=0
+20:14:38 ← 641 404 295ms 641-GET-root resp=0
+20:14:38 http "GET / HTTP/1.1" 404 -
+20:14:39 → 642 zz-idle GET / bytes=0
+20:14:40 ← 642 404 276ms 642-GET-root resp=0
+20:14:40 http "GET / HTTP/1.1" 404 -
+20:14:41 → 643 zz-idle GET / bytes=0
+20:14:41 ← 643 404 268ms 643-GET-root resp=0
+20:14:41 http "GET / HTTP/1.1" 404 -
+20:14:41 write client fail seq=643 [Errno 104] Connection reset by peer
+20:14:42 → 644 zz-idle GET / bytes=0
+20:14:42 ← 644 404 247ms 644-GET-root resp=0
+20:14:42 http "GET / HTTP/1.1" 404 -
+20:14:43 → 645 zz-idle GET / bytes=0
+20:14:43 ← 645 404 300ms 645-GET-root resp=0
+20:14:43 http "GET / HTTP/1.1" 404 -
+20:14:43 write client fail seq=645 [Errno 32] Broken pipe
+20:14:44 → 646 zz-idle GET / bytes=0
+20:14:45 ← 646 404 260ms 646-GET-root resp=0
+20:14:45 http "GET / HTTP/1.1" 404 -
+20:14:45 write client fail seq=646 [Errno 104] Connection reset by peer
+20:14:46 → 647 zz-idle GET / bytes=0
+20:14:46 ← 647 404 243ms 647-GET-root resp=0
+20:14:46 http "GET / HTTP/1.1" 404 -
+20:14:47 → 648 zz-idle GET / bytes=0
+20:14:47 ← 648 404 245ms 648-GET-root resp=0
+20:14:47 http "GET / HTTP/1.1" 404 -
+20:14:48 → 649 zz-idle GET / bytes=0
+20:14:49 ← 649 404 279ms 649-GET-root resp=0
+20:14:49 http "GET / HTTP/1.1" 404 -
+20:14:50 → 650 zz-idle GET / bytes=0
+20:14:50 ← 650 404 274ms 650-GET-root resp=0
+20:14:50 http "GET / HTTP/1.1" 404 -
+20:14:50 write client fail seq=650 [Errno 104] Connection reset by peer
+20:14:51 → 651 zz-idle GET / bytes=0
+20:14:51 ← 651 404 274ms 651-GET-root resp=0
+20:14:51 http "GET / HTTP/1.1" 404 -
+20:14:52 → 652 zz-idle GET / bytes=0
+20:14:52 ← 652 404 238ms 652-GET-root resp=0
+20:14:52 http "GET / HTTP/1.1" 404 -
+20:14:53 → 653 zz-idle GET / bytes=0
+20:14:54 ← 653 404 244ms 653-GET-root resp=0
+20:14:54 http "GET / HTTP/1.1" 404 -
+20:14:55 → 654 zz-idle GET / bytes=0
+20:14:55 ← 654 404 300ms 654-GET-root resp=0
+20:14:55 http "GET / HTTP/1.1" 404 -
+20:14:55 write client fail seq=654 [Errno 32] Broken pipe
+20:14:56 → 655 zz-idle GET / bytes=0
+20:14:56 ← 655 404 245ms 655-GET-root resp=0
+20:14:56 http "GET / HTTP/1.1" 404 -
+20:14:57 → 656 zz-idle GET / bytes=0
+20:14:57 ← 656 404 289ms 656-GET-root resp=0
+20:14:57 http "GET / HTTP/1.1" 404 -
+20:14:58 → 657 zz-idle GET / bytes=0
+20:14:59 ← 657 404 253ms 657-GET-root resp=0
+20:14:59 http "GET / HTTP/1.1" 404 -
+20:15:00 → 658 zz-idle GET / bytes=0
+20:15:00 ← 658 404 243ms 658-GET-root resp=0
+20:15:00 http "GET / HTTP/1.1" 404 -
+20:15:00 write client fail seq=658 [Errno 104] Connection reset by peer
+20:15:01 → 659 zz-idle GET / bytes=0
+20:15:01 ← 659 404 271ms 659-GET-root resp=0
+20:15:01 http "GET / HTTP/1.1" 404 -
+20:15:02 → 660 zz-idle GET / bytes=0
+20:15:02 ← 660 404 275ms 660-GET-root resp=0
+20:15:02 http "GET / HTTP/1.1" 404 -
+20:15:03 → 661 zz-idle GET / bytes=0
+20:15:04 ← 661 404 281ms 661-GET-root resp=0
+20:15:04 http "GET / HTTP/1.1" 404 -
+20:15:04 write client fail seq=661 [Errno 104] Connection reset by peer
+20:15:05 → 662 zz-idle GET / bytes=0
+20:15:05 ← 662 404 303ms 662-GET-root resp=0
+20:15:05 http "GET / HTTP/1.1" 404 -
+20:15:05 write client fail seq=662 [Errno 32] Broken pipe
+20:15:06 → 663 zz-idle GET / bytes=0
+20:15:06 ← 663 404 288ms 663-GET-root resp=0
+20:15:06 http "GET / HTTP/1.1" 404 -
+20:15:06 write client fail seq=663 [Errno 104] Connection reset by peer
+20:15:07 → 664 zz-idle GET / bytes=0
+20:15:08 ← 664 404 253ms 664-GET-root resp=0
+20:15:08 http "GET / HTTP/1.1" 404 -
+20:15:09 → 665 zz-idle GET / bytes=0
+20:15:09 ← 665 404 267ms 665-GET-root resp=0
+20:15:09 http "GET / HTTP/1.1" 404 -
+20:15:10 → 666 zz-idle GET / bytes=0
+20:15:10 ← 666 404 287ms 666-GET-root resp=0
+20:15:10 http "GET / HTTP/1.1" 404 -
+20:15:10 write client fail seq=666 [Errno 104] Connection reset by peer
+20:15:11 → 667 zz-idle GET / bytes=0
+20:15:11 ← 667 404 277ms 667-GET-root resp=0
+20:15:11 http "GET / HTTP/1.1" 404 -
+20:15:12 → 668 zz-idle GET / bytes=0
+20:15:13 ← 668 404 295ms 668-GET-root resp=0
+20:15:13 http "GET / HTTP/1.1" 404 -
+20:15:14 → 669 zz-idle GET / bytes=0
+20:15:14 ← 669 404 246ms 669-GET-root resp=0
+20:15:14 http "GET / HTTP/1.1" 404 -
+20:15:15 → 670 zz-idle GET / bytes=0
+20:15:15 ← 670 404 276ms 670-GET-root resp=0
+20:15:15 http "GET / HTTP/1.1" 404 -
+20:15:16 → 671 zz-idle GET / bytes=0
+20:15:17 ← 671 404 249ms 671-GET-root resp=0
+20:15:17 http "GET / HTTP/1.1" 404 -
+20:15:18 → 672 zz-idle GET / bytes=0
+20:15:18 ← 672 404 256ms 672-GET-root resp=0
+20:15:18 http "GET / HTTP/1.1" 404 -
+20:15:18 write client fail seq=672 [Errno 104] Connection reset by peer
+20:15:19 → 673 zz-idle GET / bytes=0
+20:15:19 ← 673 404 288ms 673-GET-root resp=0
+20:15:19 http "GET / HTTP/1.1" 404 -
+20:15:20 → 674 zz-idle GET / bytes=0
+20:15:20 ← 674 404 274ms 674-GET-root resp=0
+20:15:20 http "GET / HTTP/1.1" 404 -
+20:15:21 → 675 zz-idle GET / bytes=0
+20:15:22 ← 675 404 288ms 675-GET-root resp=0
+20:15:22 http "GET / HTTP/1.1" 404 -
+20:15:22 write client fail seq=675 [Errno 104] Connection reset by peer
+20:15:23 → 676 zz-idle GET / bytes=0
+20:15:23 ← 676 404 259ms 676-GET-root resp=0
+20:15:23 http "GET / HTTP/1.1" 404 -
+20:15:24 → 677 zz-idle GET / bytes=0
+20:15:24 ← 677 404 306ms 677-GET-root resp=0
+20:15:24 http "GET / HTTP/1.1" 404 -
+20:15:24 write client fail seq=677 [Errno 32] Broken pipe
+20:15:25 → 678 zz-idle GET / bytes=0
+20:15:26 ← 678 404 285ms 678-GET-root resp=0
+20:15:26 http "GET / HTTP/1.1" 404 -
+20:15:27 → 679 zz-idle GET / bytes=0
+20:15:27 ← 679 404 316ms 679-GET-root resp=0
+20:15:27 http "GET / HTTP/1.1" 404 -
+20:15:27 write client fail seq=679 [Errno 32] Broken pipe
+20:15:28 → 680 zz-idle GET / bytes=0
+20:15:28 ← 680 404 271ms 680-GET-root resp=0
+20:15:28 http "GET / HTTP/1.1" 404 -
+20:15:29 → 681 zz-idle GET / bytes=0
+20:15:29 ← 681 404 288ms 681-GET-root resp=0
+20:15:29 http "GET / HTTP/1.1" 404 -
+20:15:29 write client fail seq=681 [Errno 104] Connection reset by peer
+20:15:30 → 682 zz-idle GET / bytes=0
+20:15:31 ← 682 404 277ms 682-GET-root resp=0
+20:15:31 http "GET / HTTP/1.1" 404 -
+20:15:32 → 683 zz-idle GET / bytes=0
+20:15:32 ← 683 404 292ms 683-GET-root resp=0
+20:15:32 http "GET / HTTP/1.1" 404 -
+20:15:33 → 684 zz-idle GET / bytes=0
+20:15:33 ← 684 404 270ms 684-GET-root resp=0
+20:15:33 http "GET / HTTP/1.1" 404 -
+20:15:33 write client fail seq=684 [Errno 104] Connection reset by peer
+20:15:34 → 685 zz-idle GET / bytes=0
+20:15:35 ← 685 404 281ms 685-GET-root resp=0
+20:15:35 http "GET / HTTP/1.1" 404 -
+20:15:36 → 686 zz-idle GET / bytes=0
+20:15:36 ← 686 404 303ms 686-GET-root resp=0
+20:15:36 http "GET / HTTP/1.1" 404 -
+20:15:36 write client fail seq=686 [Errno 32] Broken pipe
+20:15:37 → 687 zz-idle GET / bytes=0
+20:15:37 ← 687 404 282ms 687-GET-root resp=0
+20:15:37 http "GET / HTTP/1.1" 404 -
+20:15:37 write client fail seq=687 [Errno 104] Connection reset by peer
+20:15:38 → 688 zz-idle GET / bytes=0
+20:15:38 ← 688 404 262ms 688-GET-root resp=0
+20:15:38 http "GET / HTTP/1.1" 404 -
+20:15:39 → 689 zz-idle GET / bytes=0
+20:15:40 ← 689 404 275ms 689-GET-root resp=0
+20:15:40 http "GET / HTTP/1.1" 404 -
+20:15:41 → 690 zz-idle GET / bytes=0
+20:15:41 ← 690 404 313ms 690-GET-root resp=0
+20:15:41 http "GET / HTTP/1.1" 404 -
+20:15:41 write client fail seq=690 [Errno 32] Broken pipe
+20:15:42 → 691 zz-idle GET / bytes=0
+20:15:42 ← 691 404 314ms 691-GET-root resp=0
+20:15:42 http "GET / HTTP/1.1" 404 -
+20:15:42 write client fail seq=691 [Errno 32] Broken pipe
+20:15:43 → 692 zz-idle GET / bytes=0
+20:15:44 ← 692 404 570ms 692-GET-root resp=0
+20:15:44 http "GET / HTTP/1.1" 404 -
+20:15:44 write client fail seq=692 [Errno 32] Broken pipe
+20:15:45 → 693 zz-idle GET / bytes=0
+20:15:45 ← 693 404 271ms 693-GET-root resp=0
+20:15:45 http "GET / HTTP/1.1" 404 -
+20:15:46 → 694 zz-idle GET / bytes=0
+20:15:46 ← 694 404 252ms 694-GET-root resp=0
+20:15:46 http "GET / HTTP/1.1" 404 -
+20:15:46 write client fail seq=694 [Errno 104] Connection reset by peer
+20:15:47 → 695 zz-idle GET / bytes=0
+20:15:47 ← 695 404 254ms 695-GET-root resp=0
+20:15:47 http "GET / HTTP/1.1" 404 -
+20:15:48 → 696 zz-idle GET / bytes=0
+20:15:49 ← 696 404 241ms 696-GET-root resp=0
+20:15:49 http "GET / HTTP/1.1" 404 -
+20:15:50 → 697 zz-idle GET / bytes=0
+20:15:50 ← 697 404 253ms 697-GET-root resp=0
+20:15:50 http "GET / HTTP/1.1" 404 -
+20:15:51 → 698 zz-idle GET / bytes=0
+20:15:51 ← 698 404 262ms 698-GET-root resp=0
+20:15:51 http "GET / HTTP/1.1" 404 -
+20:15:52 → 699 zz-idle GET / bytes=0
+20:15:52 ← 699 404 258ms 699-GET-root resp=0
+20:15:52 http "GET / HTTP/1.1" 404 -
+20:15:52 write client fail seq=699 [Errno 104] Connection reset by peer
+20:15:53 → 700 zz-idle GET / bytes=0
+20:15:54 ← 700 404 283ms 700-GET-root resp=0
+20:15:54 http "GET / HTTP/1.1" 404 -
+20:15:54 write client fail seq=700 [Errno 104] Connection reset by peer
+20:15:55 → 701 zz-idle GET / bytes=0
+20:15:55 ← 701 404 273ms 701-GET-root resp=0
+20:15:55 http "GET / HTTP/1.1" 404 -
+20:15:56 → 702 zz-idle GET / bytes=0
+20:15:56 ← 702 404 300ms 702-GET-root resp=0
+20:15:56 http "GET / HTTP/1.1" 404 -
+20:15:56 write client fail seq=702 [Errno 32] Broken pipe
+20:15:57 → 703 zz-idle GET / bytes=0
+20:15:58 ← 703 404 291ms 703-GET-root resp=0
+20:15:58 http "GET / HTTP/1.1" 404 -
+20:15:58 write client fail seq=703 [Errno 104] Connection reset by peer
+20:15:59 → 704 zz-idle GET / bytes=0
+20:15:59 ← 704 404 246ms 704-GET-root resp=0
+20:15:59 http "GET / HTTP/1.1" 404 -
+20:16:00 → 705 zz-idle GET / bytes=0
+20:16:00 ← 705 404 266ms 705-GET-root resp=0
+20:16:00 http "GET / HTTP/1.1" 404 -
+20:16:00 write client fail seq=705 [Errno 104] Connection reset by peer
+20:16:01 → 706 zz-idle GET / bytes=0
+20:16:01 ← 706 404 261ms 706-GET-root resp=0
+20:16:01 http "GET / HTTP/1.1" 404 -
+20:16:02 → 707 zz-idle GET / bytes=0
+20:16:03 ← 707 404 249ms 707-GET-root resp=0
+20:16:03 http "GET / HTTP/1.1" 404 -
+20:16:03 write client fail seq=707 [Errno 104] Connection reset by peer
+20:16:04 → 708 zz-idle GET / bytes=0
+20:16:04 ← 708 404 288ms 708-GET-root resp=0
+20:16:04 http "GET / HTTP/1.1" 404 -
+20:16:05 → 709 zz-idle GET / bytes=0
+20:16:05 ← 709 404 266ms 709-GET-root resp=0
+20:16:05 http "GET / HTTP/1.1" 404 -
+20:16:05 write client fail seq=709 [Errno 104] Connection reset by peer
+20:16:06 → 710 zz-idle GET / bytes=0
+20:16:07 ← 710 404 276ms 710-GET-root resp=0
+20:16:07 http "GET / HTTP/1.1" 404 -
+20:16:08 → 711 zz-idle GET / bytes=0
+20:16:08 ← 711 404 269ms 711-GET-root resp=0
+20:16:08 http "GET / HTTP/1.1" 404 -
+20:16:09 → 712 zz-idle GET / bytes=0
+20:16:09 ← 712 404 296ms 712-GET-root resp=0
+20:16:09 http "GET / HTTP/1.1" 404 -
+20:16:10 → 713 zz-idle GET / bytes=0
+20:16:10 ← 713 404 281ms 713-GET-root resp=0
+20:16:10 http "GET / HTTP/1.1" 404 -
+20:16:10 write client fail seq=713 [Errno 104] Connection reset by peer
+20:16:11 → 714 zz-idle GET / bytes=0
+20:16:12 ← 714 404 265ms 714-GET-root resp=0
+20:16:12 http "GET / HTTP/1.1" 404 -
+20:16:12 write client fail seq=714 [Errno 104] Connection reset by peer
+20:16:13 → 715 zz-idle GET / bytes=0
+20:16:13 ← 715 404 283ms 715-GET-root resp=0
+20:16:13 http "GET / HTTP/1.1" 404 -
+20:16:13 write client fail seq=715 [Errno 104] Connection reset by peer
+20:16:14 → 716 zz-idle GET / bytes=0
+20:16:14 ← 716 404 298ms 716-GET-root resp=0
+20:16:14 http "GET / HTTP/1.1" 404 -
+20:16:15 → 717 zz-idle GET / bytes=0
+20:16:16 ← 717 404 263ms 717-GET-root resp=0
+20:16:16 http "GET / HTTP/1.1" 404 -
+20:16:17 → 718 zz-idle GET / bytes=0
+20:16:17 ← 718 404 268ms 718-GET-root resp=0
+20:16:17 http "GET / HTTP/1.1" 404 -
+20:16:17 write client fail seq=718 [Errno 104] Connection reset by peer
+20:16:18 → 719 zz-idle GET / bytes=0
+20:16:18 ← 719 404 261ms 719-GET-root resp=0
+20:16:18 http "GET / HTTP/1.1" 404 -
+20:16:18 write client fail seq=719 [Errno 104] Connection reset by peer
+20:16:19 → 720 zz-idle GET / bytes=0
+20:16:19 ← 720 404 279ms 720-GET-root resp=0
+20:16:19 http "GET / HTTP/1.1" 404 -
+20:16:19 write client fail seq=720 [Errno 104] Connection reset by peer
+20:16:20 → 721 zz-idle GET / bytes=0
+20:16:21 ← 721 404 256ms 721-GET-root resp=0
+20:16:21 http "GET / HTTP/1.1" 404 -
+20:16:21 write client fail seq=721 [Errno 104] Connection reset by peer
+20:16:22 → 722 zz-idle GET / bytes=0
+20:16:22 ← 722 404 276ms 722-GET-root resp=0
+20:16:22 http "GET / HTTP/1.1" 404 -
+20:16:23 → 723 zz-idle GET / bytes=0
+20:16:23 ← 723 404 264ms 723-GET-root resp=0
+20:16:23 http "GET / HTTP/1.1" 404 -
+20:16:24 → 724 zz-idle GET / bytes=0
+20:16:24 ← 724 404 266ms 724-GET-root resp=0
+20:16:24 http "GET / HTTP/1.1" 404 -
+20:16:25 → 725 zz-idle GET / bytes=0
+20:16:26 ← 725 404 252ms 725-GET-root resp=0
+20:16:26 http "GET / HTTP/1.1" 404 -
+20:16:27 → 726 zz-idle GET / bytes=0
+20:16:27 ← 726 404 263ms 726-GET-root resp=0
+20:16:27 http "GET / HTTP/1.1" 404 -
+20:16:28 → 727 zz-idle GET / bytes=0
+20:16:28 ← 727 404 276ms 727-GET-root resp=0
+20:16:28 http "GET / HTTP/1.1" 404 -
+20:16:28 write client fail seq=727 [Errno 104] Connection reset by peer
+20:16:29 → 728 zz-idle GET / bytes=0
+20:16:30 ← 728 404 281ms 728-GET-root resp=0
+20:16:30 http "GET / HTTP/1.1" 404 -
+20:16:31 → 729 zz-idle GET / bytes=0
+20:16:31 ← 729 404 284ms 729-GET-root resp=0
+20:16:31 http "GET / HTTP/1.1" 404 -
+20:16:32 → 730 zz-idle GET / bytes=0
+20:16:32 ← 730 404 262ms 730-GET-root resp=0
+20:16:32 http "GET / HTTP/1.1" 404 -
+20:16:32 write client fail seq=730 [Errno 104] Connection reset by peer
+20:16:33 → 731 zz-idle GET / bytes=0
+20:16:33 ← 731 404 274ms 731-GET-root resp=0
+20:16:33 http "GET / HTTP/1.1" 404 -
+20:16:34 → 732 zz-idle GET / bytes=0
+20:16:36 → 733 zz-idle GET / bytes=0
+20:16:36 ← 732 404 1322ms 732-GET-root resp=0
+20:16:36 http "GET / HTTP/1.1" 404 -
+20:16:36 write client fail seq=732 [Errno 32] Broken pipe
+20:16:36 ← 733 404 266ms 733-GET-root resp=0
+20:16:36 http "GET / HTTP/1.1" 404 -
+20:16:37 → 734 zz-idle GET / bytes=0
+20:16:37 ← 734 404 302ms 734-GET-root resp=0
+20:16:37 http "GET / HTTP/1.1" 404 -
+20:16:37 write client fail seq=734 [Errno 32] Broken pipe
+20:16:38 → 735 zz-idle GET / bytes=0
+20:16:39 ← 735 404 288ms 735-GET-root resp=0
+20:16:39 http "GET / HTTP/1.1" 404 -
+20:16:40 → 736 zz-idle GET / bytes=0
+20:16:40 ← 736 404 301ms 736-GET-root resp=0
+20:16:40 http "GET / HTTP/1.1" 404 -
+20:16:40 write client fail seq=736 [Errno 32] Broken pipe
+20:16:41 → 737 zz-idle GET / bytes=0
+20:16:41 ← 737 404 279ms 737-GET-root resp=0
+20:16:41 http "GET / HTTP/1.1" 404 -
+20:16:42 → 738 zz-idle GET / bytes=0
+20:16:42 ← 738 404 289ms 738-GET-root resp=0
+20:16:42 http "GET / HTTP/1.1" 404 -
+20:16:43 → 739 zz-idle GET / bytes=0
+20:16:44 ← 739 404 290ms 739-GET-root resp=0
+20:16:44 http "GET / HTTP/1.1" 404 -
+20:16:45 → 740 zz-idle GET / bytes=0
+20:16:45 ← 740 404 266ms 740-GET-root resp=0
+20:16:45 http "GET / HTTP/1.1" 404 -
+20:16:46 → 741 zz-idle GET / bytes=0
+20:16:46 ← 741 404 277ms 741-GET-root resp=0
+20:16:46 http "GET / HTTP/1.1" 404 -
+20:16:47 → 742 zz-idle GET / bytes=0
+20:16:48 ← 742 404 243ms 742-GET-root resp=0
+20:16:48 http "GET / HTTP/1.1" 404 -
+20:16:49 → 743 zz-idle GET / bytes=0
+20:16:49 ← 743 404 279ms 743-GET-root resp=0
+20:16:49 http "GET / HTTP/1.1" 404 -
+20:16:49 write client fail seq=743 [Errno 104] Connection reset by peer
+20:16:50 → 744 zz-idle GET / bytes=0
+20:16:50 ← 744 404 272ms 744-GET-root resp=0
+20:16:50 http "GET / HTTP/1.1" 404 -
+20:16:51 → 745 zz-idle GET / bytes=0
+20:16:51 ← 745 404 277ms 745-GET-root resp=0
+20:16:51 http "GET / HTTP/1.1" 404 -
+20:16:52 → 746 zz-idle GET / bytes=0
+20:16:53 ← 746 404 269ms 746-GET-root resp=0
+20:16:53 http "GET / HTTP/1.1" 404 -
+20:16:53 write client fail seq=746 [Errno 104] Connection reset by peer
+20:16:54 → 747 zz-idle GET / bytes=0
+20:16:54 ← 747 404 258ms 747-GET-root resp=0
+20:16:54 http "GET / HTTP/1.1" 404 -
+20:16:55 → 748 zz-idle GET / bytes=0
+20:16:55 ← 748 404 257ms 748-GET-root resp=0
+20:16:55 http "GET / HTTP/1.1" 404 -
+20:16:56 → 749 zz-idle GET / bytes=0
+20:16:56 ← 749 404 267ms 749-GET-root resp=0
+20:16:56 http "GET / HTTP/1.1" 404 -
+20:16:57 → 750 zz-idle GET / bytes=0
+20:16:58 ← 750 404 241ms 750-GET-root resp=0
+20:16:58 http "GET / HTTP/1.1" 404 -
+20:16:59 → 751 zz-idle GET / bytes=0
+20:16:59 ← 751 404 268ms 751-GET-root resp=0
+20:16:59 http "GET / HTTP/1.1" 404 -
+20:17:00 → 752 zz-idle GET / bytes=0
+20:17:00 ← 752 404 301ms 752-GET-root resp=0
+20:17:00 http "GET / HTTP/1.1" 404 -
+20:17:00 write client fail seq=752 [Errno 32] Broken pipe
+20:17:01 → 753 zz-idle GET / bytes=0
+20:17:02 ← 753 404 273ms 753-GET-root resp=0
+20:17:02 http "GET / HTTP/1.1" 404 -
+20:17:02 write client fail seq=753 [Errno 104] Connection reset by peer
+20:17:03 → 754 zz-idle GET / bytes=0
+20:17:03 ← 754 404 238ms 754-GET-root resp=0
+20:17:03 http "GET / HTTP/1.1" 404 -
+20:17:04 → 755 zz-idle GET / bytes=0
+20:17:04 ← 755 404 258ms 755-GET-root resp=0
+20:17:04 http "GET / HTTP/1.1" 404 -
+20:17:05 → 756 zz-idle GET / bytes=0
+20:17:05 ← 756 404 246ms 756-GET-root resp=0
+20:17:05 http "GET / HTTP/1.1" 404 -
+20:17:06 → 757 zz-idle GET / bytes=0
+20:17:07 ← 757 404 261ms 757-GET-root resp=0
+20:17:07 http "GET / HTTP/1.1" 404 -
+20:17:08 → 758 zz-idle GET / bytes=0
+20:17:08 ← 758 404 259ms 758-GET-root resp=0
+20:17:08 http "GET / HTTP/1.1" 404 -
+20:17:09 → 759 zz-idle GET / bytes=0
+20:17:09 ← 759 404 275ms 759-GET-root resp=0
+20:17:09 http "GET / HTTP/1.1" 404 -
+20:17:09 write client fail seq=759 [Errno 104] Connection reset by peer
+20:17:10 → 760 zz-idle GET / bytes=0
+20:17:10 ← 760 404 277ms 760-GET-root resp=0
+20:17:10 http "GET / HTTP/1.1" 404 -
+20:17:10 write client fail seq=760 [Errno 104] Connection reset by peer
+20:17:11 → 761 zz-idle GET / bytes=0
+20:17:12 ← 761 404 289ms 761-GET-root resp=0
+20:17:12 http "GET / HTTP/1.1" 404 -
+20:17:13 → 762 zz-idle GET / bytes=0
+20:17:13 ← 762 404 283ms 762-GET-root resp=0
+20:17:13 http "GET / HTTP/1.1" 404 -
+20:17:13 write client fail seq=762 [Errno 104] Connection reset by peer
+20:17:14 → 763 zz-idle GET / bytes=0
+20:17:14 ← 763 404 269ms 763-GET-root resp=0
+20:17:14 http "GET / HTTP/1.1" 404 -
+20:17:15 → 764 zz-idle GET / bytes=0
+20:17:16 ← 764 404 267ms 764-GET-root resp=0
+20:17:16 http "GET / HTTP/1.1" 404 -
+20:17:17 → 765 zz-idle GET / bytes=0
+20:17:17 ← 765 404 276ms 765-GET-root resp=0
+20:17:17 http "GET / HTTP/1.1" 404 -
+20:17:18 → 766 zz-idle GET / bytes=0
+20:17:18 ← 766 404 286ms 766-GET-root resp=0
+20:17:18 http "GET / HTTP/1.1" 404 -
+20:17:19 → 767 zz-idle GET / bytes=0
+20:17:19 ← 767 404 304ms 767-GET-root resp=0
+20:17:19 http "GET / HTTP/1.1" 404 -
+20:17:19 write client fail seq=767 [Errno 32] Broken pipe
+20:17:20 → 768 zz-idle GET / bytes=0
+20:17:21 ← 768 404 293ms 768-GET-root resp=0
+20:17:21 http "GET / HTTP/1.1" 404 -
+20:17:21 write client fail seq=768 [Errno 104] Connection reset by peer
+20:17:22 → 769 zz-idle GET / bytes=0
+20:17:22 ← 769 404 289ms 769-GET-root resp=0
+20:17:22 http "GET / HTTP/1.1" 404 -
+20:17:23 → 770 zz-idle GET / bytes=0
+20:17:23 ← 770 404 252ms 770-GET-root resp=0
+20:17:23 http "GET / HTTP/1.1" 404 -
+20:17:24 → 771 zz-idle GET / bytes=0
+20:17:25 ← 771 404 254ms 771-GET-root resp=0
+20:17:25 http "GET / HTTP/1.1" 404 -
+20:17:26 → 772 zz-idle GET / bytes=0
+20:17:26 ← 772 404 267ms 772-GET-root resp=0
+20:17:26 http "GET / HTTP/1.1" 404 -
+20:17:27 → 773 zz-idle GET / bytes=0
+20:17:27 ← 773 404 266ms 773-GET-root resp=0
+20:17:27 http "GET / HTTP/1.1" 404 -
+20:17:28 → 774 zz-idle GET / bytes=0
+20:17:28 ← 774 404 265ms 774-GET-root resp=0
+20:17:28 http "GET / HTTP/1.1" 404 -
+20:17:29 → 775 zz-idle GET / bytes=0
+20:17:30 ← 775 404 279ms 775-GET-root resp=0
+20:17:30 http "GET / HTTP/1.1" 404 -
+20:17:31 → 776 zz-idle GET / bytes=0
+20:17:31 ← 776 404 266ms 776-GET-root resp=0
+20:17:31 http "GET / HTTP/1.1" 404 -
+20:17:32 → 777 zz-idle GET / bytes=0
+20:17:32 ← 777 404 285ms 777-GET-root resp=0
+20:17:32 http "GET / HTTP/1.1" 404 -
+20:17:33 → 778 zz-idle GET / bytes=0
+20:17:34 ← 778 404 288ms 778-GET-root resp=0
+20:17:34 http "GET / HTTP/1.1" 404 -
+20:17:34 write client fail seq=778 [Errno 104] Connection reset by peer
+20:17:35 → 779 zz-idle GET / bytes=0
+20:17:35 ← 779 404 267ms 779-GET-root resp=0
+20:17:35 http "GET / HTTP/1.1" 404 -
+20:17:35 write client fail seq=779 [Errno 104] Connection reset by peer
+20:17:36 → 780 zz-idle GET / bytes=0
+20:17:36 ← 780 404 291ms 780-GET-root resp=0
+20:17:36 http "GET / HTTP/1.1" 404 -
+20:17:36 write client fail seq=780 [Errno 104] Connection reset by peer
+20:17:37 → 781 zz-idle GET / bytes=0
+20:17:37 ← 781 404 285ms 781-GET-root resp=0
+20:17:37 http "GET / HTTP/1.1" 404 -
+20:17:38 → 782 zz-idle GET / bytes=0
+20:17:39 ← 782 404 266ms 782-GET-root resp=0
+20:17:39 http "GET / HTTP/1.1" 404 -
+20:17:40 → 783 zz-idle GET / bytes=0
+20:17:40 ← 783 404 289ms 783-GET-root resp=0
+20:17:40 http "GET / HTTP/1.1" 404 -
+20:17:41 → 784 zz-idle GET / bytes=0
+20:17:41 ← 784 404 262ms 784-GET-root resp=0
+20:17:41 http "GET / HTTP/1.1" 404 -
+20:17:42 → 785 zz-idle GET / bytes=0
+20:17:43 ← 785 404 293ms 785-GET-root resp=0
+20:17:43 http "GET / HTTP/1.1" 404 -
+20:17:44 → 786 zz-idle GET / bytes=0
+20:17:44 ← 786 404 309ms 786-GET-root resp=0
+20:17:44 http "GET / HTTP/1.1" 404 -
+20:17:44 write client fail seq=786 [Errno 32] Broken pipe
+20:17:45 → 787 zz-idle GET / bytes=0
+20:17:45 ← 787 404 266ms 787-GET-root resp=0
+20:17:45 http "GET / HTTP/1.1" 404 -
+20:17:46 → 788 zz-idle GET / bytes=0
+20:17:46 ← 788 404 258ms 788-GET-root resp=0
+20:17:46 http "GET / HTTP/1.1" 404 -
+20:17:47 → 789 zz-idle GET / bytes=0
+20:17:48 ← 789 404 292ms 789-GET-root resp=0
+20:17:48 http "GET / HTTP/1.1" 404 -
+20:17:48 write client fail seq=789 [Errno 104] Connection reset by peer
+20:17:49 → 790 zz-idle GET / bytes=0
+20:17:49 ← 790 404 272ms 790-GET-root resp=0
+20:17:49 http "GET / HTTP/1.1" 404 -
+20:17:50 → 791 zz-idle GET / bytes=0
+20:17:50 ← 791 404 276ms 791-GET-root resp=0
+20:17:50 http "GET / HTTP/1.1" 404 -
+20:17:51 → 792 zz-idle GET / bytes=0
+20:17:52 ← 792 404 298ms 792-GET-root resp=0
+20:17:52 http "GET / HTTP/1.1" 404 -
+20:17:52 write client fail seq=792 [Errno 32] Broken pipe
+20:17:53 → 793 zz-idle GET / bytes=0
+20:17:53 ← 793 404 246ms 793-GET-root resp=0
+20:17:53 http "GET / HTTP/1.1" 404 -
+20:17:54 → 794 zz-idle GET / bytes=0
+20:17:54 ← 794 404 274ms 794-GET-root resp=0
+20:17:54 http "GET / HTTP/1.1" 404 -
+20:17:54 write client fail seq=794 [Errno 104] Connection reset by peer
+20:17:55 → 795 zz-idle GET / bytes=0
+20:17:55 ← 795 404 254ms 795-GET-root resp=0
+20:17:55 http "GET / HTTP/1.1" 404 -
+20:17:56 → 796 zz-idle GET / bytes=0
+20:17:57 ← 796 404 307ms 796-GET-root resp=0
+20:17:57 http "GET / HTTP/1.1" 404 -
+20:17:57 write client fail seq=796 [Errno 32] Broken pipe
+20:17:58 → 797 zz-idle GET / bytes=0
+20:17:58 ← 797 404 280ms 797-GET-root resp=0
+20:17:58 http "GET / HTTP/1.1" 404 -
+20:17:59 → 798 zz-idle GET / bytes=0
+20:17:59 ← 798 404 264ms 798-GET-root resp=0
+20:17:59 http "GET / HTTP/1.1" 404 -
+20:18:00 → 799 zz-idle GET / bytes=0
+20:18:00 ← 799 404 270ms 799-GET-root resp=0
+20:18:00 http "GET / HTTP/1.1" 404 -
+20:18:01 → 800 zz-idle GET / bytes=0
+20:18:02 ← 800 404 266ms 800-GET-root resp=0
+20:18:02 http "GET / HTTP/1.1" 404 -
+20:18:02 write client fail seq=800 [Errno 104] Connection reset by peer
+20:18:03 → 801 zz-idle GET / bytes=0
+20:18:03 ← 801 404 273ms 801-GET-root resp=0
+20:18:03 http "GET / HTTP/1.1" 404 -
+20:18:04 → 802 zz-idle GET / bytes=0
+20:18:04 ← 802 404 296ms 802-GET-root resp=0
+20:18:04 http "GET / HTTP/1.1" 404 -
+20:18:04 write client fail seq=802 [Errno 104] Connection reset by peer
+20:18:05 → 803 zz-idle GET / bytes=0
+20:18:06 ← 803 404 265ms 803-GET-root resp=0
+20:18:06 http "GET / HTTP/1.1" 404 -
+20:18:06 write client fail seq=803 [Errno 104] Connection reset by peer
+20:18:07 → 804 zz-idle GET / bytes=0
+20:18:07 ← 804 404 264ms 804-GET-root resp=0
+20:18:07 http "GET / HTTP/1.1" 404 -
+20:18:08 → 805 zz-idle GET / bytes=0
+20:18:08 ← 805 404 271ms 805-GET-root resp=0
+20:18:08 http "GET / HTTP/1.1" 404 -
+20:18:09 → 806 zz-idle GET / bytes=0
+20:18:09 ← 806 404 270ms 806-GET-root resp=0
+20:18:09 http "GET / HTTP/1.1" 404 -

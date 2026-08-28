@@ -46,3 +46,6 @@ Thumbs.db
 
 # --- Claude local runtime ---
 .claude/scheduled_tasks.lock
+
+# Evidence logs under 测试结果 are committed (override *.log)
+!测试结果/**/*.log

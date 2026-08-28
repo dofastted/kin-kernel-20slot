@@ -1,0 +1,29 @@
+{
+  "status": 200,
+  "elapsed": 69.333,
+  "text": "",
+  "thinking": "",
+  "tool_uses": [],
+  "stop": "end_turn",
+  "model": "claude-sonnet-5",
+  "usage": {
+    "input_tokens": 4,
+    "output_tokens": 1973,
+    "cache_creation_input_tokens": 5000,
+    "cache_read_input_tokens": 5729
+  },
+  "kin_done": {
+    "continuation": null,
+    "generation": 1,
+    "pid": 7554,
+    "session_id": "cap-03-web-search",
+    "slot": "runtime-00"
+  },
+  "error": null,
+  "headers": {
+    "content-type": "text/event-stream",
+    "x-kin-session-id": "cap-03-web-search",
+    "x-kin-slot": "runtime-00",
+    "x-kin-generation": "1"
+  }
+}

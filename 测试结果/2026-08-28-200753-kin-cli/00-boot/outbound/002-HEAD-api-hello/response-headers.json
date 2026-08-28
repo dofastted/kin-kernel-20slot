@@ -1,0 +1,12 @@
+{
+  "Date": "Fri, 28 Aug 2026 20:07:56 GMT",
+  "Content-Type": "application/json",
+  "Content-Length": "20",
+  "Connection": "close",
+  "server-timing": "x-originResponse;dur=",
+  "Server": "cloudflare",
+  "cf-cache-status": "DYNAMIC",
+  "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+  "X-Robots-Tag": "none",
+  "CF-RAY": "a325f1efaaa46529-IAD"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "04-identity",
+  "title": "模型自我认知",
+  "http": 200,
+  "ms": 7073,
+  "clean": false,
+  "failed": [
+    [
+      "has_visible_text",
+      "empty"
+    ]
+  ],
+  "stop": "end_turn",
+  "model": "claude-sonnet-5",
+  "tools": [],
+  "text": "",
+  "thinking_len": 0,
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 538,
+    "cache_creation_input_tokens": 677,
+    "cache_read_input_tokens": 2518
+  },
+  "error": null,
+  "outbound_packets": 11,
+  "resume_http": null,
+  "resume_text": null,
+  "path": "kin-cli-observe + dump_proxy + SOCKS5"
+}

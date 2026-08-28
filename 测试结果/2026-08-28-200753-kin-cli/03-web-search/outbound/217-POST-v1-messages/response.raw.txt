@@ -1,0 +1,408 @@
+event: message_start
+data: {"type":"message_start","message":{"model":"claude-sonnet-5","id":"msg_011CeVkeNFEDpozwpqetewuf","type":"message","role":"assistant","content":[],"stop_reason":null,"stop_sequence":null,"stop_details":null,"usage":{"input_tokens":2997,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"output_tokens":16,"service_tier":"standard","inference_geo":"not_available"}}         }
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"server_tool_use","id":"srvtoolu_01RsMreWcwBQudj6iKXLJyaT","name":"web_search","input":{}}        }
+
+event: ping
+data: {"type": "ping"}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":""}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{\"query"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"\": "}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"\"2026年 iPhon"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"e 新款"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":" 发布 新"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"功能\"}"}          }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0           }
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"web_search_tool_result","tool_use_id":"srvtoolu_01RsMreWcwBQudj6iKXLJyaT","content":[{"type":"web_search_result","title":"2026 年第一台新 iPhone：国补后不到 4000，但不推荐买 | 爱范儿","url":"https://www.ifanr.com/1654589","encrypted_content":"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","page_age":"February 9, 2026"},{"type":"web_search_result","title":"最新傳聞懶人包！【新一代 iPhone 上市時間、規格、價格】全機型一次揭密","url":"https://www.miko3c.com/news-detail/apple-iphone18-pro-max-launch-specs-price-review/","encrypted_content":"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","page_age":"1 day ago"},{"type":"web_search_result","title":"苹果2026年产品路线图展望：12款新品与全新系统将至_手机中国","url":"https://m.cnmo.com/news/805276.html","encrypted_content":"EswLCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDAscMFVBYkp3YrQ8JRoMf/64H6eUpmy8+fZNIjCj2blz5gJv2ohwliNImv6GQTb5UMJzZ95Upp+QSr50pcZOmSNFB9Q0nh6jPYo9I5oqzwp876V4yxuZBJKI3FRPKP9hox64oUKkdZNa6u9vsrDZvZriss4i6+FioNf5snf1P5zt29Hpqw2TNAAT2k04nR4Zcf+jTE9nBsGVQusSdNbiFQuYqD9RF6TvuiAnQQjbHTXDXZuXQohxmsd+n0Jqevrm1h2C2aY8vGcucBixoMt0o2kjWCEYNq131+RoKN6Zz/5mqa9gQ3OkuzbDgeRkAYB515W08QvwrNj5jrSg9mHpg4Pk2/hYjXJO1x57FkZQoi/1MI1YtxyBztd74Nji3RxRZdjTNel7ZIORa8G8k6TCbSNekSVQdlyrSIqsfROwT3KiSz+1H/cvBsig91YCVCl52sEKkXGKWQ78lo1uY9Vg0c6dIKtz0bVNUCsyxNHqA8l2aq3dqJtE+EMfeUANnZz50KkFnsSXqtcOS1wU7qCfwv1LlZX1LZiGv+i9WL1mdK9mzlyPXS0UA2x80QzFcUt7C1dPWOz3rjF54Pfd+bWs8A/X7FN2ex/ufHO2wV72FRkHjRpLTGnlzuQ5T60R1KMrYTjpREoYlrGpI9mC6Rxs+qWMGdaTOA+KgcLjsQ+I32sQkScu/kJD1/wb/svmxbPR5T3OwDoOd5nBJdXGAydtZvBbG+Tako/wm+imrfyqbk6PIhbYnD+lCB+b0kRzghu8OlXtKnHNZUYQK2tCGKNEfdABrw9gRhXxbyE0xIpDuuh3/cn7qclMj3oV5waJ4TI+mWsVvMbIb4TCEFTyxr41VXzkg7Re84n3BKOvoj57Vrh8JPF+J9XF85ywItY3RYPUUQnWHQBevNUveLUDQWrFPXfHur92RPOwqgTKNT4/yUYzZR4UkEDx3+tH/+8FDLDgeUdKZ6h488Do0uPbOukcbw2yxGOx+jPilZKF7mmj6pQcIMlGEJjDacgLJTFRc9N0VdncBUnUZcEBO2g5rkmMJ+VtPeHL9I9e9yuLQbui6lryHf8WoEE/R6cf+D/D1fVUEUXuRxjMFTW1l+dRfY1V8l+fje3GqnYSRkKD4wUVvbYY9yYz+1kNrj5gFncKGHvxPj2vBjbzOrrm+s+MpYnCUPFdVctnqnRhNhow0bUhDh2E5Q7uFanoiDjK2anA9LgtjVKL056tMnBLS9Nqge/Ri5gdbpPZe/MbdL704ntjqiOxOSNkIFZI6MbocT4hvxUoL120fSdAIcIfSLv1esy54DGXSEFrJraiFygaQk1pCl/5Z9hA9PcKwH/EO95HWFTXWHMuTCpHgp3QjFgDBp0RuMTR9PqQ5iUUtTEemiVVEiBT4HgUHhf0LaZT7uLSy+TmMnsKp/dzwBJzURdtRU4EYqSu18TeWKL2okm3fpJizvJFS9t07PK+QUMMxSF0qcCgL8svJRVhDEo7xSGcEHG/EqwY18bdcj3q6JJXW+pcdX6RiONCrzPoiaDRj38c39UGmkv5WLXL9AqdFRnFsx0ympLdnY0Np9S/VURbIdxnzFQfgoxF8QLvXJmLa8QDmZDJJVYVu73ISqTEooPqcPzYqz1I+7CfzFrHvcazjNYeerjJnUhtcPVOc2dpWP0xggu5DZBSpECudkYP4texntUyUaUg/QlyfvxIYaaOFIcZ5LVs2il9yrwiMXtDWxvZGvRYAntASRC/yZ8zp3/z/fzpc0qm5RX0EfIYRh507Mzv9xyBFKcoKJtS923RtC7pbqYsDPxoYkp0SXdhLmq5KkIAtb1bQUbkIEeGGV+x0OmlhNJ6zEcr3Omk2HDy42y9LZ1ke+yHGC0Z1bKLsi36fRlv9YXlm+nWRAobVXMIdrrYmPNyQB8ToWSfWAt3+BycX2cYAw==","page_age":"March 10, 2026"},{"type":"web_search_result","title":"苹果秋季发布会预告：除了折叠屏 iPhone，还有这 10 款新品 - 知乎","url":"https://zhuanlan.zhihu.com/p/2071631505516975521","encrypted_content":"EtQKCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDO1tKQLMdsrrDC935hoMNKVSkQDjYcBYeQEYIjA+bY9VcaM+eivXTskj7HighVIbOQ60hGQP0ybGlgUWrEJ93CDaTCk4VlyGcrkvqNUq1wmh0tMkgItpyDjz6T/DIFw3hHW5Ew1549FitrxT8VFhrrT/QjlCDhEmlbA2+GxwScjJG/QipV1BdpNy+t+rALkQ3x5W/Op+8rmwoV6h7rbQVwjuVDk2SdMbNdbO+6/Quo6SqAU5p3RQjWRqucKeiycV+Bt0YGXKe9Mvqv/rFOudcbAxejbN6l+TQ0ptwAMNF/IcBDdOuCjuYE30qvDX3Nv/QP0BXqGZGWIQnT40zW+Ag0SO95SbHLo4VH8RJGAxjxAqLMg1TobTsdGOnICTrs2HDwyehpNvX5bqeI6WCCGsJp+l5jEeaGK3ADW/iSqacy4N0KsWqTnN6+vgj208NzLcPGg85bYGfELApAg9VNOXFjsk317mMy/5F5BgUzB4HbClayuBBpXkMu1HSHkBFkSTiaMzj4yjsLl/T2L9MY40iP9OcCjmYm6VShM1klkuYjuj+eV3CZ3Df5jmQAN4q23aqowx2bPFUKhmlEBm9SyN3pZ6BXqUhpDZ3TVwmTlFrBpZPdjP5VsZRt5Ln/xrnP54dWxUl7C0OQ2E6NoQOc2WZzH1sEcp+/XGbmFR0S/TD/c4OcDUOZpsEb/V12O2mJJdaTxLwVbeugjWfyfZmzedzRGCbtyCi/1j9Uq3AhSj6O4vdsG+/MsXgSoYxGIvWPwDFZlbtJqktpUHur9AgVvGGOAcrXrcDyG01WXMV/3qicuxHpdUiiEUO/W0TfxCCL+GXR9ZDki0S5pCAHQGEpvjdbW4Lwfecxh/5ao+YoMZjMNOosodM2b9XeV8ZGYvcDjmHv0HNV1oNThD99H0Mq+ux0WDvYuey0FDJyyioqxbJuAo3u+fASNyA3sNgrPm93UQ5Y5c5Kk8Utjh8q+onstD+S7M72jqit/OYDgH/PSnjkx6x9S9Y+heVbjWYd3zOw8HTn+BNVFMB2DyxlyQQb5SsMqHy1W8CkWD/FeOqC7NX9F5SbzJURa7bm9AwcudbZxKiG+9kkPNKWhFuVgYmLAQsLPD3TzPvTXDKy0tehUOwTMl5yPTtWlDg8lKVmU8GGGgUtnBZmwxbC+tQQPhLqOdfxkGYTKN9iWrd7K6LGdR+1SZThJlo5pPhdHztu896kQMaxNSROhUFJSUsI2XvRE2WgFUIBoZJOwShG7kMKh9kauDmlTB19uA1ODk7J5KHvyJA9lYk0+jz/vFu9yQSPJikZ+68s04z+F7lu1s7vOHjOLbdWQ08f7TbY0Dss+E9HsYCQgiPLan94ExGKT2I4JZW14VEF3ZFpnaeoRlAy+f05k8q3XbghFDhDBgsikbxyMwUc6RB2QfyzzS/IHrV4eh1hBYK47q0qlu6gyrh9f/XOV8n2L6ESr8aX3ZJzpfl5mlMjc5+zTzvFqnh/WhCISlFSKfl1AMWyM1oeBFXCER9m0Y1luvDkQXyw3/kMGUQLgABhokwE22Bx2LjAzFmPg795kQFIqft9dGEPrFuWQ66G8x3ZSVma+gIZlGycCQgT4+dxu1/cjj1JE0qSmt6ijA4JNhs4ohHkkVC7Wf6Hf1SKGFkuu/6GzUIxwRO+2gy+vA0U6tM/UpPydlrkod3gyGrIbGRQfIA84QKrMgZsIPtXbD119Hx/j7xDYg9hV/2WO8t/Nrtz8cnk1tDtRufWhNMDFqxAtRR3cYAw==","page_age":"2 weeks ago"},{"type":"web_search_result","title":"苹果2026年首场科技春晚来了！四款重磅新品抢先看--快科技--科技改变未来","url":"https://news.mydrivers.com/1/1106/1106176.htm","encrypted_content":"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","page_age":"February 28, 2026"},{"type":"web_search_result","title":"量大管饱！苹果明年将推出20+新产品，覆盖手机、可穿戴与AI眼镜 港美股资讯 | 华盛通","url":"https://www.hstong.com/news/detail/25122412302578378","encrypted_content":"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","page_age":"December 24, 2025"},{"type":"web_search_result","title":"苹果 2026 款春季新品攻势揭幕：将发布多款新品，库克内部讲话曝光- DoNews","url":"https://www.donews.com/news/detail/1/6419810.html","encrypted_content":"EqgJCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDEnHDtNnYJZvVBTm7hoM98H1FsJZiC+jYfNZIjAyJH1zZoLw2cYYabkPZKmwUf0RUuD3xpPyEeTTSiyj+OxGEYYVZFrgfBc3BNvfANkqqwg2u81OxOWwu5jsKOW/r7MLb4sgXyYEinvsxnYx1Q5QIAoByso2gMpfPsvuYTC7Pl8vEooLteyHq5wIJXow2CW51h3ddT074hD7P4jYhgcsZok5sBpwYB1+ne/boOkEpMPlUTtxWMbm5rJRIFTXetp5YfK58NsGDLoMLNleoOUdFZJPiISfZel765CNtOLNGZ/mcF2ErpPscDwbE5EY0bEpxFwux1eM4ZPmNVvCBhYwVzq0nPXvfqarby7K0FdlQ8nzECRWeG1zwMdXtJDiiebpL5fuhMGCdc6qfeN6HZvLUsReTALxkPS5kFitiGCVUCvYRqhHLRogeNtvuxD26PV98qx5QlY/O9yhkcr7UCZv+pTdYuKmFnizWY0C81QtG4I6sKEFTlwRXt9YaQFPHgtOhrVXck2vTyjG23Ksto4s1SYMEtUuSBpX7sJXN2Wnb3rxo8NxN2Lb+posuMVoG6KhQSKUYH5g6xbSiGtZASnTa5/8s9qSwykaf8k9FCuN1EcbF5fknImTSNVszaKnlXC6BffVq0fvKtpiErqPb6OO9g+j7u+utf1FaMygsuvegJYOCknwOHxvxnicHLlVf04iYcfjyZ6+MmYX9QCK6dZUoOAD855d56wWN6Wq2OKkE4P5EpKMnOBgHtog7FQdLf4fynxYqftwQbe7sedFWF3TPYSSoQI2A1ZFXzqoQgrKkRsoJ13TpMgoy0KK7g1IXUnlhu9VLwjcBHKq8I8estJMXZ2cjxsPrzhRyEr72GU/PlevVKbKsVHvQL4m+aYtQ3UI3zOD9x9IUFm2+xe7BLeZd/qilhbAdNThFnR/Ep1+6OqUJ4oToUMiEvoTmxmOROqidRy4JsJOCHNLmgeAqF1tAQl07nRju2DFiZDXRZTGw9Rna8Fs5TOLT1P778Vv/n8qOjfGHNrLnUET2TKAMpq4EWh3fkwuDC44C3UyUkwSTt6jq5EQS8N5LMxHmYl/8tgndmgBw6Jvizof2surYJa1mo/lzAYs1XnGrntZzjqbe7zgIOx+qIESIeChwkyhWE6t+f2RqlvW3BbuHg/TYHXV8mSPfP0yy2RUl156THCaZhmwXAUOMqEA/IBoYzSn1CuSkrYQQo//g61VfbOjgL6/IoptCt2v1kXxe22KP7JX022O/MOuCx2RN3i0ftsWLuks2qeSrBTReD6oR0HnsBXENBext662AEKxl1eKEf0ImUW6o6USVNvYAdJUCG/a5r1dSgxMj4zIg099yOMkXqtsfyzNaIgXnlARbp6ZP9Q2cbYNHeny0aDYPPIbmQd6RNXLJAJ/AgdNEO5J+9qZe+Bq1ivcRTkypDulcQJeQ5uNWKB1MKchGDsoRtpZC6hYbX3SOCt1WxwMwBqlw3DNs3wsLv57Hfgvc+5Tw4TwU9pt4js7pdVISkBuafGBERgD","page_age":null}],"caller":{"type":"direct"}}           }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1 }
+
+event: content_block_start
+data: {"type":"content_block_start","index":2,"content_block":{"type":"text","text":""}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"根"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"据最"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"新"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"搜索结果，2"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"026年苹果i"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"Ph"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"one产品线的发布呈现出**分阶段发布**的新策略，具体信息如下：\n\n## 2026年春季新品（已发布）\n2026年3月4"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"日，苹果举办春季新品发布会，"}   }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":2         }
+
+event: content_block_start
+data: {"type":"content_block_start","index":3,"content_block":{"citations":[],"type":"text","text":""}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"苹果2026春季新品发布会... 17e、低价MacBook、iPad 12、iPad Air 8四款核心新品，全系落地Apple Intelligence基础智能功能，苹果下沉中端市场的布局全面展开。 · iPhone 17e作为入门主...\n\n\n\n苹果2026春季新品发布会已正式定档北京时间3月...","url":"https://news.mydrivers.com/1/1106/1106176.htm","title":"苹果2026年首场科技春晚来了！四款重磅新品抢先看--快科技--科技改变未来","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDK8EmNn/WTTVzB3IIRoMpp3I6+uvTME8qHdeIjAzk9Y5ksZDsnum4hSn0B/yFOSqG0Qq6ixPzfZ1IMIYmaFJ79OzPEDsZzIvfNLZA7wqE9GTTZe+XrwMpWSO2P2KAKmn8MAYBA=="}}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"text_delta","text":"发布会首次以上海为主场，纽约、"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"text_delta","text":"伦敦同步开启线下体验，主打AI普惠与"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"text_delta","text":"亲民定价，推出iPhone 17e、低价MacBook、iPad 12、iPad Air 8四款核心新品"}       }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":3             }
+
+event: content_block_start
+data: {"type":"content_block_start","index":4,"content_block":{"type":"text","text":""}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":4,"delta":{"type":"text_delta","text":"。\n\n关于iPhone 17e："}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":4,"delta":{"type":"text_delta","text":"\n- "}   }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":4           }
+
+event: content_block_start
+data: {"type":"content_block_start","index":5,"content_block":{"citations":[],"type":"text","text":""}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":5,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"苹果2026春季新品发布会... 17e、低价MacBook、iPad 12、iPad Air 8四款核心新品，全系落地Apple Intelligence基础智能功能，苹果下沉中端市场的布局全面展开。 · iPhone 17e作为入门主...\n\n\n\n苹果2026春季新品发布会已正式定档北京时间3月...","url":"https://news.mydrivers.com/1/1106/1106176.htm","title":"苹果2026年首场科技春晚来了！四款重磅新品抢先看--快科技--科技改变未来","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDF4o6MaRzPwfRDCjjxoMb5ecbbqt6LoGyqyeIjAIWUGYWnzIWbytL03qTVQdDeWgbpEVZKkMO9yC/YQGYLCcvtgFgK8Gwxq9D2NijV0qE5yswR8ydCs87o+qRLlM5D0u00IYBA=="}}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":5,"delta":{"type":"text_delta","text":"核心升级为A19芯片，也是其唯一的硬件迭代点，同时搭载"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":5,"delta":{"type":"text_delta","text":"苹果自研C1X基带，大幅改善5G信号表现"}               }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":5  }
+
+event: content_block_start
+data: {"type":"content_block_start","index":6,"content_block":{"type":"text","text":""}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":6,"delta":{"type":"text_delta","text":"\n- "}            }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":6       }
+
+event: content_block_start
+data: {"type":"content_block_start","index":7,"content_block":{"citations":[],"type":"text","text":""}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"苹果2026春季新品发布会... 17e、低价MacBook、iPad 12、iPad Air 8四款核心新品，全系落地Apple Intelligence基础智能功能，苹果下沉中端市场的布局全面展开。 · iPhone 17e作为入门主...\n\n\n\n苹果2026春季新品发布会已正式定档北京时间3月...","url":"https://news.mydrivers.com/1/1106/1106176.htm","title":"苹果2026年首场科技春晚来了！四款重磅新品抢先看--快科技--科技改变未来","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDKEzeGNZ12GrKWsncBoM9YQfhgbJjwTplzjpIjAmhrd5gqq7dfajo9DQYKkYzxY9tGTp2q3wGa4t2Yx1IZgYBaVYchECh2df+1wFyMIqExF0WM/MmWoDdQ6hPrzVE7UHtTAYBA=="}}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"text_delta","text":"产品沿用6"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"text_delta","text":".1英寸60Hz京东方OLED屏，新增MagSafe磁吸充电功能，出厂搭载iOS 26系统并支持5年系"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"text_delta","text":"统更新"}            }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":7}
+
+event: content_block_start
+data: {"type":"content_block_start","index":8,"content_block":{"type":"text","text":""}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":8,"delta":{"type":"text_delta","text":"\n- "}          }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":8    }
+
+event: content_block_start
+data: {"type":"content_block_start","index":9,"content_block":{"citations":[],"type":"text","text":""}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":9,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"根据彭博社最新爆料，苹...升级。 · Mark Gurman 透露，iPhone 17e 最大的亮点是新增 MagSafe 磁吸充电，支持最高 25W 功率充电。 · 芯片方面，iPhone 17e 将搭载 iPhone 17 同款的 A19 ...\n\n\n\n根据彭博社最新爆料，苹果将在接下来两个月...","url":"https://www.ifanr.com/1654589","title":"2026 年第一台新 iPhone：国补后不到 4000，但不推荐买 | 爱范儿","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDOqmR6YyePDGq068TRoMElCo97hfw8Lvs+deIjA6KDk/w8A6lus+7eSMpCluNTkSieo7G+NSl7zbI0zjUdodF57VzbabhkYWtsA+6ygqE2bZ3QMDaVCppuOm7H5BcxBhPegYBA=="}}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":9,"delta":{"type":"text_delta","text":"iPhone 17e也很有可能获得U1或U2超宽带（"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":9,"delta":{"type":"text_delta","text":"UWB）芯片，进一步支持苹果的「Find My」精确查找生态，除了芯片和M"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":9,"delta":{"type":"text_delta","text":"agSafe，其他提升则相对有限，依旧是单摄像头、60Hz刷新率屏幕、USB-2"}     }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":9    }
+
+event: content_block_start
+data: {"type":"content_block_start","index":10,"content_block":{"type":"text","text":""}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":10,"delta":{"type":"text_delta","text":"\n\n## 2026年秋"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":10,"delta":{"type":"text_delta","text":"季新品（预计9月发布）\n最大亮点是**苹果首款折叠屏iPhone**的登场：\n\n- "}            }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":10        }
+
+event: content_block_start
+data: {"type":"content_block_start","index":11,"content_block":{"citations":[],"type":"text","text":""}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":11,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"苹果2026 年秋季新品发布会即将在9 月登场！今年除了常态更新的iPhone 18 Pro 系列外，最大亮点莫过于苹果首款折叠iPhone 的亮相，以及久未更新的Apple TV、HomePod mini 与全新智慧家庭中枢。根...\n\n\n\n苹果2026 年秋季新品发布会即将在9 月登场！今年除了...","url":"https://zhuanlan.zhihu.com/p/2071631505516975521","title":"苹果秋季发布会预告：除了折叠屏 iPhone，还有这 10 款新品 - 知乎","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDG4+LTTjzxx082jR4BoMTzqfISQYxxOMu+mGIjBYTr4rngcu4kQXQ83B/eXItC9iVcIREPesOuFI0zSKSvyHmgPVLmWtF4w7EKMFgHEqE1prOvTO2dJjaFDl+IYyhMecJXUYBA=="}}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":11,"delta":{"type":"text_delta","text":"今"}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":11,"delta":{"type":"text_delta","text":"年除了常态更新的iPhone 18 Pro系列外，最大亮点莫过于"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":11,"delta":{"type":"text_delta","text":"苹果首款折叠iPhone的亮相，据Mark Gurman消息，本次发布会预计有多达10款新硬体亮相"}             }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":11     }
+
+event: content_block_start
+data: {"type":"content_block_start","index":12,"content_block":{"type":"text","text":""}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":12,"delta":{"type":"text_delta","text":"\n- "}    }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":12          }
+
+event: content_block_start
+data: {"type":"content_block_start","index":13,"content_block":{"citations":[],"type":"text","text":""}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"苹果2026 年秋季新品发布会即将在9 月登场！今年除了常态更新的iPhone 18 Pro 系列外，最大亮点莫过于苹果首款折叠iPhone 的亮相，以及久未更新的Apple TV、HomePod mini 与全新智慧家庭中枢。根...\n\n\n\n苹果2026 年秋季新品发布会即将在9 月登场！今年除了...","url":"https://zhuanlan.zhihu.com/p/2071631505516975521","title":"苹果秋季发布会预告：除了折叠屏 iPhone，还有这 10 款新品 - 知乎","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDGHmBEaiHXS45Qy3ZRoMZPjflI+gQyLNzebyIjCmlfU4ogYZVHV0FTvJViKsRJIsHzfgLwVypR5goQUS0H6H3ZKE99UNHQYTzVOfHe8qE4QQ0Lqq/7zq2QZyxe7YErq2590YBA=="}}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"text_delta","text":"苹果预计从今年起iPhone发布会将改成两阶段进行，2026年秋季新"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"text_delta","text":"品发布会预计将于9月10日登场，将优先推出iPhone 18 Pro、iPhone 18 Pro Max，以及首款折叠机种；而"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"text_delta","text":"标准版iPhone 18则可能延后至2027年春季才登场"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":13            }
+
+event: content_block_start
+data: {"type":"content_block_start","index":14,"content_block":{"type":"text","text":""}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":14,"delta":{"type":"text_delta","text":"\n- "}  }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":14         }
+
+event: content_block_start
+data: {"type":"content_block_start","index":15,"content_block":{"citations":[],"type":"text","text":""}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":15,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"苹果2026 年秋季新品发布会即将在9 月登场！今年除了常态更新的iPhone 18 Pro 系列外，最大亮点莫过于苹果首款折叠iPhone 的亮相，以及久未更新的Apple TV、HomePod mini 与全新智慧家庭中枢。根...\n\n\n\n苹果2026 年秋季新品发布会即将在9 月登场！今年除了...","url":"https://zhuanlan.zhihu.com/p/2071631505516975521","title":"苹果秋季发布会预告：除了折叠屏 iPhone，还有这 10 款新品 - 知乎","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDFSOMmpdx+aMqwr1SRoMSzbYqvS4RE1s6aghIjAjy6t0xJMRGV7crtk99tR+J7LwxvDNvflwlpUbsFDMy4EN+mDZL52WQNFVFop7pGEqE7mCpWvICwiPuhuIPUP83B3/93AYBA=="}}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":15,"delta":{"type":"text_delta","text":"首款"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":15,"delta":{"type":"text_delta","text":"折叠iPhone将会是苹果秋季发布会的核心产品，目前苹果内部皆以「iPhone Ultra」称"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":15,"delta":{"type":"text_delta","text":"呼这款装置，但苹果尚未正式公布产品名称"} }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":15    }
+
+event: content_block_start
+data: {"type":"content_block_start","index":16,"content_block":{"type":"text","text":""}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":16,"delta":{"type":"text_delta","text":"\n\n具体产品规格方面：\n- "}           }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":16      }
+
+event: content_block_start
+data: {"type":"content_block_start","index":17,"content_block":{"citations":[],"type":"text","text":""}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":17,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"苹果最具吸引力的产品在 2026 年秋季发布，首推新款 iPhone，还将推出全新的可折叠 iPhone，以及更多新品内容。 · ·iPhone 18 Pro：A20 Pro 芯片，面积更小的灵动岛及 Face ID，C2 调制解调器 · ·iPhone 18 Pro Max：更大容量的电池，后置可...","url":"https://www.hstong.com/news/detail/25122412302578378","title":"量大管饱！苹果明年将推出20+新产品，覆盖手机、可穿戴与AI眼镜 港美股资讯 | 华盛通","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDCir1OCq2fhuStjmixoMIeowJfhdQsyl9Ao+IjAPybYdn3oYV7b3uS5Na7HxsNOukhHEKf7Oi+v0Knk8BzlpDtWdJ6pFsyR90k8ujE4qEwG+ZJHpB9KBLCgQfgZHHlagZmwYBA=="}}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":17,"delta":{"type":"text_delta","text":"iPhone 18 Pro：A20 Pro芯片，面积更小的灵动岛及Face ID，C2调制解调器；iPhone 18 Pro Max：更大容量的电池，后置可变光"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":17,"delta":{"type":"text_delta","text":"圈摄像头；iPhone Fold/Ultra：类似书本式的阔折叠屏设计，钛合金机身"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":17,"delta":{"type":"text_delta","text":"，无折痕显示"}             }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":17             }
+
+event: content_block_start
+data: {"type":"content_block_start","index":18,"content_block":{"type":"text","text":""}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":18,"delta":{"type":"text_delta","text":"\n\n## 其他新功能亮点\n- "}         }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":18 }
+
+event: content_block_start
+data: {"type":"content_block_start","index":19,"content_block":{"citations":[],"type":"text","text":""}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":19,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"2026 新 iPhone 可能會搭載蘋果自研的 C2 數據機晶片，將支援 NR-NTN（非地面網路）標準，不僅能夠支援衛星 5G 網路，而且更為省電，預期將為 iPhone 帶來更優異的電池續航力。 · ...\n\nA: 蘋果已確定在台灣時間 9 月 10 日凌晨一點舉辦秋季發表會，預計會發布新一代...","url":"https://www.miko3c.com/news-detail/apple-iphone18-pro-max-launch-specs-price-review/","title":"最新傳聞懶人包！【新一代 iPhone 上市時間、規格、價格】全機型一次揭密","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDGf4aTQMCTk1jCYVJRoMQgioWjiTlpSYxzvTIjBpgLe3QesGHuUBmlpqSb7IbGRasWQrVWVF/FitYd1n0Yng8Usc5JyC9sfqAeRvuu8qE37gQp/euFWB3ynLMDZOFtu/CesYBA=="}}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":19,"delta":{"type":"text_delta","text":"2026新iPhone可能会搭载苹果自研的C2数"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":19,"delta":{"type":"text_delta","text":"据机芯片，将支持NR-NTN（非地面网络）标准，不仅能够支持卫星5G网络，而且更为"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":19,"delta":{"type":"text_delta","text":"省电，预期将为iPhone带来更优异的电池续航力"}           }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":19              }
+
+event: content_block_start
+data: {"type":"content_block_start","index":20,"content_block":{"type":"text","text":""}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":20,"delta":{"type":"text_delta","text":"\n- "}      }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":20   }
+
+event: content_block_start
+data: {"type":"content_block_start","index":21,"content_block":{"citations":[],"type":"text","text":""}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":21,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"2026 新 iPhone 可能會搭載蘋果自研的 C2 數據機晶片，將支援 NR-NTN（非地面網路）標準，不僅能夠支援衛星 5G 網路，而且更為省電，預期將為 iPhone 帶來更優異的電池續航力。 · ...\n\nA: 蘋果已確定在台灣時間 9 月 10 日凌晨一點舉辦秋季發表會，預計會發布新一代...","url":"https://www.miko3c.com/news-detail/apple-iphone18-pro-max-launch-specs-price-review/","title":"最新傳聞懶人包！【新一代 iPhone 上市時間、規格、價格】全機型一次揭密","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDOt/ZTZXdH8WpgxGfxoMSl1aIF9d1PcmCyw9IjAwgBo5NBKc7OAEQFoVobWtukijJIazbR6hcn/SdRrfBKedOhPLBPFqprGGbwbo6NEqE6OHXdDM2wsX/AOn+jRkwA4zhbIYBA=="}}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":21,"delta":{"type":"text_delta","text":"蘋果可"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":21,"delta":{"type":"text_delta","text":"能计划简化新iPhone系列机身上的「相机控制」按键，移除电"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":21,"delta":{"type":"text_delta","text":"容式触控感应功能"}      }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":21      }
+
+event: content_block_start
+data: {"type":"content_block_start","index":22,"content_block":{"type":"text","text":""}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":22,"delta":{"type":"text_delta","text":"\n- 关于内存升级，"}           }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":22      }
+
+event: content_block_start
+data: {"type":"content_block_start","index":23,"content_block":{"citations":[],"type":"text","text":""}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":23,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"2026 新 iPhone 可能會搭載蘋果自研的 C2 數據機晶片，將支援 NR-NTN（非地面網路）標準，不僅能夠支援衛星 5G 網路，而且更為省電，預期將為 iPhone 帶來更優異的電池續航力。 · ...\n\nA: 蘋果已確定在台灣時間 9 月 10 日凌晨一點舉辦秋季發表會，預計會發布新一代...","url":"https://www.miko3c.com/news-detail/apple-iphone18-pro-max-launch-specs-price-review/","title":"最新傳聞懶人包！【新一代 iPhone 上市時間、規格、價格】全機型一次揭密","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDPRsCx9qCe7//gkE5RoM/M/pgtqT6Wy5tQPgIjAVjAdg5mv0asJ2BbSDmZF/o3Qjk2qj6KB6QPTlzw0YOHlP6yDo4NJHtkZs+rgnPVoqEyvGK32kgmR1E1SZV2nBtac3qO8YBA=="}}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":23,"delta":{"type":"text_delta","text":"为了支持最新iOS 27"}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":23,"delta":{"type":"text_delta","text":"的Apple Intelligence与新Siri的功能，新iPhone基础款规格势必也要做出调整，但由于全球"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":23,"delta":{"type":"text_delta","text":"记忆体成本涨价，现在最新消息认为只会升级到「9GB」"}     }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":23              }
+
+event: content_block_start
+data: {"type":"content_block_start","index":24,"content_block":{"type":"text","text":""}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":24,"delta":{"type":"text_delta","text":"\n\n## 全年产品路线图"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":24,"delta":{"type":"text_delta","text":"\n"} }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":24            }
+
+event: content_block_start
+data: {"type":"content_block_start","index":25,"content_block":{"citations":[],"type":"text","text":""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":25,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"苹果最具吸引力的产品在 2026 年秋季发布，首推新款 iPhone，还将推出全新的可折叠 iPhone，以及更多新品内容。 · ·iPhone 18 Pro：A20 Pro 芯片，面积更小的灵动岛及 Face ID，C2 调制解调器 · ·iPhone 18 Pro Max：更大容量的电池，后置可...","url":"https://www.hstong.com/news/detail/25122412302578378","title":"量大管饱！苹果明年将推出20+新产品，覆盖手机、可穿戴与AI眼镜 港美股资讯 | 华盛通","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDMfDUM329EIi12zpQBoMQrewjRnL/bgBn2OKIjD1l7bY7dH52O8eaqAhg7Qyt+raIacRLoimBgKiwbRgjxFmGL2QimHsi+nl7DaVCGcqE16bLFN2lsXPiiYrVzgb01ZiD20YBA=="}}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":25,"delta":{"type":"text_delta","text":"苹果将在2026年推出丰富的产品线"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":25,"delta":{"type":"text_delta","text":"，传闻称将发布多达25款新品"}   }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":25   }
+
+event: content_block_start
+data: {"type":"content_block_start","index":26,"content_block":{"type":"text","text":""}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":26,"delta":{"type":"text_delta","text":"，涵盖手机、平板、Mac、可穿戴设"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":26,"delta":{"type":"text_delta","text":"备及智能家居等多个品类，整体呈现出向中低端市场下沉、同时在高端产"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":26,"delta":{"type":"text_delta","text":"品线（折叠屏）寻求突破的双线布局。"}     }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":26 }
+
+event: message_delta
+data: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null,"stop_details":null},"usage":{"input_tokens":12249,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1476,"output_tokens_details":{"thinking_tokens":0},"server_tool_use":{"web_search_requests":1,"web_fetch_requests":0}},"context_management":{"applied_edits":[]}        }
+
+event: message_stop
+data: {"type":"message_stop"         }
+

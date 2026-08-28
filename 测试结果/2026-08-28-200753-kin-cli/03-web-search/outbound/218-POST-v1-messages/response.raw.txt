@@ -1,0 +1,564 @@
+event: message_start
+data: {"type":"message_start","message":{"model":"claude-sonnet-5","id":"msg_011CeVkeN3aLfHQDZafuPGH6","type":"message","role":"assistant","content":[],"stop_reason":null,"stop_sequence":null,"stop_details":null,"usage":{"input_tokens":2994,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"output_tokens":16,"service_tier":"standard","inference_geo":"not_available"}}      }
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"server_tool_use","id":"srvtoolu_01L5pHzJ2JZ9uyxPyjexdknr","name":"web_search","input":{}}     }
+
+event: ping
+data: {"type": "ping"}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{\"query\": \""}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"iPhone 1"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"8 20"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"26 releas"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"e "}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"new "}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"featur"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"es"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":" rumors\"}"}              }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0 }
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"web_search_tool_result","tool_use_id":"srvtoolu_01L5pHzJ2JZ9uyxPyjexdknr","content":[{"type":"web_search_result","title":"iPhone 18 | Rumors, Specs, Release Date","url":"https://appleinsider.com/inside/iphone-18","encrypted_content":"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","page_age":"3 weeks ago"},{"type":"web_search_result","title":"iPhone 18 Pro & Pro Max Rumors: Release Date, A20 Chip, Dynamic Island Changes and more | Macworld","url":"https://www.macworld.com/article/2953687/iphone-18-pro-2026-release-date-design-specs-rumors.html","encrypted_content":"EuAQCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDOT2CtXozM70ADd7FxoMV9WyRBHkCyEc0Bn0IjChvaXaB1FHqUUnQe2ifabzm1l7lGNacpd1ybmSv2QKN0wPc/n/RO2tXCTGcAuT+1Eq4w/mmRQsEWzRrrJa0eN6KYY9zxUwjEM5e16Q2n4okuyBFK3uwWceUyEx3brgHGRaDwBqVBV43kFGhLv6QvNO9FssX3WUClU0snDEgBcuWwcCPOOtbCxM2k2+atlH5r8TGdcLteXO+1GH5+Nw2l68Bx7GgMCZJpRn/9ghj0Gj94DIafpNypNltCklyKG7pgEPLVEwjmqBMXhHgi+6+6wn6AYjulc2yB/dYYv4c2vcw/UgPUW2KOtlg7eG7BBd0qdF/TllMQ8064wIskZKDlP9tE0+M168cOpQXHHu6190qhRxGyCjaNfS81JeDSyagccF6KLrSPGEYiFmupfmgdW8MtKHkSbQokOj1U7xfD4qVradfrd4JvKQ/tY1LiP9HDeifEL4XN0qWwrgiWKHKkT/gKzmx5/HBDRSVC+JU2u2nq3sVc/f9R5MjNNtKfBrKRN/5XSF5VXoskCE3c4/9yxCnm3tvyHtA0HSTDXVhnvi859geElDqEqMsvhCK9H2AmNlNIYq3fEqEMYgi9gEHjEs2VutEmu5v5HgVUPKx+Eq/fWLGYo6bOyDIYHcLa8yU8Xva5ahVKbLGP4nbWKEe0eNI3wBmfEHOjkG+b/nqb75fJ5oCp3Th0TgaWx+phmplj3AO4vo1ShyADSKNl8U0E+OQ6Qz4zglvFmYHiWLfjdEpvGRrcE/tPB9HwUUObNAjYgcFUqn/eAJcBihdQyEiOwH3Y0uSUwFs3oIXMEbWYZlgTTlXxxqO/m50dAgSe46iu2e0f13S4fso17j3HSmdpuz9CsKJ+dTeBkLBo54E1FDAxWocH2WITOw8O9G4VdhomLwZ4NXTz43VKvrd2GJ+kB/Wfznrc/n4OvvS+s7YmbYaUQ2hm/USGZYNpyMbGrKknDUS7O9JFGKPqyWORwloVk8Mo895LQXvMAJuubhlAFkIzbkwh04B3R8e3gnjhe8GJ4YiiIUmPJy3TsOyuEcXs9/NxbCGjNtHELshrX8ShfAOvXoH8Ggognfn+Wj8iCuyb4u+WC2lU5LiiuvBUBRAJJUvhCfMu9np47YbIxysIVNM/vzLCOUn8/nJ5qzFVbKS5Fi8hnd0Dx2eLNODlLf7w2Uu1GOVkiA3y3lZhLhTRVRomDguSVQevOrn1q0DlBpZQT1Gsy0OzoOmh3niMuctSam5c8XkIlmsiKgU6G7hnnh4WOJlmqCfL4scY2zOnrFudPhHZ8PJjSrJoOhjlOYCA6WdKn1yMEFzGlzaDErP/j0aoCJlpBKPvS8IcUNh2iSblk0pk57CO6X3OO0si53Nen/zuDRpzX2BL4bUuC5Ppzm/D5fcUQZihQfiFpvUrBoPwPKRk2DxdfeTPPHeZj8CKnayxasSjEX7uglpKfGO5gHjUYiVh4ae4SgOJGUuHXP5K5jsbRcZ3pBE0f3LPChOMyA184680DpJwa+BVRLe5B9sBcbbgakXMtAUZ/ftCsR6MYw2XW4FD1zIB3SEDy1OXJp6mDDeRNBiUi3uR4r0NxOp/W9+9K2I8HBn+dPF4OdK69VkGlNbR9CB0tgqVwC6erKs7+bvUOXRUvVDUz1dsW3sWVYFPI9kdrg8TnEutORWhIlCWLvU86h07K1U6N8huZanRQ2a08Hg5LUwwuJUdQDkiBd03ed2XHp+LEKvLsVZ+D7GTd8GkcEQw84Kdzpr0LIwI+qLwJDlTRxSrxbp96lu9DCROl69DnlI9azTKhvMl5QuuKWE9bJ60x000RZM2FPGxOmrtC0LlFkUD1Wnv6lTF2ft2T2sVq7V7pXORZSTi4CBZh/yWXq48qDkvrbJ2WSiiPfUu5dp3vm7BVGLASa+79IhUKPvkBa+9imfQg+P//Y+TFHzE9lhrYrylFvs2+qYDCn4ouyszxBtinrrPEuaEBJO75A3qBP5lO2o3lOYulfJid1tUTV6du8dQFtpDgKFh47/QwtWuA01d3sj68XdhCfnQ7kjLKNG3FKvBzvUvIsPE/Wg5Vr4lxTxnz8F3jx4sTB71hlBZ7N6tePrnQcvpPGfdYXoM9L+Wk8qSmV+N6ImW4L/055WZS1iMxme8HaARy9kBU0j5j0XntDz07wptbVUnSuflvYF1dx4CuPzgHJOncfAnncZqs70c3TWC0AgQoweCssdnIKsFwpD3CvI2od5G+5PHejICBTSA+idxf5atL5qFGA4hbHQkzoZBgf/1KPPkcWTG/2FzaYXoadVgSAsYtJqSY3x3eqAPorOJs7kPHIrbEtVxM3S4HvuapXkHbTJHs3lVdp9/gyuZChI0a4beu3vVybSWLZocYPKCZYdnPiMKjbjCQ2Mf9A24rISqNANjF6Oq3QpfsELiPXiy2yy3IWrl1Z7AtsilN1hCCFQZL3c1EwThuH9Ok9enYxnJ8+F75PAmSW1HMsb1NJU+80eLX/AemYhHvrimUA19YgW8mb5nh/ZZ6309ebwHGAldmmWFpzXY8aF0ObTu4veSGZL0qgC775xHEnGc324sO3N+dvS4ROfcmqUppfvMvjBIIMtYjQIKyD42RjsrtNs/yymLpZHOEmfYXtus0v7gXjdn75uhRFtTN2KUcdKUYWbQ3/hJIHRwxaDuhJrMacpY3XAtyaRLNNFCvwHejASOUwloVJsIYzIUSC/EzrSFC0I8mmJoeNsSyboBfD+jW+q8NZ9EKRWujcgpE5ZRG5QDs7B50l8zUYAw==","page_age":"1 month ago"},{"type":"web_search_result","title":"iPhone 18: Rumors and Release Date","url":"https://www.macrumors.com/roundup/iphone-18/","encrypted_content":"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","page_age":"3 days ago"},{"type":"web_search_result","title":"iPhone 18 Pro: Everything We Know | MacRumors","url":"https://www.macrumors.com/roundup/iphone-18-pro/","encrypted_content":"Eu0HCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDHqdjkHyvaXl3aKZsBoMkp6ND33f8yGgrTZPIjCCDgiFd4v5Cx1TXR+2Fq6O6Ru/3cK1UpXi9g/aKTIgGAM94HFzhWm0GlkhmWBq9Zoq8AYENoDNa4oG2VCh9IbghSkfNAOen/hOMtM2zB90F+UbHTb7TWXxDSq80kajRMIwb5Drn6nt3erbDhVAgiRYuPnXuneZMjmoab0ZMtn4gU9y2UrPL5sDza/9LNiGBcH7Sq4DmHR6ifS1PwXgJkQdH31ynJRAI4lRCunO2cgSrSi3mRBWjBMGCtT6fXZxO7QmS7db685eznBDygZQPy+X+oGnz9d4n8WdZi/rBIj5ZiM+W9nM8ThtiqR+/efRtt5VQAlyxsPZi+0BoMpyEaWK90Q7vqsTVmIRc5LPvT3dCPShZ4FKyAHMPSjvKVKPGthOsMIf3UFA0pgav+IeIAfYwC78DVvHtKYuS5CXiN8+cA6bUqHPCe17hz0mwcNg4kGDiQDWa0sQM1NnuVkEo0rWN95I5hVty2LGzjVSQ15N2C0K2btTYPNskpb1dT493YR/sIYg9kCTZ8j9EspCvd8i0qUG4SFN6aB+HbQuERG1sJ7WWGyh2YoCoXrPe9Mrg9fPHtSiqmFlUnWBVBVdgnd6blgX9xQ+zrt0juaV3+osSGHn2WZmJiPSqbmIAajln1RqQ5RRx/IIXmcTTyHv2zu66QQhcP3BYJRG7nGuPRSspEBAYrLlwQWag+OlJ8OIUq4lv3a80RYTEdFWr+hY32N/Shl1wdhhpV0iNZJQ7L+ExeQO1eSfcxMijzQx/WpFhFcDDDxADm00zbMbCyLeUUG1gw7HNjpp6UCpx1UU2dTDz2p6cBzKpwxjcjvND8Ax5SYuS/NKtZ4NEnYDJoC5oFMTM1Ezen6l9URPyNBe20k8DvoiKAbc/VxHHfr3BgFzfRHKwtMMY10m4fpwqqtaTEOcZ313pvLFi1XTdje1+XhZhrbvNtVjjcVFLU9sZRLqJ0+DdYQob/bsqO/rUY/lLuQtsqtR8xFwwUd16zZSs4uLMjC6GXzuWctkI3lDkpFb6TOHe26K6HGNZMWOsZ5IP9fNMQ4KYA3eToZstlnx1hV+7nSLCVXMldxc7ErOBQHacwjEYtF3ZsZwS+XyFsHLTPb3xOGt+9oj+QLwLzYGkFT2sqSFR2fkzPCfh99UjrocWJpSQVaZ09suvV/6H+7Kov0I6Dy8XnHQbDvak3SwOmmC+V/UFxtNz6ms2V4I5d7lC6ncGlgS+JeeC7hW/6oYrS0Nk0TAGAM=","page_age":"4 days ago"},{"type":"web_search_result","title":"Apple's iPhone 18 Release Schedule: What's Coming and When - MacRumors","url":"https://www.macrumors.com/guide/iphone-18-release-schedule/","encrypted_content":"EsUICioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDBwom0E21+yF/TVHzhoMztCg5QCvUDFkUpq7IjCjNBGwBoGcjJTEHrwnRz3p3f0eOROQSyQYbkp7+9gppRlGtH8Hq9TmwETCjwvkFaAqyAcM5gE/spRFQbqgu1v3nvGOP7eEg0gBPCltxQnd7BrYiWzZW0p5OBHmP6p7kfQX61OzipFw9coC736eLTXf1C+uE4fPdlG0eLE9Pd7fWhUK4Jb+RjfNSoHCYVCzd3XmgsVskKE5iIC6/td0bC+ecTe74yDYUbZVzMhJHeOiTA0oNjLZcVpBfPISit73fSDmPxwzS2R/lXbNThb7kzXmwRNJg9gdYXz0d2i3bfUU7nepVohq6MR9yEfo/y7/2lIThMvVR9Eqgc6M0SIXQglHWqA+tK5Efik1oHtkWtdZSO2gTQh4ktM2lOpQqSjAqn6s/zWa4KiKxW748mx680bquaBu8N7wG1TSMVWCaDu4sfkiJ6F7Hy+VPpTylgTkrWUQ9VpWRq0KBGdHCVtyd4TGEjyv1RDxjYJ5Egs2bsW3D15Qyj62RtHRQ5ZjaOYyJZplmQCH0NUYduVpQUg9suLesJRnmRt5KTz7yjE/3T/doCKw3iAkhnvXey5U5zz4MAmtqp6KUNqAhgoWok1+tVL7dukj9aTnhu0ppqIyGAhdxlh9wk3R+e/0O/u01Nyp+2vNpp5VSt2qcoXoaBz4JOeopU9WF+vYAQLPjI1/Z/OETqLa4m2OlZA0Ph7HTIuodj/QjcpgQwPRCQCdhOeFJFuvz57HZ8LYeIROzhrKEdrcn/gl2eGMo8ChEeZtO0n/qugwQxrVvC4pzg46PxcA4QxTBV3GWM+nZe6fHMNk/HEFew06UQ9HuHsk0XWJwpiek+73olcu7l4+dmi9SeDLA/KtWo2m4ZeaQ1PYRtqAh9B3p+/YFxTDyIBONdt+zPrEznArJzyJfyHcKDcjNeILofPcblHo1RrVizqsROrNlN39rCtjWek2QRqsWo7kT5mreSxyjfIxWuOkO/N4krJRWJg56YgUwmjAd42MAr9EYjPigG+gQBVzQwBUhAeHTAvFzAwNEOwVtf9DaM+krVop/qTjwr/9zlAx/I0AH319tlaiO2A1y77IJVmdqqYXOVbCcsHJ0k8PNZrEnmX+zldV1culbhg0sd/cqNHRJtNTB524UsyrqGuD3qdhMQ+G8v7l3vG4CwQEQThgBi3rx3G4h9oLf+njpiVl6MFppeo0bCOHq0utwiU/f0YEXU0tSXPZWcwO0hzi3uiDwMPUWDElJNj7XrPrY4zi2LE3Bgj5JEWYUzoWh5JbgHX6YSF2SCAuBl/ztAOGpW/nAMcORs/iScJzVdW+bYsLZxTAdY93JXIMORxxD2z7RTd/gqjm6OfkvoirYA1smU1uk7EGHxgD","page_age":"1 week ago"},{"type":"web_search_result","title":"iPhone 18 Pro Launching Next Month With These 12 New Features - MacRumors","url":"https://www.macrumors.com/2026/08/02/iphone-18-pro-next-month-12-new-features/","encrypted_content":"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","page_age":"3 weeks ago"},{"type":"web_search_result","title":"iPhone 18 Pro: Six new features are coming next month - 9to5Mac","url":"https://9to5mac.com/2026/08/17/iphone-18-pro-six-new-features-are-coming-this-fall/","encrypted_content":"EuQHCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDGSRGfCAaxXtdgJ3CRoMlPHfUAdA6sNg2vN/IjDt5AFr4Kuz07Isd39/6E6PV4JPFXNLUBqLGDjz1JWAX81Sl27MSxOpXthZrvsmtmoq5wY9rHyMSYQHYS2NxOFZGkTmA/jY+6YrMKe7r7vBb4+StfQ0D5DRb4vhNaP6XT72ucJJLBQm9qeKvX7CUtm3jTeLGJ927E/gaQocOn/ioPd+LQw1tUDpdo26pC/xamcIVvYLZC/+4YqNtioSmk/bfogSUzqWYYVkkkM9nmxa/PzEA8Pn5Tmr9GwpbnLaaFVtqJPHCq/7VPDYAkmsEp7ig1dF2tFK9zesgzSBQZC9EV7BeSjpud4DN6OkoL/d4o+X+NpfivOB+ANDwBCY63PYQaV9tNbKnoJXBnrSUUTiHTpe3+ynm6ym8DwZZ59Jc1M+Mg7U580vTCo0N/5ZzR2tlWelr8Nq1P5tJid3TvahawgZ8RpmwY2l7dnewh6IZluwvNNf6brlDJRqKQ6Asbe+szfS3VDwXiPp9RStRRGsG+ejR3JjnmvqvwqpB7qZd7IK6GsR7McH//QF4u/LGw6KFWWy/M2PYBfnO8koE3jO4HkoVFdgur9qUyinK15NSvOgQASUDF2J+Rso6tzKzxqV85O4MBDeFW5A3evyMmKiF5LhvpQjMrWE6CrLnwA1K50k6lmeHHMtkokutEvPXbjWHyyY/ViRbn5E0ZRYZgHu2omFoUskzPIi48qgxU8AODOmQtzLZ9IEfNuSQZJQa5fSdF2seozxXnxxaQCINMPz1jnCWC60MNjE2XLLKSuFcC68lfyDSy6ahTQqDbRLoy/O9kyJ0u8FHeiuvbM/hLsbsIANxZf09yZZHPCvof3jOnSqtd3ax9v+AIFEVbssGN0UJN6tCAxImYOG4LFtnUS6/lwfUjb/RFk8Jg9FmITd7+iPkwsVtPKsqmMfujeMv0Ns1eGpV5d98Ab3eTT/8cmFO9IzwenTlFxu2F360m7ePAk4dskisSyUsHvwpcJkAyGSr8YiZqU0XM52WaOUgP5kECAj4hH7FopFpU8ycOPaBUyq1vYvZM8QbOORgokj1iMBYTbHNhvr0m4ZyaKQV4vZAQN1dptDTv75ryWaaCUpnbs7XoUnBmpQAf5we/Ihdz55J37GysHpVeV3b6mMZQra0RpcM+9a5vXOfEocO9u2pNTNM3GtFJ5j8buthmxbZiMpCUhS9KLOchzOg0s5LMSvnVNwUHXYU6GVd8+rM3U300P/ElYDwLXfd2SBGAM=","page_age":"2 weeks ago"},{"type":"web_search_result","title":"iPhone 18 launches next month: iPhone 18 Pro release date, price, battery updates and everything else we know so far","url":"https://tech.yahoo.com/phones/breaking-news/article/iphone-18-launches-next-month-everything-you-need-to-know-about-the-iphone-18-pro-release-date-pricing-battery-updates-and-more-175120221.html","encrypted_content":"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","page_age":"2 weeks ago"},{"type":"web_search_result","title":"iPhone 18 series: the 5 biggest rumors so far, from camera upgrades to new display tech","url":"https://www.techradar.com/phones/iphone/iphone-18-series-the-5-biggest-rumors-so-far-from-camera-upgrades-to-new-display-tech","encrypted_content":"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","page_age":null},{"type":"web_search_result","title":"post 2024186","url":"https://forums.tomsguide.com/threads/ios-18-possible-release-date-new-features-supported-devices-and-more.523766/post-2024186","encrypted_content":"ErkECioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDPPQpGzcqF8/Jp5oNBoMDpFxKlJZ41u7wcLLIjBMv9q8ktuHOc95KMoET7nb6/W1//ibtRm+UXO8iJ4XV4JIpfYApKova53NQlYtC04qvAOf4duwOf0hkXQ9mNmq+Y8k0EPf7X+gVn2eFc+NfNMVopiU9ua5FOv7DJ65vJNsQAdg2HS2e83iZpGi6gZgEJpmKc2qxmdbz+nxrmSqLpMkkwQX9qsNX1e1dMIQjeCLgga2qEBa+NNt7mrDUItsjulsW2camzTNvolpR+Xm9tyqGXG83CRksZXzbdi6svag5e92/XSMN8n2K3aDmlpcXX5gOq8ofGK6Ib7hPPhwCAq8gOowBg/HeVN1mga3gQ9+L1OjEghoDj+olXMg1SMGE12qarqODkMPYcQQ8/cvx72R62AlbSCQwDJ6dtkFHdDpaqgrpDoA2KOfGgI/4CwJZgLu/ZoQQWSjCbkWX6Crnj43pmBgcRqUnrbGD2FnUlCoP7Ey6RAX51FXNydQKOGkuHZcj9gKpD+bj9Vs36y1mC/ugVFTCjlnaqrJC1uYegdUgVvY6BgBWadLQAoYJmWErJRqHBteNtiItaC942AOJWDADcAck/S+v/bzAKdRPyZE6kSoVdFNRf0+6G00aXBe9LT9lj/P26diJGk+8Gpk0iir+Rpxzm4/oYYXduqHRmNJQFQCCha0PRVXkJMc5IgYAw==","page_age":null}],"caller":{"type":"direct"}}     }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1       }
+
+event: content_block_start
+data: {"type":"content_block_start","index":2,"content_block":{"type":"text","text":""}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"Here's a"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":" rundown of the lat"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"est iPhone 18"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":" rumors "}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":"ahead of"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":" Apple's expected September 2026 launch:\n\n## Release Timeline\nApple is reportedly shifting to a split-launch strategy this cycle."} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"text_delta","text":" "}      }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":2   }
+
+event: content_block_start
+data: {"type":"content_block_start","index":3,"content_block":{"citations":[],"type":"text","text":""}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Instead of introducing four new iPhones in September 2026, the iPhone 18 lineup will come out across fall 2026 and spring 2027. The more expensive iPh...","url":"https://www.macrumors.com/roundup/iphone-18/","title":"iPhone 18: Rumors and Release Date","encrypted_index":"EpEBCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDABFK8iuzzmJVLmdohoMm2rZggUpGFPKDtOpIjBEGjynNThHadr+vOvp8Z+V+d/3mpeENwv7aWHjBz7y0VAAUsxbZbcALLDdQxiUeQgqFdSQTTFje9Ds9LrOyM/ebX4p7a4nRxgE"}}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"text_delta","text":"Instead of introducing four new iPhones in September 2026, the iPhone 18 lineup will come out across fall 2026 and spring 2027, with the more expensive i"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"text_delta","text":"Phone 18 Pro and iPhone 18 Pro Max launching in September as usual, alongside the first foldable iPhone."}           }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":3      }
+
+event: content_block_start
+data: {"type":"content_block_start","index":4,"content_block":{"type":"text","text":""}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":4,"delta":{"type":"text_delta","text":" "}            }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":4        }
+
+event: content_block_start
+data: {"type":"content_block_start","index":5,"content_block":{"citations":[],"type":"text","text":""}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":5,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"After the fall launch, Apple will introduce the standard iPhone 18, the iPhone 18e, and possibly a second-generation iPhone Air in spring 2027. ","url":"https://www.macrumors.com/roundup/iphone-18/","title":"iPhone 18: Rumors and Release Date","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDPcZauXZwyZyQmiAwRoMtBCtWy1IKqvdJ7QJIjCKeArdrnIt/kIYHXHTlPAdiPA8IgyAL4vM12G8Ov7hI4Pm/g7eoZxPbkfXoqP3o+cqE7PR3uY+XIWAenHogVZOZJGj7+IYBA=="}}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":5,"delta":{"type":"text_delta","text":"After the fall launch,"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":5,"delta":{"type":"text_delta","text":" Apple will introduce the standard iPhone 18, the iPhone 18e, and possibly a second-generation iPhone Air in spring 2027."}            }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":5   }
+
+event: content_block_start
+data: {"type":"content_block_start","index":6,"content_block":{"type":"text","text":""}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":6,"delta":{"type":"text_delta","text":"\n\nAccording to recent reporting, "}            }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":6         }
+
+event: content_block_start
+data: {"type":"content_block_start","index":7,"content_block":{"citations":[],"type":"text","text":""}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Apple is expected to unveil the iPhone 18 Pro, iPhone 18 Pro Max, and a foldable \"iPhone Ultra\" in the first half of September, and the devices should...","url":"https://www.macrumors.com/2026/08/02/iphone-18-pro-next-month-12-new-features/","title":"iPhone 18 Pro Launching Next Month With These 12 New Features - MacRumors","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDOc94RbUnwJiV2QLUxoMFMuDU45U0EeR/w9VIjAGvgypbNnmg/nk6+RICA/MP+aPmSyCEWsrG+ba6TvEiEaxEAfhf3axtr7EtJ0qaV4qE3QPmyekMHLuFzEwsWcAl+Culh4YBA=="}}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"text_delta","text":"Apple is expected to unveil the iP"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":7,"delta":{"type":"text_delta","text":"hone 18 Pro, iPhone 18 Pro Max, and a foldable \"iPhone Ultra\" in the first half of September, with devices released in the second half of the month."}    }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":7              }
+
+event: content_block_start
+data: {"type":"content_block_start","index":8,"content_block":{"type":"text","text":""}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":8,"delta":{"type":"text_delta","text":"\n\n## Design & Display"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":8,"delta":{"type":"text_delta","text":"\n"}       }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":8              }
+
+event: content_block_start
+data: {"type":"content_block_start","index":9,"content_block":{"citations":[],"type":"text","text":""}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":9,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"The iPhone 18 Pro models are expected to feature the same general design as the iPhone 17 Pro models, offering a triple-lens rear camera system with c...","url":"https://www.macrumors.com/roundup/iphone-18/","title":"iPhone 18: Rumors and Release Date","encrypted_index":"EpIBCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDLFd7BM/cRqtuh9hHhoMvqKiaQW0Z2yrjm5CIjD/0LoXZJtZZ5Nh8rRV2v+1kZNAmHwTXNzeOi4o4TA4pWxuf6qXbxYWxC4iGSapop0qFl4AZZnAUtZUCZQ5GiwOjIcurwDtRG8YBA=="}}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":9,"delta":{"type":"text_delta","text":"The iPhone 18 Pro models are expected to feature the same general design as the iPhone 17 Pro models, offering a triple-lens rear camera system with camera plateau, though the front could"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":9,"delta":{"type":"text_delta","text":" look different with a slimmed-down Dynamic Island."}        }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":9      }
+
+event: content_block_start
+data: {"type":"content_block_start","index":10,"content_block":{"type":"text","text":""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":10,"delta":{"type":"text_delta","text":" This is tied to Face ID changes — "}             }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":10}
+
+event: content_block_start
+data: {"type":"content_block_start","index":11,"content_block":{"citations":[],"type":"text","text":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":11,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"The regular iPhone 18, a lower-end iPhone 18e, and a second-generation iPhone Air will reportedly be announced around March 2027. \n\niPhone 18 Pro and ...","url":"https://www.macrumors.com/2026/08/02/iphone-18-pro-next-month-12-new-features/","title":"iPhone 18 Pro Launching Next Month With These 12 New Features - MacRumors","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDAXaSP1XTVvb+4Ej5hoMaYUBcpmLHqxLNXvDIjA19nVtrOCsHe/ozMmM+LlUBz9mDL5s7VyJqMO417e3kOW+zo+wwL6GLPIXxOkvnvMqE7ipOoIWRjXwZpkso/pRovMskSUYBA=="}}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":11,"delta":{"type":"text_delta","text":"it has"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":11,"delta":{"type":"text_delta","text":" been rumored that Face ID's flood illuminator will be moved under the screen on the iPhone 18 Pro models."}      }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":11        }
+
+event: content_block_start
+data: {"type":"content_block_start","index":12,"content_block":{"type":"text","text":""}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":12,"delta":{"type":"text_delta","text":"\n\n## Camera Upgrades\nOne of the bi"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":12,"delta":{"type":"text_delta","text":"ggest changes is expected in the camera system. "}     }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":12      }
+
+event: content_block_start
+data: {"type":"content_block_start","index":13,"content_block":{"citations":[],"type":"text","text":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"There are rumors of a meaningful camera change, with at least one of the Phone 18 Pro models set to gain a variable aperture lens for the main camera....","url":"https://www.macrumors.com/roundup/iphone-18/","title":"iPhone 18: Rumors and Release Date","encrypted_index":"EpMBCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDBdH5JaDT2tEam2bYBoM+eFovJ12Uw2jSVcrIjCItuZsbwYQVltxFSICoAO3RKfpPtRiSXY0Bum6ne7ksVMMSC2eDQVZw4ul8IROUmUqFzPG/BAvniVzUXpgo9RHJkdEgtb69J7KGAQ="}}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"text_delta","text":"There are rumors of a meaningful camera change, with at least one of"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"text_delta","text":" the iPhone 18 Pro models set to gain a variable aperture lens for the main camera, letting users manually adjust how much light gets to the sensor for reduced overexposure and more creative control over dep"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":13,"delta":{"type":"text_delta","text":"th of field."}     }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":13     }
+
+event: content_block_start
+data: {"type":"content_block_start","index":14,"content_block":{"type":"text","text":""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":14,"delta":{"type":"text_delta","text":" Additionally, "}           }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":14 }
+
+event: content_block_start
+data: {"type":"content_block_start","index":15,"content_block":{"citations":[],"type":"text","text":""}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":15,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Apple is also rumored to have a wider aperture Telephoto camera ...\n\nRyan Christoffel | Aug 17 2026 - 8:33 am PT · 26 Comments · Next month’s new iPho...","url":"https://9to5mac.com/2026/08/17/iphone-18-pro-six-new-features-are-coming-this-fall/","title":"iPhone 18 Pro: Six new features are coming next month - 9to5Mac","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDHqXODFNVD4wby4qixoMzBZwONx+xslAREMZIjDw74+oMyWeZGRuxMJIB1lLxLbnROtO3cUjoNpqyNoF5paieJRYEtFihCVpXY2NaA8qE0Oo6CoDpHM42Vpd4uLj76wh/4wYBA=="}}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":15,"delta":{"type":"text_delta","text":"Apple is also rumored to have a wider aperture Telephoto camera."}       }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":15       }
+
+event: content_block_start
+data: {"type":"content_block_start","index":16,"content_block":{"type":"text","text":""}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":16,"delta":{"type":"text_delta","text":" Selfie cameras are also expected to impro"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":16,"delta":{"type":"text_delta","text":"ve, with "}  }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":16     }
+
+event: content_block_start
+data: {"type":"content_block_start","index":17,"content_block":{"citations":[],"type":"text","text":""}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":17,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Key improvements include variable aperture cameras, 24MP selfie cameras, Apple’s new A20 chip promising 15% faster performance, and expanded satellite...","url":"https://www.macworld.com/article/2953687/iphone-18-pro-2026-release-date-design-specs-rumors.html","title":"iPhone 18 Pro & Pro Max Rumors: Release Date, A20 Chip, Dynamic Island Changes and more | Macworld","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDKaTQU2FzAhUeNmFLxoM5YQb+JlPn9JKYAs6IjD23APONSD32GcT78yc3/dN5Rgmu/R5jNEyzUa0wk/mQb74bdMjcXDKfAobTVjk4e8qE5cRKdB/BHFXLdCE/5HJQ3ZUG3EYBA=="}}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":17,"delta":{"type":"text_delta","text":"24MP selfie cameras"}         }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":17     }
+
+event: content_block_start
+data: {"type":"content_block_start","index":18,"content_block":{"type":"text","text":""}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":18,"delta":{"type":"text_delta","text":" reportedly in the works.\n\n## Chip & Connectivity"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":18,"delta":{"type":"text_delta","text":"\n"}  }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":18     }
+
+event: content_block_start
+data: {"type":"content_block_start","index":19,"content_block":{"citations":[],"type":"text","text":""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":19,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"The iPhone 18 Pro and Pro Max are expected to launch in September 2026 featuring several cutting-edge hardware advancements, including the debut of Ap...","url":"https://www.macworld.com/article/2953687/iphone-18-pro-2026-release-date-design-specs-rumors.html","title":"iPhone 18 Pro & Pro Max Rumors: Release Date, A20 Chip, Dynamic Island Changes and more | Macworld","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDLA6ZScEYIicElMvUxoMFiQ/hiuTO00bZt2OIjAJM+OLNDM6PXwHHDhOuiOR/V+8AJxsXIctR/Ld0SFLq8MuV4mNcXlKUyEC1pgqa/IqEwXdG6bsOdOb+L+qe6hSIgLbvG8YBA=="}}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":19,"delta":{"type":"text_delta","text":"The iPhone 18 Pro and Pro Max are expected to launch in September 2026 featuring several cutting-edge hardware advancements, including the debut of Apple's C2 modem, and a shift to a 2n"}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":19,"delta":{"type":"text_delta","text":"m manufacturing process for the A20 Pro chip."}      }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":19              }
+
+event: content_block_start
+data: {"type":"content_block_start","index":20,"content_block":{"type":"text","text":""}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":20,"delta":{"type":"text_delta","text":" This new chip should bring meaningful performance gains, as "}          }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":20 }
+
+event: content_block_start
+data: {"type":"content_block_start","index":21,"content_block":{"citations":[],"type":"text","text":""}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":21,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Key improvements include variable aperture cameras, 24MP selfie cameras, Apple’s new A20 chip promising 15% faster performance, and expanded satellite...","url":"https://www.macworld.com/article/2953687/iphone-18-pro-2026-release-date-design-specs-rumors.html","title":"iPhone 18 Pro & Pro Max Rumors: Release Date, A20 Chip, Dynamic Island Changes and more | Macworld","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDGWmiyC4xfwz1XQuUBoMRnAlH8RKz1sHQ1gqIjAGuvjdm1nNvxUC3N2QI3xEKoOORVZqbF3SZEW+O0J/MgH4VbymHdeeDwMeXlrosYsqE47akSrFaVsAhqiiwLKi31+TKS4YBA=="}}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":21,"delta":{"type":"text_delta","text":"Apple's new A20 chip promises 15% faster"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":21,"delta":{"type":"text_delta","text":" performance."}      }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":21       }
+
+event: content_block_start
+data: {"type":"content_block_start","index":22,"content_block":{"type":"text","text":""}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":22,"delta":{"type":"text_delta","text":" Connectivity is also getting a boost, with "}      }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":22   }
+
+event: content_block_start
+data: {"type":"content_block_start","index":23,"content_block":{"citations":[],"type":"text","text":""}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":23,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Key improvements include variable aperture cameras, 24MP selfie cameras, Apple’s new A20 chip promising 15% faster performance, and expanded satellite...","url":"https://www.macworld.com/article/2953687/iphone-18-pro-2026-release-date-design-specs-rumors.html","title":"iPhone 18 Pro & Pro Max Rumors: Release Date, A20 Chip, Dynamic Island Changes and more | Macworld","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDEnzjeviFViN6IDfnhoM5o3VimpEH7Pcz7R+IjD54Dx823njyDVMIaDyPPRuwXFoqHh5m1nR0KEX1XL9aHp8PNW5vqmrH31l/8Owml0qEx42QCaB+esK/cIx8IxKirGMLQMYBA=="}}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":23,"delta":{"type":"text_delta","text":"expanded satellite internet connectivity beyond emergency services."}     }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":23 }
+
+event: content_block_start
+data: {"type":"content_block_start","index":24,"content_block":{"type":"text","text":""}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":24,"delta":{"type":"text_delta","text":"\n\n## Battery\nBatt"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":24,"delta":{"type":"text_delta","text":"ery life improvements are also rumored: "}       }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":24            }
+
+event: content_block_start
+data: {"type":"content_block_start","index":25,"content_block":{"citations":[],"type":"text","text":""}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":25,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Now, a leaker in a post on Weibo claims the handset will have at least a 4,800 mAh capacity battery. It&#x27;s rumored that the battery will have a du...","url":"https://tech.yahoo.com/phones/breaking-news/article/iphone-18-launches-next-month-everything-you-need-to-know-about-the-iphone-18-pro-release-date-pricing-battery-updates-and-more-175120221.html","title":"iPhone 18 launches next month: iPhone 18 Pro release date, price, battery updates and everything else we know so far","encrypted_index":"EpEBCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDEm2AwWyYM0bhW54XRoMM7caTAz21Ya5BShbIjCr5Z57H9fN8yb4bcPESiV3R76B/g30NQAg5phVsqjnmW2ImnmrbBhPQhKNY7DqFtYqFXrLjFCd3w4cKUG1vnQvfmZprVt6gBgE"}}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":25,"delta":{"type":"text_delta","text":"a leaker claims the handset will have at least a 4,800 mAh capacity battery, with a dual-cell design cons"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":25,"delta":{"type":"text_delta","text":"isting of one 1,921 mAh cell and one 2,962 mAh cell."}               }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":25          }
+
+event: content_block_start
+data: {"type":"content_block_start","index":26,"content_block":{"type":"text","text":""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":26,"delta":{"type":"text_delta","text":"\n\n## Colors\nColor options may be more subdued this year. "}             }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":26               }
+
+event: content_block_start
+data: {"type":"content_block_start","index":27,"content_block":{"citations":[],"type":"text","text":""}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":27,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"... Lastly, don't expect to see any bright colors this time around. Instead, Apple reportedly will keep to two colors: a silver/white finish and an in...","url":"https://tech.yahoo.com/phones/breaking-news/article/iphone-18-launches-next-month-everything-you-need-to-know-about-the-iphone-18-pro-release-date-pricing-battery-updates-and-more-175120221.html","title":"iPhone 18 launches next month: iPhone 18 Pro release date, price, battery updates and everything else we know so far","encrypted_index":"EpMBCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDLq7Is/XrYqG0ANvkxoMlNrnpYt4wNQQhZ3YIjDb9neL+mz9TSFRi+eqzdMiu1IQwDtt10p5RbncXesAQjW1tb5runz6atngM76ZAwcqF5v/t1uEDLeqDeXRdFkvp5l0qkastuF8GAQ="}}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":27,"delta":{"type":"text_delta","text":"Don't expect to"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":27,"delta":{"type":"text_delta","text":" see any bright colors this time around — instead, Apple reportedly will keep to two colors: a silver/white finish and an indigo option resembling the iPhone 17 P"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":27,"delta":{"type":"text_delta","text":"ro's Deep Blue color."}  }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":27               }
+
+event: content_block_start
+data: {"type":"content_block_start","index":28,"content_block":{"type":"text","text":""}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":28,"delta":{"type":"text_delta","text":" However, other reports suggest "}        }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":28             }
+
+event: content_block_start
+data: {"type":"content_block_start","index":29,"content_block":{"citations":[],"type":"text","text":""}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":29,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Multiple rumors have suggested Apple is testing a deep red finish for the iPhone 18 Pro models, and the color is expected to be the special color that...","url":"https://www.macrumors.com/roundup/iphone-18-pro/","title":"iPhone 18 Pro: Everything We Know | MacRumors","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDO73QSfUeIRa//i/jBoM2lawniQ19hY3glfXIjABpOI3+MlDR/6NAYUhRHqsGKbhiRNFB6Z0Q99wlbHpOOHXUq6BRSAUso6tuBBPOOkqE08pMo+EdAg7rA60pwOdjsM5+SUYBA=="}}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":29,"delta":{"type":"text_delta","text":"multiple rumors have suggested Apple is testing a deep red finish for the i"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":29,"delta":{"type":"text_delta","text":"Phone 18 Pro models, expected to be the special color Apple chooses in 2026"}            }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":29       }
+
+event: content_block_start
+data: {"type":"content_block_start","index":30,"content_block":{"type":"text","text":""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":30,"delta":{"type":"text_delta","text":" — "}  }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":30   }
+
+event: content_block_start
+data: {"type":"content_block_start","index":31,"content_block":{"citations":[],"type":"text","text":""}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":31,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"According to Macworld, the red shade may be more of a dark cherry color ...\n\n","url":"https://www.macrumors.com/roundup/iphone-18-pro/","title":"iPhone 18 Pro: Everything We Know | MacRumors","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDOPgYfPf/wUhC3PmOxoMm/JzKZop1kwoC90ZIjAqyLzwSjdGkMhq1capIHfmcyvUamCRdUOmY9WgTE4m8DeGMpZ6ZuOekWuO7iX/yH8qE6OishskdBpp+BsDPHYM//7F4rwYBA=="}}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":31,"delta":{"type":"text_delta","text":"possibly more of a dark cherry shade."}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":31     }
+
+event: content_block_start
+data: {"type":"content_block_start","index":32,"content_block":{"type":"text","text":""}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":32,"delta":{"type":"text_delta","text":"\n\n## The Foldable iPhone\nPerhaps the biggest story of this cycle is Apple's first foldable device. "}        }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":32}
+
+event: content_block_start
+data: {"type":"content_block_start","index":33,"content_block":{"citations":[],"type":"text","text":""}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":33,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"The iPhone 18 Pro, iPhone 18 Pro Max, and iPhone Fold are coming September 2026. iPhone 18 to launch in spring 2027. ... With no iPhone 18 planned unt...","url":"https://www.macrumors.com/roundup/iphone-18-pro/","title":"iPhone 18 Pro: Everything We Know | MacRumors","encrypted_index":"EpEBCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDOhXab5Axh6PrxwFdhoMIpbuW6TKkFi+yn2tIjDh2+iT5oABtwpq2gifqt+aT41ytaIrXPbc6Mc//picTmNI7i0i0r3GRzRpx8h02DMqFdN2iLTQtdu7k7HfoOIUtQ5NKH6HJxgE"}}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":33,"delta":{"type":"text_delta","text":"The iPhone 18 Pro, iPhone 18 Pro"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":33,"delta":{"type":"text_delta","text":" Max, and iPhone Fold are coming September 2026, with the foldable expected to be around 5.5 inches when closed and approximately 7.8 inches when open."} }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":33    }
+
+event: content_block_start
+data: {"type":"content_block_start","index":34,"content_block":{"type":"text","text":""}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":34,"delta":{"type":"text_delta","text":" It's expected to be a"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":34,"delta":{"type":"text_delta","text":" premium device, as "}         }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":34}
+
+event: content_block_start
+data: {"type":"content_block_start","index":35,"content_block":{"citations":[],"type":"text","text":""}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":35,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"We'll get Apple's three most expensive iPhones in the fall: iPhone 18 Pro, the iPhone 18 Pro Max, and the iPhone Fold, which could be upwards of $2,00...","url":"https://www.macrumors.com/roundup/iphone-18/","title":"iPhone 18: Rumors and Release Date","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDFvmJbf5goKciNw1ShoMiD57QICj5VkEXQACIjAftNTTlGcjB/NgkZUan97W54XB1209abTYDM8a5ElCwwet4mbvQpVGYHv5aFHw3yUqE2YRSczt3+oyQttG4g38StR1zGYYBA=="}}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":35,"delta":{"type":"text_delta","text":"the iPhone Fold could be upwards of $2,000."}             }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":35      }
+
+event: content_block_start
+data: {"type":"content_block_start","index":36,"content_block":{"type":"text","text":""}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":36,"delta":{"type":"text_delta","text":"\n\n## Camera Control Button Changes"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":36,"delta":{"type":"text_delta","text":"\n"} }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":36         }
+
+event: content_block_start
+data: {"type":"content_block_start","index":37,"content_block":{"citations":[],"type":"text","text":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":37,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Simplified Camera Control: Apple is expected to simplify the Camera Control button on the iPhone 18 Pro models, by removing touch sensitivity and hapt...","url":"https://www.macrumors.com/2026/08/02/iphone-18-pro-next-month-12-new-features/","title":"iPhone 18 Pro Launching Next Month With These 12 New Features - MacRumors","encrypted_index":"EpEBCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDL1YBxSa3nB+jbEyexoMeOzNJ1HVSoXvasXWIjBa7tpYfQD2Q37ZmrtHhrxtSiut5d3Cr7BiHcxBK2VJoNW0TFmhCS3u6n7Ha9rnNn8qFTbjesUFQ7LEp9VWsJ5ktCrF4wZlMhgE"}}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":37,"delta":{"type":"text_delta","text":"Apple is expected to simplify the Camera Control button on the iPhone 18 Pro models by removing touch sensitivity and haptic feedback, with the redesigned button only having pressure sensitivity."}  }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":37       }
+
+event: content_block_start
+data: {"type":"content_block_start","index":38,"content_block":{"type":"text","text":""}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":38,"delta":{"type":"text_delta","text":"\n\n## Software Focus\nOn"}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":38,"delta":{"type":"text_delta","text":" the software side, "}        }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":38      }
+
+event: content_block_start
+data: {"type":"content_block_start","index":39,"content_block":{"citations":[],"type":"text","text":""}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":39,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Apple will reveal iPhone 18 with an increased focus on Apple Intelligence and new features like an LLM-based Siri in 2026. ","url":"https://appleinsider.com/inside/iphone-18","title":"iPhone 18 | Rumors, Specs, Release Date","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDP82Mj+Z/kZJyVJjrhoMj1k22HO5CELyr9nuIjCbpVg1n/ttGXQxoHolq4YHj5qFCDLZhGoC2V51pXmO9tmKMzGYids08tOT9HrYLkEqE9wvQjqbM3BU1NM0YWpP9bpM5loYBA=="}}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":39,"delta":{"type":"text_delta","text":"Apple will reveal iPhone 18 with an increased focus on Apple Intelligence and new features like an LLM-based Siri in 2026."}          }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":39        }
+
+event: content_block_start
+data: {"type":"content_block_start","index":40,"content_block":{"type":"text","text":""}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":40,"delta":{"type":"text_delta","text":"\n\nOverall, most"}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":40,"delta":{"type":"text_delta","text":" of the buzz is centered on the Pro models and the foldable since "}         }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":40     }
+
+event: content_block_start
+data: {"type":"content_block_start","index":41,"content_block":{"citations":[],"type":"text","text":""}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":41,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location","cited_text":"Most rumors about the iPhone 18 lineup are focused on the foldable iPhone and the iPhone 18 Pro models, because they're coming first and because they'...","url":"https://www.macrumors.com/roundup/iphone-18/","title":"iPhone 18: Rumors and Release Date","encrypted_index":"Eo8BCioIExgCIiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWISDGFTbJy4Yfkd4xkQ+BoMc98vuO13xU8P85/bIjA8CNAxISIvCWft6U0R05AJxXJckr3txqlZakxnQBVaFD+zxDGHjO2VrGpcuH2PCE8qE1lhHGizRa13Lb7lDnpnMkdyNgwYBA=="}}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":41,"delta":{"type":"text_delta","text":"they're coming first and have more new features than the iPhone 18 models that are being held until"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":41,"delta":{"type":"text_delta","text":" later."}      }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":41   }
+
+event: message_delta
+data: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null,"stop_details":null},"usage":{"input_tokens":14572,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1829,"output_tokens_details":{"thinking_tokens":0},"server_tool_use":{"web_search_requests":1,"web_fetch_requests":0}},"context_management":{"applied_edits":[]}   }
+
+event: message_stop
+data: {"type":"message_stop"              }
+

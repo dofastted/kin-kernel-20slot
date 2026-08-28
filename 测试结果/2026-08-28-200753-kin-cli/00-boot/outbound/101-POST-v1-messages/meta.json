@@ -1,0 +1,93 @@
+{
+  "seq": 101,
+  "case": "00-boot",
+  "ts": 1787947740.769294,
+  "iso": "2026-08-28T20:09:00Z",
+  "method": "POST",
+  "path": "/v1/messages?beta=true",
+  "upstream": "https://api.anthropic.com/v1/messages?beta=true",
+  "status": 200,
+  "elapsed_ms": 3082,
+  "req_bytes": 6719,
+  "resp_bytes": 1363,
+  "resp_decoded_bytes": 1363,
+  "accept_encoding_stripped": true,
+  "error": null,
+  "request_summary": {
+    "json": true,
+    "bytes": 6719,
+    "model": "claude-sonnet-5",
+    "stream": true,
+    "max_tokens": 64000,
+    "thinking": {
+      "type": "adaptive"
+    },
+    "output_config": {
+      "effort": "high"
+    },
+    "n_messages": 1,
+    "user_head": "<system-reminder>\nAs you answer the user's questions, you can use the following context:\n# currentDate\nToday's date is 2026-08-28.\n\n      IMPORTANT: this context may or may not be relevant to your tas",
+    "tools": [
+      "WebSearch",
+      "mcp__kin_runtime__slot_wait",
+      "mcp__kin_runtime__client_tool",
+      "mcp__kin_runtime__kin_done",
+      "mcp__kin_runtime__kin_fail"
+    ],
+    "n_tools": 5,
+    "system_blocks": [
+      {
+        "kind": "billing",
+        "chars": 95,
+        "head": "x-anthropic-billing-header: cc_version=2.1.250.c1b; cc_entrypoint=sdk-cli; cc_is_subagent=true;"
+      },
+      {
+        "kind": "other",
+        "chars": 62,
+        "head": "You are a Claude agent, built on Anthropic's Claude Agent SDK."
+      },
+      {
+        "kind": "kin_slot",
+        "chars": 2440,
+        "head": "You are a persistent Kin request slot. Repeatedly call mcp__kin_runtime__slot_wait. The job payload is a full Anthropic Messages request: system, thinking, tool_choice, tools, mess"
+      }
+    ],
+    "metadata_user_id": "{\"device_id\":\"6a27af91edaa4c54de787ff556a83de34fb3987f11ce315044b4c44008e03d8a\",\"account_uuid\":\"174d10b6-0dd8-4819-9311-7a70ccd97abd\",\"session_id\":\"050e9127-2fe1-4270-88a2-5fd08e988afe\"}",
+    "keys": [
+      "context_management",
+      "max_tokens",
+      "messages",
+      "metadata",
+      "model",
+      "output_config",
+      "stream",
+      "system",
+      "thinking",
+      "tools"
+    ]
+  },
+  "response_preview": {
+    "kind": "sse",
+    "model": "claude-sonnet-5",
+    "stop": "tool_use",
+    "tools": [
+      "mcp__kin_runtime__slot_wait"
+    ],
+    "usage": {
+      "input_tokens": 2,
+      "cache_creation_input_tokens": 2518,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 2518,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 39,
+      "service_tier": "standard",
+      "inference_geo": "not_available",
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      }
+    },
+    "text_head": ""
+  }
+}

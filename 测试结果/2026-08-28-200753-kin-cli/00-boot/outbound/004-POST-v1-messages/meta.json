@@ -1,0 +1,132 @@
+{
+  "seq": 4,
+  "case": "00-boot",
+  "ts": 1787947737.3759534,
+  "iso": "2026-08-28T20:08:57Z",
+  "method": "POST",
+  "path": "/v1/messages?beta=true",
+  "upstream": "https://api.anthropic.com/v1/messages?beta=true",
+  "status": 200,
+  "elapsed_ms": 61258,
+  "req_bytes": 105948,
+  "resp_bytes": 71140,
+  "resp_decoded_bytes": 71140,
+  "accept_encoding_stripped": true,
+  "error": null,
+  "request_summary": {
+    "json": true,
+    "bytes": 105948,
+    "model": "claude-sonnet-5",
+    "stream": true,
+    "max_tokens": 64000,
+    "thinking": {
+      "type": "adaptive"
+    },
+    "output_config": {
+      "effort": "high"
+    },
+    "n_messages": 2,
+    "user_head": "<system-reminder>\nAs you answer the user's questions, you can use the following context:\n# currentDate\nToday's date is 2026-08-28.\n\n      IMPORTANT: this context may or may not be relevant to your tas",
+    "tools": [
+      "Agent",
+      "Bash",
+      "CronCreate",
+      "CronDelete",
+      "CronList",
+      "DesignSync",
+      "Edit",
+      "EnterWorktree",
+      "ExitWorktree",
+      "ListAgents",
+      "NotebookEdit",
+      "Read",
+      "ReportFindings",
+      "ScheduleWakeup",
+      "SendMessage",
+      "Skill",
+      "TaskOutput",
+      "TaskStop",
+      "WebFetch",
+      "WebSearch",
+      "Write",
+      "mcp__kin_runtime__client_tool",
+      "mcp__kin_runtime__kin_done",
+      "mcp__kin_runtime__kin_fail",
+      "mcp__kin_runtime__slot_wait"
+    ],
+    "n_tools": 25,
+    "system_blocks": [
+      {
+        "kind": "billing",
+        "chars": 74,
+        "head": "x-anthropic-billing-header: cc_version=2.1.250.26f; cc_entrypoint=sdk-cli;"
+      },
+      {
+        "kind": "other",
+        "chars": 62,
+        "head": "You are a Claude agent, built on Anthropic's Claude Agent SDK."
+      },
+      {
+        "kind": "claude_code_identity",
+        "chars": 27572,
+        "head": "\nYou are an interactive agent that helps users with software engineering tasks. Use the instructions below and the tools available to you to assist the user.\n\nIMPORTANT: Assist wit"
+      }
+    ],
+    "metadata_user_id": "{\"device_id\":\"6a27af91edaa4c54de787ff556a83de34fb3987f11ce315044b4c44008e03d8a\",\"account_uuid\":\"\",\"session_id\":\"050e9127-2fe1-4270-88a2-5fd08e988afe\"}",
+    "keys": [
+      "context_management",
+      "max_tokens",
+      "messages",
+      "metadata",
+      "model",
+      "output_config",
+      "stream",
+      "system",
+      "thinking",
+      "tools"
+    ]
+  },
+  "response_preview": {
+    "kind": "sse",
+    "model": "claude-sonnet-5",
+    "stop": "tool_use",
+    "tools": [
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent",
+      "Agent"
+    ],
+    "usage": {
+      "input_tokens": 2,
+      "cache_creation_input_tokens": 11441,
+      "cache_read_input_tokens": 25374,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 11441
+      },
+      "output_tokens": 2625,
+      "service_tier": "standard",
+      "inference_geo": "not_available",
+      "output_tokens_details": {
+        "thinking_tokens": 81
+      }
+    },
+    "text_head": ""
+  }
+}

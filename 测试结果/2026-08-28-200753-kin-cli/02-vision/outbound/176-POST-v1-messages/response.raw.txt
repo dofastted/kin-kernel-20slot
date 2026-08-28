@@ -1,0 +1,216 @@
+event: message_start
+data: {"type":"message_start","message":{"model":"claude-sonnet-5","id":"msg_011CeVkcb9pGsh19cbg9QbFr","type":"message","role":"assistant","content":[],"stop_reason":null,"stop_sequence":null,"stop_details":null,"usage":{"input_tokens":2,"cache_creation_input_tokens":1474,"cache_read_input_tokens":3271,"cache_creation":{"ephemeral_5m_input_tokens":1474,"ephemeral_1h_input_tokens":0},"output_tokens":4,"service_tier":"standard","inference_geo":"not_available"}}     }
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""}              }
+
+event: ping
+data: {"type": "ping"}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"","estimated_tokens":50}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"","estimated_tokens":100}  }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"","estimated_tokens":null}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"EvIFCqgBCBEYAipAHRfPM6AABFTXcJ4FONH2Q8zuQT2zNvbq9f+yq+eyrcAPwUQQstjMGUd0C+GPHjv2J8saQb2j2xx/xS7z9HraxTIPY2xhdWRlLXNvbm5ldC01OABCCHRoaW5raW5nWiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWJyEDHsou4p9GYLjtQuMqnihWSIAQGoAYHWx9QGsAECEgw1gAwWmJy6K58dIDcaDI1qlU72/ALWejmdYSIwC9IJL93+IZQ20nfLQqsAUU+E9onAtCtsljLKwLAAVy4JbxwjD65IyUyYk+FlFZeHKvYDEtOuh6bJB5A4p8fPcSxvbLc5Jr3JjyVfm44y/ceSWKcBBQifBR9H3hL+a0dMPP4wHj+G4dTxeQVGPQmAR0oPgqsw7G/WcqxrDMt+krtAl3uAVSrNhnipEebcJwLjjBduVAugJYMdDb7mb/NIS0SR19de366Da1L76BXo+x8/a+GFtQnVY+32SAqWPphTO57CxTU6Se73/E5ZvjkjB91tQ/5P6gNOENV9VGdfIGiLr4AWc0nvePwPPluXLPeqAaV2cliT0VjD/zr6aapkehMYDtxzc+qZXo2i5pyxwf6+feJ5JsLTTQfM92vtnCFiS92kcHM3i71350FAdRnbsJsNC9ZF1MHwdXzAmXHjxD77sMvhlSUYdq2uZYAdaXlzOkM5hm4CZYlqkCL2MdabUUZaEuAeDYL93sI31jWwC0AyJ0rkr/7ZbNY97u4g6HsRp+XkVQOLNtbqNqCWC8aYIp6TNrKB63yEWSqMsCacVsUymj+6OF0eV5CyR0hokmiCE9YnaywKAEvO58LDe0zzxp+Txn3IFHd8WnUvqRa7X8ohBprxh5+dpPobIU25B4eoRkQsvPnnCyo6ho2Hn7f6EwRDKicc1r+9ujEDMD9dacvvYfhaLIntZZ6S2a7Q9yZY6JpzSzXzlYpI/8aYJPjVp65ZtTLgHYns5BgB"}          }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0         }
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"text","text":""} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"这是一张 **"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"Google 涂鸎 (Google Doodle)** 图片,名为 **\"World Cup 2026: The Art of the Bicycle Kick\"**(2026年"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"世界杯:倒钩射门的艺术)。\n\n**背景信息:**\n- 这是 Google 在 2026 年 6"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":" 月 17 日发布的一系列世界杯主题涂鸦之一,用来庆祝 2026 年"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"国际足联世界杯。\n- 该系列涂鸦每一期都聚焦足球的一"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"项经典技巧/动作,例如点球、头球、长传、任意"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"球弧线、铲球、踩单车过人等,"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"而这一期专门展示\"倒钩射门\"(bicycle kick,也叫倒挂金钩/"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"剪刀脚)。\n- 倒钩射门是足球中最具观赏性和技术难度的动作之一:球员向后"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"跃起,双腿呈剪刀状交替摆动,将头顶或身"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"后的球踢向前方——需要极高的运动能力、精准的时机把控和大胆的动"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"作。历史上巴西球员莱昂尼达斯(Leônidas)和贝利(Pelé)让这一"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"动作广为人知。\n\n简单来说,这就是 Google 首页在 2026 世界杯期间推出的一个动画/"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"插画涂鸦,用可爱的方式庆祝\"倒钩射门\"这一足球经典技巧。\n\nSources:\n- [World Cup 2026:"}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":" The Art of the Bicycle Kick Doodle - Google Doodles](https://doodles.google/doodle/world-cup-2026-the-art-of-the-bicycle-kick-617/)\n- [Google Doodles/2026 |"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":" Logopedia | Fandom](https://logos.fandom.com/wiki/Google_Doodles/2026)\n- [World Cup 2026: The art of the bicycle kick - YouTube](https://www.youtube.com/watch?v=Te8biWBDD"}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"do)\n- [Bicycle kick - Wikipedia](https://en.wikipedia.org/wiki/Bicycle_kick)"}           }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1              }
+
+event: content_block_start
+data: {"type":"content_block_start","index":2,"content_block":{"type":"tool_use","id":"toolu_017Dw1neszyQG6Xibs9T1AHz","name":"mcp__kin_runtime__kin_done","input":{},"caller":{"type":"direct"}}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":""}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"{\"job_id\""}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":": \"job_c90a"}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"0c45f88"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"8412bb4b"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"06dc9273"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"d0b61\""}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":", \"stop_"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"reason\": \"e"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"nd_turn\""}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":", \""}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"fina"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"l_digest\""}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":": \"Id"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"entif"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ied image as"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" Google Doo"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"dle \\\"World"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" Cup 2026: T"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"he"}      }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" Art of "}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"th"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"e Bicycle Ki"}     }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ck\\\" (June 1"}              }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"7, 2026"}             }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"), part of"}            }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" a Worl"}           }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"d Cu"}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"p 2026 dood"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"le s"}       }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"eries celebr"}   }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ating f"}         }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ootbal"}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"l skills. P"}        }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"rovid"}          }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ed expla"}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"nation "}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"in Chinese "}               }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"wit"} }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"h "}    }
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"sources.\"}"}        }
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":2          }
+
+event: message_delta
+data: {"type":"message_delta","delta":{"stop_reason":"tool_use","stop_sequence":null,"stop_details":null},"usage":{"input_tokens":2,"cache_creation_input_tokens":1474,"cache_read_input_tokens":3271,"output_tokens":1065,"output_tokens_details":{"thinking_tokens":158}},"context_management":{"applied_edits":[]}      }
+
+event: message_stop
+data: {"type":"message_stop"}
+
