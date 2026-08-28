@@ -153,7 +153,7 @@ pub struct Runtime {
     job_sizes: Mutex<HashMap<String, usize>>,
     arbiters: Mutex<HashMap<String, SourceArbiter>>,
     tap_senders: Mutex<HashMap<String, mpsc::Sender<TapEvent>>>,
-    tap_poisoned: Mutex<HashMap<String, Arc<AtomicBool>>>,
+    tap_poisoned: Mutex<HashMap<String, TapPoisonState>>,
     tap_index_allocators: Mutex<HashMap<String, Arc<AtomicUsize>>>,
     tap_drains: Mutex<HashMap<String, TapDrainState>>,
     tap_turns: Mutex<HashMap<String, u64>>,
@@ -190,6 +190,11 @@ struct ByteBudget {
 struct TapDrainState {
     active: usize,
     notify: Arc<Notify>,
+}
+
+struct TapPoisonState {
+    turn_id: u64,
+    poisoned: Arc<AtomicBool>,
 }
 
 #[derive(Debug)]
@@ -395,6 +400,9 @@ impl Runtime {
         if self.cfg.relay_mode != RelayMode::Off {
             let handle = relay::spawn(Arc::clone(self), &self.cfg).await?;
             relay::confirm_healthy(handle.addr).await?;
+            relay::upstream::UpstreamClient::new(&self.cfg.relay_upstream)?
+                .preflight()
+                .await?;
             anthropic_base_url = Some(format!("http://{}", handle.addr));
             let _ = self.relay.set(handle);
         }
@@ -1034,10 +1042,13 @@ impl Runtime {
         let (tap_tx, tap_rx) = mpsc::channel(256);
         let poisoned = Arc::new(AtomicBool::new(false));
         self.tap_senders.lock().await.insert(job_id.clone(), tap_tx);
-        self.tap_poisoned
-            .lock()
-            .await
-            .insert(job_id.clone(), Arc::clone(&poisoned));
+        self.tap_poisoned.lock().await.insert(
+            job_id.clone(),
+            TapPoisonState {
+                turn_id: 0,
+                poisoned: Arc::clone(&poisoned),
+            },
+        );
         self.tap_drains.lock().await.insert(
             job_id.clone(),
             TapDrainState {
@@ -1052,13 +1063,12 @@ impl Runtime {
             .insert(job_id.clone(), SourceArbiter::new(self.cfg.relay_mode));
         let runtime = Arc::downgrade(self);
         tokio::spawn(async move {
-            job_tap_forwarder(runtime, job_id, tap_rx, poisoned).await;
+            job_tap_forwarder(runtime, job_id, tap_rx).await;
         });
     }
 
     pub(crate) async fn tap_binding(&self, job_id: &str) -> Option<relay::sse_tap::TapBinding> {
         let events = self.tap_senders.lock().await.get(job_id).cloned()?;
-        let poisoned = self.tap_poisoned.lock().await.get(job_id).cloned();
         let index_allocator = self
             .tap_index_allocators
             .lock()
@@ -1073,6 +1083,13 @@ impl Runtime {
             .get(job_id)
             .copied()
             .unwrap_or(0);
+        let poisoned = self
+            .tap_poisoned
+            .lock()
+            .await
+            .get(job_id)
+            .filter(|state| state.turn_id == turn_id)
+            .map(|state| Arc::clone(&state.poisoned));
         Some(relay::sse_tap::TapBinding {
             events,
             poisoned,
@@ -1082,19 +1099,25 @@ impl Runtime {
     }
 
     pub fn relay_snapshot(&self) -> Value {
-        let (healthy, dropped, mismatch) = match self.relay.get() {
+        let (healthy, dropped, mismatch, hit, miss, started) = match self.relay.get() {
             Some(handle) => (
                 handle.healthy(),
                 handle.metrics.tap_dropped.load(Ordering::Relaxed),
                 handle.metrics.digest_mismatch.load(Ordering::Relaxed),
+                handle.metrics.correlate_hit.load(Ordering::Relaxed),
+                handle.metrics.correlate_miss.load(Ordering::Relaxed),
+                handle.metrics.tap_response_started.load(Ordering::Relaxed),
             ),
-            None => (false, 0, 0),
+            None => (false, 0, 0, 0, 0, 0),
         };
         json!({
             "relay_mode": self.cfg.relay_mode.as_str(),
             "relay_healthy": healthy,
             "tap_dropped": dropped,
             "digest_mismatch": mismatch,
+            "correlate_hit": hit,
+            "correlate_miss": miss,
+            "tap_response_started": started,
         })
     }
 
@@ -1181,7 +1204,12 @@ impl Runtime {
     }
 
     async fn note_tap_incomplete(&self, job_id: &str) {
-        if let Some(poisoned) = self.tap_poisoned.lock().await.get(job_id)
+        if let Some(poisoned) = self
+            .tap_poisoned
+            .lock()
+            .await
+            .get(job_id)
+            .map(|state| Arc::clone(&state.poisoned))
             && !poisoned.swap(true, Ordering::Relaxed)
             && let Some(handle) = self.relay.get()
         {
@@ -1336,12 +1364,19 @@ impl Runtime {
             job_id.clone(),
             JobStream::with_index_allocator(index_allocator),
         );
-        if let Some(poisoned) = self.tap_poisoned.lock().await.get(&job_id) {
-            poisoned.store(false, Ordering::Relaxed);
-        }
-        if let Some(turn) = self.tap_turns.lock().await.get_mut(&job_id) {
+        let turn_id = {
+            let mut turns = self.tap_turns.lock().await;
+            let turn = turns.entry(job_id.clone()).or_insert(0);
             *turn = turn.saturating_add(1);
-        }
+            *turn
+        };
+        self.tap_poisoned.lock().await.insert(
+            job_id.clone(),
+            TapPoisonState {
+                turn_id,
+                poisoned: Arc::new(AtomicBool::new(false)),
+            },
+        );
         if let Some(drain) = self.tap_drains.lock().await.get_mut(&job_id) {
             drain.active = 0;
             drain.notify.notify_waiters();
@@ -1538,16 +1573,12 @@ async fn job_tap_forwarder(
     runtime: Weak<Runtime>,
     job_id: String,
     mut rx: mpsc::Receiver<TapEvent>,
-    poisoned: Arc<AtomicBool>,
 ) {
     while let Some(event) = rx.recv().await {
         let Some(runtime) = runtime.upgrade() else {
             return;
         };
         if apply_tap_event(&runtime, &job_id, event).await {
-            return;
-        }
-        if poisoned.load(Ordering::Relaxed) && fail_if_upstream_poisoned(&runtime, &job_id).await {
             return;
         }
     }
@@ -1923,6 +1954,9 @@ impl Provider for MultiplexCliProvider {
                 "relay_healthy": false,
                 "tap_dropped": 0,
                 "digest_mismatch": 0,
+                "correlate_hit": 0,
+                "correlate_miss": 0,
+                "tap_response_started": 0,
             }),
         })
     }
@@ -1944,7 +1978,7 @@ mod tests {
     use super::*;
     use crate::model::{Message, ToolDefinition};
     use crate::provider::stream_channel;
-    use tokio::time::timeout;
+    use tokio::{net::TcpListener, time::timeout};
 
     fn ctx(session: &str, resumed: bool) -> ExecutionContext {
         ExecutionContext {
@@ -2339,8 +2373,8 @@ mod tests {
             .lock()
             .await
             .register_client_tool("job-resume", None);
-        if let Some(poisoned) = runtime.tap_poisoned.lock().await.get("job-resume") {
-            poisoned.store(true, Ordering::Relaxed);
+        if let Some(state) = runtime.tap_poisoned.lock().await.get("job-resume") {
+            state.poisoned.store(true, Ordering::Relaxed);
         }
         if let Some(arbiter) = runtime.arbiters.lock().await.get_mut("job-resume") {
             let _ = arbiter.on_upstream(&json!({
@@ -2377,6 +2411,7 @@ mod tests {
                 .await
                 .get("job-resume")
                 .unwrap()
+                .poisoned
                 .load(Ordering::Relaxed)
         );
         let state = runtime
@@ -2421,6 +2456,141 @@ mod tests {
                 "content_block": { "type": "text", "text": "" }
             }));
         assert_eq!(event["index"], 4);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn stale_tap_queue_poison_after_resume_does_not_fail_new_turn() {
+        let runtime = Runtime::new(relay_cfg(Duration::from_secs(1)));
+        let (tx1, _rx1) = mpsc::channel(8);
+        runtime.start_job_sink("job-stale-poison".into(), tx1).await;
+        insert_test_job(
+            &runtime,
+            "job-stale-poison",
+            "slot-stale-poison",
+            "sess-stale-poison",
+        )
+        .await;
+        let _tool_rx = runtime
+            .pending
+            .lock()
+            .await
+            .register_client_tool("job-stale-poison", None);
+        runtime.register_tap_response("job-stale-poison").await;
+        let old_binding = runtime.tap_binding("job-stale-poison").await.unwrap();
+        let old_tap = relay::sse_tap::TapQueue::spawn(
+            "job-stale-poison".into(),
+            old_binding.events,
+            Arc::new(relay::metrics::RelayMetrics::default()),
+            old_binding.poisoned,
+            old_binding.index_allocator,
+            old_binding.turn_id,
+        );
+
+        let (tx2, mut rx2) = mpsc::channel(8);
+        let mut request = text_request("resume");
+        request.messages[0].content = MessageContent::Blocks(vec![ContentBlock::ToolResult {
+            tool_use_id: "toolu_resume".into(),
+            content: json!("ok"),
+            is_error: false,
+        }]);
+        runtime
+            .submit(request, ctx("sess-stale-poison", true), tx2)
+            .await
+            .unwrap();
+        assert_eq!(
+            runtime
+                .tap_turns
+                .lock()
+                .await
+                .get("job-stale-poison")
+                .copied(),
+            Some(1)
+        );
+
+        let current = TapEvent {
+            job_id: "job-stale-poison".into(),
+            turn_id: 1,
+            event: json!({
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": { "type": "text_delta", "text": "current" }
+            }),
+        };
+        assert!(!apply_tap_event(&runtime, "job-stale-poison", current).await);
+        old_tap.poison();
+        tokio::task::yield_now().await;
+        tokio::task::yield_now().await;
+
+        let sink = runtime
+            .sinks
+            .lock()
+            .await
+            .get("job-stale-poison")
+            .cloned()
+            .unwrap();
+        assert!(!sink.terminal_failed());
+        assert!(
+            !runtime
+                .tap_poisoned
+                .lock()
+                .await
+                .get("job-stale-poison")
+                .unwrap()
+                .poisoned
+                .load(Ordering::Relaxed)
+        );
+        assert!(
+            !runtime
+                .arbiters
+                .lock()
+                .await
+                .get("job-stale-poison")
+                .unwrap()
+                .failed()
+        );
+
+        runtime
+            .mcp_kin_done(json!({
+                "job_id": "job-stale-poison",
+                "stop_reason": "end_turn",
+                "usage": {},
+                "fallback_content": "fallback"
+            }))
+            .await
+            .unwrap();
+
+        let mut finished = None;
+        while let Some(item) = timeout(Duration::from_secs(1), rx2.recv())
+            .await
+            .expect("stream item")
+        {
+            if let StreamItem::Finished(response) = item.unwrap() {
+                finished = Some(response);
+                break;
+            }
+        }
+        let response = finished.expect("finished response");
+        assert_eq!(response_text(&response), "current");
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn start_claude_preflight_failure_returns_before_cli_spawn() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let upstream_addr = listener.local_addr().unwrap();
+        drop(listener);
+        let mut cfg = relay_cfg(Duration::from_secs(1));
+        cfg.simulate = false;
+        cfg.bin = PathBuf::from("must-not-be-spawned");
+        cfg.mock_bin = false;
+        cfg.relay_upstream = format!("http://{upstream_addr}");
+        let runtime = Runtime::new(cfg);
+
+        let err = runtime.start_claude().await.unwrap_err();
+        assert!(
+            err.to_string().contains("relay upstream preflight"),
+            "{err}"
+        );
+        assert_eq!(runtime.pid(), 0);
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]

@@ -12,14 +12,14 @@ use crate::error::KernelError;
 
 use super::{
     RelayState,
-    correlate::{ContextScanner, last_valid_candidate},
+    correlate::ContextScanner,
     sse_tap::{TapBinding, TapQueue},
 };
 
 pub async fn proxy(State(state): State<RelayState>, req: Request<Body>) -> Response<Body> {
     state.metrics.inc_relay_requests();
     let (parts, body) = req.into_parts();
-    let scanner = Arc::new(Mutex::new(ContextScanner::default()));
+    let scanner = Arc::new(Mutex::new(ContextScanner::new(state.runtime.secret())));
     let scan_ref = Arc::clone(&scanner);
     let body = body.into_data_stream().inspect_ok(move |bytes| {
         if let Ok(mut scanner) = scan_ref.lock() {
@@ -39,21 +39,36 @@ pub async fn proxy(State(state): State<RelayState>, req: Request<Body>) -> Respo
     if let Ok(mut scanner) = scanner.lock() {
         scanner.finish();
     }
-    let candidates = match scanner.lock() {
-        Ok(scanner) => scanner.candidates().to_vec(),
-        Err(_) => Vec::new(),
+    let token = match scanner.lock() {
+        Ok(scanner) => scanner.signed_token(),
+        Err(_) => None,
     };
-    let correlated = match candidates.is_empty() {
-        true => None,
-        false => last_valid_candidate(&candidates, &state.runtime).await,
-    };
-    let response = match upstream {
-        Ok(response) => response,
-        Err(err) => return err.into_response(),
+    let correlated = match token {
+        Some(token) => state.runtime.correlate_lookup(&token).await,
+        None => None,
     };
     let tap = match &correlated {
         Some(job) => state.runtime.tap_binding(&job.job_id).await,
         None => None,
+    };
+    match &correlated {
+        Some(job) => {
+            state.metrics.inc_correlate_hit();
+            let turn_id = tap.as_ref().map(|binding| binding.turn_id).unwrap_or(0);
+            tracing::debug!(
+                job_id = %job.job_id,
+                slot_id = %job.slot_id,
+                turn_id,
+                "relay correlated request"
+            );
+        }
+        None => {
+            state.metrics.inc_correlate_miss();
+        }
+    }
+    let response = match upstream {
+        Ok(response) => response,
+        Err(err) => return err.into_response(),
     };
     let tap = tap.or_else(|| {
         state.tap_events.clone().map(|events| TapBinding {
@@ -78,6 +93,7 @@ async fn upstream_response(
         match (correlated, tap_binding) {
             (Some(job), Some(binding)) => {
                 state.runtime.register_tap_response(&job.job_id).await;
+                state.metrics.inc_tap_response_started();
                 Some(TapQueue::spawn(
                     job.job_id,
                     binding.events,

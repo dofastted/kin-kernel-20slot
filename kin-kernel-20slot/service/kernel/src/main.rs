@@ -78,13 +78,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "kin-kernel listening"
     );
     tokio::spawn(async move {
+        boot_state.mark_provider_booting();
         match boot_state.provider.boot().await {
-            Ok(()) => tracing::info!("provider boot complete"),
+            Ok(()) => {
+                boot_state.mark_provider_ready();
+                tracing::info!("provider boot complete");
+            }
             Err(err) => {
                 // A kernel whose CLI/relay never came up must not accept
                 // traffic: flip every worker unhealthy so /readyz returns 503
                 // and the control plane routes around us.
                 tracing::error!(%err, "provider boot failed; marking kernel not ready");
+                boot_state.mark_provider_failed();
                 boot_state.scheduler.mark_all_unhealthy();
             }
         }

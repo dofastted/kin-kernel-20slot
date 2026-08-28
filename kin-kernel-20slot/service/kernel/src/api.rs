@@ -33,7 +33,7 @@ use crate::{
     },
     provider::{self, ExecutionContext},
     scheduler::WorkerLease,
-    state::AppState,
+    state::{AppState, ProviderBootStatus},
     stream::{StreamItem, openai_chunk},
 };
 
@@ -84,6 +84,23 @@ async fn health(State(state): State<AppState>) -> Json<serde_json::Value> {
 }
 
 async fn ready(State(state): State<AppState>) -> Response {
+    match state.provider_boot_status() {
+        ProviderBootStatus::Booting => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"status": "not_ready", "reason": "booting"})),
+            )
+                .into_response();
+        }
+        ProviderBootStatus::Failed => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"status": "not_ready", "reason": "boot_failed"})),
+            )
+                .into_response();
+        }
+        ProviderBootStatus::Ready => {}
+    }
     if state.scheduler.ready() {
         (StatusCode::OK, Json(json!({"status": "ready"}))).into_response()
     } else {
@@ -695,5 +712,86 @@ impl Stream for ReceiverStream {
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         self.inner.poll_recv(cx)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{sync::Arc, time::Duration};
+
+    use axum::body::to_bytes;
+
+    use super::*;
+    use crate::{
+        config::{Config, IsolationMode},
+        provider::mock::MockProvider,
+        scheduler::Scheduler,
+        session::SessionDirectory,
+    };
+
+    fn test_config() -> Config {
+        Config {
+            listen_addr: "127.0.0.1:0".parse().unwrap(),
+            worker_count: 1,
+            slots_per_worker: 1,
+            isolation: IsolationMode::Multiplexed,
+            max_body_bytes: 1024 * 1024,
+            max_tool_result_bytes: crate::config::MAX_TOOL_RESULT_BYTES,
+            max_session_bytes: 1024 * 1024,
+            session_ttl: Duration::from_secs(60),
+            continuation_ttl: Duration::from_secs(60),
+            slot_max_jobs: 10,
+            slot_max_lifetime: Duration::from_secs(60),
+            default_tenant: "demo".into(),
+            expose_slot_header: true,
+            provider: "mock".into(),
+        }
+    }
+
+    fn test_state() -> AppState {
+        AppState::new(
+            test_config(),
+            Arc::new(Scheduler::new(1, 1)),
+            Arc::new(SessionDirectory::new(
+                Duration::from_secs(60),
+                Duration::from_secs(60),
+                1024 * 1024,
+            )),
+            Arc::new(MockProvider),
+        )
+    }
+
+    async fn response_json(response: Response) -> serde_json::Value {
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        serde_json::from_slice(&body).unwrap()
+    }
+
+    #[tokio::test]
+    async fn readyz_returns_503_until_provider_boot_ready_then_200() {
+        let state = test_state();
+
+        let response = ready(State(state.clone())).await;
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(response_json(response).await["reason"], "booting");
+
+        state.mark_provider_ready();
+        let response = ready(State(state)).await;
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response_json(response).await["status"], "ready");
+    }
+
+    #[tokio::test]
+    async fn readyz_returns_503_after_provider_boot_failed() {
+        let state = test_state();
+        state.mark_provider_failed();
+
+        let response = ready(State(state.clone())).await;
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(response_json(response).await["reason"], "boot_failed");
+
+        state.scheduler.mark_all_unhealthy();
+        let response = ready(State(state)).await;
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(response_json(response).await["reason"], "boot_failed");
     }
 }

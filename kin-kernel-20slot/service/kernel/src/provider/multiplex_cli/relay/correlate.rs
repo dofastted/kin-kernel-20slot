@@ -11,7 +11,6 @@ use super::super::{
 
 pub const KRC_PREFIX: &str = "krc_";
 const MAX_TOKEN_BYTES: usize = 2 * 1024;
-const MAX_CANDIDATES: usize = 64;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RelayContextToken {
@@ -75,13 +74,21 @@ impl RelayContextToken {
     }
 }
 
-#[derive(Debug, Default)]
 pub struct ContextScanner {
     buf: Vec<u8>,
-    candidates: Vec<String>,
+    secret: Vec<u8>,
+    last_valid: Option<RelayContextToken>,
 }
 
 impl ContextScanner {
+    pub fn new(secret: &[u8]) -> Self {
+        Self {
+            buf: Vec::new(),
+            secret: secret.to_vec(),
+            last_valid: None,
+        }
+    }
+
     pub fn push(&mut self, bytes: &Bytes) {
         self.buf.extend_from_slice(bytes);
         self.scan(false);
@@ -93,11 +100,17 @@ impl ContextScanner {
     }
 
     pub async fn last_valid(&self, runtime: &Runtime) -> Option<CorrelatedJob> {
-        last_valid_candidate(&self.candidates, runtime).await
+        let token = self.last_valid.as_ref()?;
+        runtime.correlate_lookup(token).await
     }
 
-    pub(crate) fn candidates(&self) -> &[String] {
-        &self.candidates
+    pub(crate) fn signed_token(&self) -> Option<RelayContextToken> {
+        self.last_valid.clone()
+    }
+
+    #[cfg(test)]
+    pub(crate) fn last_valid_token(&self) -> Option<&RelayContextToken> {
+        self.last_valid.as_ref()
     }
 
     fn scan(&mut self, final_chunk: bool) {
@@ -138,11 +151,9 @@ impl ContextScanner {
                 keep_from = Some(start);
                 break;
             }
-            if cursor - start <= MAX_TOKEN_BYTES
-                && cursor > mac_start
-                && let Ok(candidate) = std::str::from_utf8(&self.buf[start..cursor])
-            {
-                self.push_candidate(candidate.to_string());
+            if cursor - start <= MAX_TOKEN_BYTES && cursor > mac_start {
+                let candidate = self.buf[start..cursor].to_vec();
+                self.push_candidate(&candidate);
             }
             index = cursor.max(index + 1);
         }
@@ -163,27 +174,14 @@ impl ContextScanner {
         }
     }
 
-    fn push_candidate(&mut self, candidate: String) {
-        if self.candidates.len() == MAX_CANDIDATES {
-            self.candidates.remove(0);
-        }
-        self.candidates.push(candidate);
-    }
-}
-
-pub async fn last_valid_candidate(
-    candidates: &[String],
-    runtime: &Runtime,
-) -> Option<CorrelatedJob> {
-    for raw in candidates.iter().rev() {
-        let Ok(token) = RelayContextToken::decode(raw, runtime.secret()) else {
-            continue;
+    fn push_candidate(&mut self, candidate: &[u8]) {
+        let Ok(candidate) = std::str::from_utf8(candidate) else {
+            return;
         };
-        if let Some(job) = runtime.correlate_lookup(&token).await {
-            return Some(job);
+        if let Ok(token) = RelayContextToken::decode(candidate, &self.secret) {
+            self.last_valid = Some(token);
         }
     }
-    None
 }
 
 fn is_lower_hex(byte: u8) -> bool {
@@ -290,20 +288,19 @@ mod tests {
     #[test]
     fn scanner_handles_split_token_and_ignores_fakes() {
         let secret = b"kin-test-secret-32-bytes-pad!!!!";
-        let token = RelayContextToken {
+        let expected = RelayContextToken {
             job_id: "job-1".into(),
             slot_id: "slot-1".into(),
             generation: 7,
             nonce: "nonce".into(),
-        }
-        .encode(secret)
-        .unwrap();
+        };
+        let token = expected.encode(secret).unwrap();
         let split = token.len() / 2;
-        let mut scanner = ContextScanner::default();
+        let mut scanner = ContextScanner::new(secret);
         scanner.push(&Bytes::from(format!("fake krc_bad {}", &token[..split])));
         scanner.push(&Bytes::from(format!("{} end", &token[split..])));
         scanner.finish();
-        assert_eq!(scanner.candidates(), &[token]);
+        assert_eq!(scanner.last_valid_token(), Some(&expected));
     }
 
     #[tokio::test]
@@ -325,7 +322,7 @@ mod tests {
         }
         .encode(runtime.secret())
         .unwrap();
-        let mut scanner = ContextScanner::default();
+        let mut scanner = ContextScanner::new(runtime.secret());
         scanner.push(&Bytes::from(format!("{stale} {good}")));
         scanner.finish();
         assert_eq!(
@@ -354,7 +351,7 @@ mod tests {
         .encode(runtime.secret())
         .unwrap();
         {
-            let mut scanner = ContextScanner::default();
+            let mut scanner = ContextScanner::new(runtime.secret());
             scanner.push(&Bytes::from(format!("{old_generation} {missing_job}")));
             scanner.finish();
             assert!(scanner.last_valid(&runtime).await.is_none());
@@ -368,7 +365,7 @@ mod tests {
         }
         .encode(runtime.secret())
         .unwrap();
-        let mut scanner = ContextScanner::default();
+        let mut scanner = ContextScanner::new(runtime.secret());
         scanner.push(&Bytes::from(moved));
         scanner.finish();
         assert!(scanner.last_valid(&runtime).await.is_none());
@@ -376,28 +373,34 @@ mod tests {
 
     #[test]
     fn overlong_and_pseudo_tokens_are_ignored() {
-        let mut scanner = ContextScanner::default();
+        let mut scanner = ContextScanner::new(b"secret");
         scanner.push(&Bytes::from(format!("krc_{}.abcd", "a".repeat(3000))));
         scanner.push(&Bytes::from(" krc_zz.11 krc_abc."));
         scanner.finish();
-        assert!(
-            scanner.candidates().is_empty(),
-            "{:?}",
-            scanner.candidates()
-        );
+        assert!(scanner.last_valid_token().is_none());
         assert!(RelayContextToken::decode("krc_7b7d.0000", b"secret").is_err());
     }
 
-    #[test]
-    fn scanner_caps_candidates_and_drops_oldest() {
-        let mut scanner = ContextScanner::default();
-        let body = (0..80)
-            .map(|index| format!("krc_{index:02x}.abcd "))
+    #[tokio::test]
+    async fn scanner_keeps_real_token_followed_by_many_signed_invalid_candidates() {
+        let runtime = runtime_with_job("job-good", "slot-1", 7).await;
+        let good = RelayContextToken {
+            job_id: "job-good".into(),
+            slot_id: "slot-1".into(),
+            generation: 7,
+            nonce: "n2".into(),
+        }
+        .encode(runtime.secret())
+        .unwrap();
+        let fakes = (0..100)
+            .map(|index| format!(" krc_{index:02x}.{}", "0".repeat(64)))
             .collect::<String>();
-        scanner.push(&Bytes::from(body));
+        let mut scanner = ContextScanner::new(runtime.secret());
+        scanner.push(&Bytes::from(format!("{good}{fakes}")));
         scanner.finish();
-        assert_eq!(scanner.candidates().len(), MAX_CANDIDATES);
-        assert_eq!(scanner.candidates().first().unwrap(), "krc_10.abcd");
-        assert_eq!(scanner.candidates().last().unwrap(), "krc_4f.abcd");
+        assert_eq!(
+            scanner.last_valid(&runtime).await.unwrap().job_id,
+            "job-good"
+        );
     }
 }

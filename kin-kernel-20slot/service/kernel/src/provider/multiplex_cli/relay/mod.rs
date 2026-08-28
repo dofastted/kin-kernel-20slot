@@ -240,6 +240,12 @@ mod tests {
         let body = response.bytes().await.unwrap();
         assert_eq!(digest(&body), digest(&fixture));
         assert_eq!(&body[..], &fixture[..]);
+        assert_eq!(relay.metrics.correlate_hit.load(Ordering::Relaxed), 1);
+        assert_eq!(relay.metrics.correlate_miss.load(Ordering::Relaxed), 0);
+        assert_eq!(
+            relay.metrics.tap_response_started.load(Ordering::Relaxed),
+            1
+        );
 
         let mut tapped = Vec::new();
         while tapped.len() < 7 {
@@ -277,6 +283,29 @@ mod tests {
             tapped
                 .iter()
                 .all(|event| event.to_string().find("mcp__kin_runtime__").is_none())
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn proxy_without_context_counts_correlate_miss() {
+        let upstream_addr = spawn_mock_upstream(sse_fixture()).await;
+        let mut cfg = test_cfg();
+        cfg.relay_upstream = format!("http://{upstream_addr}");
+        let runtime = Runtime::new(cfg.clone());
+        let relay = spawn_with_tap(runtime, &cfg, None).await.unwrap();
+
+        let response = reqwest::Client::new()
+            .post(format!("http://{}/v1/messages", relay.addr))
+            .body("{}")
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(relay.metrics.correlate_hit.load(Ordering::Relaxed), 0);
+        assert_eq!(relay.metrics.correlate_miss.load(Ordering::Relaxed), 1);
+        assert_eq!(
+            relay.metrics.tap_response_started.load(Ordering::Relaxed),
+            0
         );
     }
 
