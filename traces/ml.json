@@ -1,0 +1,36 @@
+{
+  "label": "ML_1long_19hold",
+  "health": {
+    "capabilities": {
+      "cancel_receipt": true,
+      "multiplex_slots": true,
+      "native_tool_wait": true,
+      "resume": true,
+      "streaming": true
+    },
+    "isolation": "subagent-pool",
+    "limits": {
+      "client_channel": 32,
+      "event_channel": 128,
+      "max_body_bytes": 8388608,
+      "max_tool_result_bytes": 4194304,
+      "per_connection_buffer": 524288,
+      "slot_max_jobs": 50,
+      "slot_max_lifetime_secs": 1800
+    },
+    "memory": {
+      "admission": "allow",
+      "cgroup_bytes": 3397447680,
+      "claude_rss_bytes": 280850432,
+      "inflight_payload": 0,
+      "kernel_rss_bytes": 16355328,
+      "observed_bytes": 297205760,
+      "pending": 0,
+      "service_rss_bytes": 297205760
+    },
+    "provider": "local_cli",
+    "slots_per_worker": 20,
+    "status": "ok",
+    "workers": 1
+  }
+}
