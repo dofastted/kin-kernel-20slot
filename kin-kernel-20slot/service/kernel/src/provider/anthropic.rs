@@ -10,7 +10,9 @@ use serde_json::json;
 use crate::{
     error::KernelError,
     model::MessageRequest,
-    provider::{ExecutionContext, Provider, ProviderCapabilities, StreamRx, StreamTx, stream_channel},
+    provider::{
+        ExecutionContext, Provider, ProviderCapabilities, StreamRx, StreamTx, stream_channel,
+    },
     stream::{StreamAssembler, StreamItem, parse_sse_block},
 };
 
@@ -69,8 +71,8 @@ impl Provider for AnthropicProvider {
         request: &MessageRequest,
         _context: &ExecutionContext,
     ) -> Result<StreamRx, KernelError> {
-        let mut body = serde_json::to_value(request)
-            .map_err(|err| KernelError::Provider(err.to_string()))?;
+        let mut body =
+            serde_json::to_value(request).map_err(|err| KernelError::Provider(err.to_string()))?;
         body["stream"] = json!(true);
 
         let response = self

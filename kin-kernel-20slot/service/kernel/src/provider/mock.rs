@@ -4,9 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     error::KernelError,
-    model::{
-        ContentBlock, MessageContent, MessageRequest, MessageResponse, StopReason, Usage,
-    },
+    model::{ContentBlock, MessageContent, MessageRequest, MessageResponse, StopReason, Usage},
     provider::{ExecutionContext, Provider, ProviderCapabilities, StreamRx, stream_channel},
     stream::StreamItem,
 };
@@ -205,27 +203,35 @@ fn requested_mock_tool(request: &MessageRequest) -> Option<String> {
 }
 
 fn latest_text(request: &MessageRequest) -> Option<String> {
-    request.messages.iter().rev().find_map(|message| match &message.content {
-        MessageContent::Text(text) => Some(text.clone()),
-        MessageContent::Blocks(blocks) => blocks.iter().rev().find_map(|block| match block {
-            ContentBlock::Text { text, .. } => Some(text.clone()),
-            _ => None,
-        }),
-    })
+    request
+        .messages
+        .iter()
+        .rev()
+        .find_map(|message| match &message.content {
+            MessageContent::Text(text) => Some(text.clone()),
+            MessageContent::Blocks(blocks) => blocks.iter().rev().find_map(|block| match block {
+                ContentBlock::Text { text, .. } => Some(text.clone()),
+                _ => None,
+            }),
+        })
 }
 
 fn latest_tool_result(request: &MessageRequest) -> Option<(String, Value)> {
-    request.messages.iter().rev().find_map(|message| match &message.content {
-        MessageContent::Text(_) => None,
-        MessageContent::Blocks(blocks) => blocks.iter().rev().find_map(|block| match block {
-            ContentBlock::ToolResult {
-                tool_use_id,
-                content,
-                ..
-            } => Some((tool_use_id.clone(), content.clone())),
-            _ => None,
-        }),
-    })
+    request
+        .messages
+        .iter()
+        .rev()
+        .find_map(|message| match &message.content {
+            MessageContent::Text(_) => None,
+            MessageContent::Blocks(blocks) => blocks.iter().rev().find_map(|block| match block {
+                ContentBlock::ToolResult {
+                    tool_use_id,
+                    content,
+                    ..
+                } => Some((tool_use_id.clone(), content.clone())),
+                _ => None,
+            }),
+        })
 }
 
 fn display_json(value: &Value) -> String {

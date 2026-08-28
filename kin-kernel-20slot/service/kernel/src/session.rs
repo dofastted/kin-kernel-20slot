@@ -79,9 +79,9 @@ impl SessionDirectory {
             return None;
         }
 
-        records.get(&key).and_then(|record| {
-            (record.phase == Phase::Ready).then_some(record.worker_index)
-        })
+        records
+            .get(&key)
+            .and_then(|record| (record.phase == Phase::Ready).then_some(record.worker_index))
     }
 
     pub fn mark_ready(
@@ -264,15 +264,7 @@ mod tests {
             ..MessageRequest::default()
         };
         let token = sessions
-            .mark_waiting(
-                "t",
-                "s",
-                1,
-                7,
-                vec!["tool-a".to_string()],
-                pending,
-                true,
-            )
+            .mark_waiting("t", "s", 1, 7, vec!["tool-a".to_string()], pending, true)
             .expect("store continuation");
 
         assert!(
@@ -294,11 +286,7 @@ mod tests {
 
     #[test]
     fn expired_native_wait_returns_reservation() {
-        let sessions = SessionDirectory::new(
-            Duration::from_secs(60),
-            Duration::ZERO,
-            1024 * 1024,
-        );
+        let sessions = SessionDirectory::new(Duration::from_secs(60), Duration::ZERO, 1024 * 1024);
         let pending = MessageRequest {
             model: "mock-agent".to_string(),
             messages: vec![Message {
@@ -312,15 +300,7 @@ mod tests {
             ..MessageRequest::default()
         };
         sessions
-            .mark_waiting(
-                "t",
-                "s",
-                2,
-                9,
-                vec!["tool-a".to_string()],
-                pending,
-                true,
-            )
+            .mark_waiting("t", "s", 2, 9, vec!["tool-a".to_string()], pending, true)
             .expect("store continuation");
         let expired = sessions.sweep_expired();
         assert_eq!(expired.len(), 1);

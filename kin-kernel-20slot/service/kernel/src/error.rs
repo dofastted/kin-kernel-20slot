@@ -50,12 +50,8 @@ impl IntoResponse for KernelError {
             }
             Self::NoCapacity => (StatusCode::SERVICE_UNAVAILABLE, "no_capacity", true),
             Self::Overloaded { .. } => (StatusCode::SERVICE_UNAVAILABLE, "overloaded", true),
-            Self::ContinuationMismatch(_) => {
-                (StatusCode::CONFLICT, "continuation_mismatch", false)
-            }
-            Self::ContinuationLost => {
-                (StatusCode::CONFLICT, "continuation_lost", false)
-            }
+            Self::ContinuationMismatch(_) => (StatusCode::CONFLICT, "continuation_mismatch", false),
+            Self::ContinuationLost => (StatusCode::CONFLICT, "continuation_lost", false),
             Self::Provider(_) => (StatusCode::BAD_GATEWAY, "provider_error", true),
             Self::ProviderRateLimited { .. } => {
                 (StatusCode::TOO_MANY_REQUESTS, "provider_rate_limited", true)

@@ -35,10 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     let config = Config::from_env()?;
-    let scheduler = Arc::new(Scheduler::new(
-        config.worker_count,
-        config.slots_per_worker,
-    ));
+    let scheduler = Arc::new(Scheduler::new(config.worker_count, config.slots_per_worker));
     let sessions = Arc::new(SessionDirectory::new(
         config.session_ttl,
         config.continuation_ttl,
@@ -62,10 +59,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         loop {
             interval.tick().await;
             for reservation in cleanup_sessions.sweep_expired() {
-                cleanup_scheduler.expire_waiting(
-                    reservation.worker_index,
-                    reservation.worker_generation,
-                );
+                cleanup_scheduler
+                    .expire_waiting(reservation.worker_index, reservation.worker_generation);
             }
         }
     });

@@ -61,7 +61,9 @@ impl MessageRequest {
                 if let Some(id) = message.tool_call_id.clone() {
                     let content = match &message.content {
                         MessageContent::Text(text) => Value::String(text.clone()),
-                        MessageContent::Blocks(blocks) => serde_json::to_value(blocks).unwrap_or(Value::Null),
+                        MessageContent::Blocks(blocks) => {
+                            serde_json::to_value(blocks).unwrap_or(Value::Null)
+                        }
                     };
                     message.role = "user".into();
                     message.content = MessageContent::Blocks(vec![ContentBlock::ToolResult {
@@ -76,7 +78,10 @@ impl MessageRequest {
                 let mut blocks = Vec::new();
                 if let MessageContent::Text(text) = &message.content {
                     if !text.is_empty() {
-                        blocks.push(ContentBlock::Text { text: text.clone(), cache_control: None });
+                        blocks.push(ContentBlock::Text {
+                            text: text.clone(),
+                            cache_control: None,
+                        });
                     }
                 }
                 if let MessageContent::Blocks(existing) = &message.content {

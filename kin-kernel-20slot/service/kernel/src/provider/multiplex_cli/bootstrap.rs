@@ -29,7 +29,11 @@ pub async fn write_root_prompt(stdin: &mut ChildStdin, n: usize) -> Result<(), K
     Ok(())
 }
 
-pub async fn wait_ready(runtime: &Runtime, n: usize, max_wait: Duration) -> Result<(), KernelError> {
+pub async fn wait_ready(
+    runtime: &Runtime,
+    n: usize,
+    max_wait: Duration,
+) -> Result<(), KernelError> {
     timeout(max_wait, async {
         loop {
             if runtime.ready_slots() >= n {

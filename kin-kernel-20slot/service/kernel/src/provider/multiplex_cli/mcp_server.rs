@@ -38,11 +38,17 @@ pub async fn spawn(runtime: Arc<Runtime>, bind: SocketAddr) -> Result<SocketAddr
 }
 
 async fn mcp_get() -> impl IntoResponse {
-    Sse::new(futures_util::stream::empty::<Result<Event, std::convert::Infallible>>())
-        .keep_alive(KeepAlive::new().interval(Duration::from_secs(20)))
+    Sse::new(futures_util::stream::empty::<
+        Result<Event, std::convert::Infallible>,
+    >())
+    .keep_alive(KeepAlive::new().interval(Duration::from_secs(20)))
 }
 
-async fn mcp_post(State(runtime): State<Arc<Runtime>>, headers: HeaderMap, Json(msg): Json<Value>) -> Response {
+async fn mcp_post(
+    State(runtime): State<Arc<Runtime>>,
+    headers: HeaderMap,
+    Json(msg): Json<Value>,
+) -> Response {
     let sse = headers
         .get(ACCEPT)
         .and_then(|value| value.to_str().ok())
@@ -59,7 +65,9 @@ async fn mcp_post(State(runtime): State<Arc<Runtime>>, headers: HeaderMap, Json(
                 "serverInfo": { "name": "kin_runtime", "version": "0.1.0" }
             }),
         ),
-        "notifications/initialized" | "notifications/cancelled" => StatusCode::ACCEPTED.into_response(),
+        "notifications/initialized" | "notifications/cancelled" => {
+            StatusCode::ACCEPTED.into_response()
+        }
         "ping" => json_ok(id, json!({})),
         "tools/list" => json_ok(id, json!({ "tools": tools() })),
         "tools/call" => {
@@ -175,41 +183,57 @@ impl Stream for ReceiverStream {
 
 fn tools() -> Vec<Value> {
     vec![
-        tool("slot_wait", "Block until Kin assigns the next job", json!({
-            "type": "object",
-            "properties": { "slot_id": { "type": "string" } }
-        })),
-        tool("client_tool", "Block this agent loop until the HTTP client returns tool_result", json!({
-            "type": "object",
-            "properties": {
-                "job_id": { "type": "string" },
-                "name": { "type": "string" },
-                "input": { "type": "object" },
-                "client_tool_use_id": { "type": "string" }
-            },
-            "required": ["job_id", "name"]
-        })),
-        tool("kin_done", "Finish the job. Body already streamed from CLI stdout; only send stop/usage.", json!({
-            "type": "object",
-            "properties": {
-                "job_id": { "type": "string" },
-                "stop_reason": { "type": "string" },
-                "usage": { "type": "object" },
-                "final_digest": { "type": "string" },
-                "fallback_content": { "type": "string" },
-                "text": { "type": "string" }
-            },
-            "required": ["job_id"]
-        })),
-        tool("kin_fail", "Mark the assigned job failed", json!({
-            "type": "object",
-            "properties": {
-                "job_id": { "type": "string" },
-                "error": { "type": "string" },
-                "retire": { "type": "boolean" }
-            },
-            "required": ["job_id"]
-        })),
+        tool(
+            "slot_wait",
+            "Block until Kin assigns the next job",
+            json!({
+                "type": "object",
+                "properties": { "slot_id": { "type": "string" } }
+            }),
+        ),
+        tool(
+            "client_tool",
+            "Block this agent loop until the HTTP client returns tool_result",
+            json!({
+                "type": "object",
+                "properties": {
+                    "job_id": { "type": "string" },
+                    "name": { "type": "string" },
+                    "input": { "type": "object" },
+                    "client_tool_use_id": { "type": "string" }
+                },
+                "required": ["job_id", "name"]
+            }),
+        ),
+        tool(
+            "kin_done",
+            "Finish the job. Body already streamed from CLI stdout; only send stop/usage.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "job_id": { "type": "string" },
+                    "stop_reason": { "type": "string" },
+                    "usage": { "type": "object" },
+                    "final_digest": { "type": "string" },
+                    "fallback_content": { "type": "string" },
+                    "text": { "type": "string" }
+                },
+                "required": ["job_id"]
+            }),
+        ),
+        tool(
+            "kin_fail",
+            "Mark the assigned job failed",
+            json!({
+                "type": "object",
+                "properties": {
+                    "job_id": { "type": "string" },
+                    "error": { "type": "string" },
+                    "retire": { "type": "boolean" }
+                },
+                "required": ["job_id"]
+            }),
+        ),
     ]
 }
 

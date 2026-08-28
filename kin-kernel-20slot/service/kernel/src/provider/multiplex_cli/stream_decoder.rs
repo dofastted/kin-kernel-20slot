@@ -4,7 +4,9 @@ use crate::stream::StreamAssembler;
 
 #[derive(Debug)]
 pub enum Decoded {
-    AgentSpawn { tool_use_id: String },
+    AgentSpawn {
+        tool_use_id: String,
+    },
     Routed {
         parent_tool_use_id: String,
         event: Option<Value>,
@@ -35,9 +37,10 @@ pub fn decode(frame: &Value) -> Decoded {
     if let Some(parent) = parent_id(frame) {
         return Decoded::Routed {
             parent_tool_use_id: parent.to_string(),
-            event: frame.get("event").cloned().filter(|_| {
-                frame.get("type").and_then(Value::as_str) == Some("stream_event")
-            }),
+            event: frame
+                .get("event")
+                .cloned()
+                .filter(|_| frame.get("type").and_then(Value::as_str) == Some("stream_event")),
             assistant: (frame.get("type").and_then(Value::as_str) == Some("assistant"))
                 .then(|| frame.clone()),
             result: frame.get("type").and_then(Value::as_str) == Some("result"),
@@ -55,7 +58,8 @@ fn agent_spawn_id(frame: &Value) -> Option<String> {
     for block in content {
         let name = block.get("name").and_then(Value::as_str).unwrap_or("");
         let kind = block.get("type").and_then(Value::as_str);
-        if kind == Some("tool_use") && (name == "Agent" || name == "kin-slot" || name.ends_with("Agent"))
+        if kind == Some("tool_use")
+            && (name == "Agent" || name == "kin-slot" || name.ends_with("Agent"))
         {
             if let Some(id) = block.get("id").and_then(Value::as_str) {
                 return Some(id.to_string());

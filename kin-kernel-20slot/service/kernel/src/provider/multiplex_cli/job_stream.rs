@@ -316,7 +316,10 @@ mod tests {
             .filter(|e| e.get("type").and_then(Value::as_str) == Some("content_block_start"))
             .map(|e| e["content_block"]["type"].as_str().unwrap().to_string())
             .collect();
-        assert_eq!(starts, vec!["server_tool_use".to_string(), "text".to_string()]);
+        assert_eq!(
+            starts,
+            vec!["server_tool_use".to_string(), "text".to_string()]
+        );
         let deltas: Vec<_> = events
             .iter()
             .filter(|e| e.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta"))

@@ -47,8 +47,11 @@ pub fn write_oauth_file(dir: &Path) -> Result<(), KernelError> {
     let oauth: serde_json::Value =
         serde_json::from_str(&raw).map_err(|err| KernelError::Provider(err.to_string()))?;
     let path = dir.join(".credentials.json");
-    fs::write(&path, serde_json::to_vec(&json!({ "claudeAiOauth": oauth })).unwrap())
-        .map_err(|err| KernelError::Provider(err.to_string()))?;
+    fs::write(
+        &path,
+        serde_json::to_vec(&json!({ "claudeAiOauth": oauth })).unwrap(),
+    )
+    .map_err(|err| KernelError::Provider(err.to_string()))?;
     let mut perms = fs::metadata(&path)
         .map_err(|err| KernelError::Provider(err.to_string()))?
         .permissions();
@@ -69,7 +72,10 @@ pub fn write_mcp_config(dir: &Path, url: &str) -> Result<PathBuf, KernelError> {
     });
     fs::write(&path, serde_json::to_vec_pretty(&body).unwrap())
         .map_err(|err| KernelError::Provider(err.to_string()))?;
-    let _ = fs::write(dir.join(".mcp.json"), serde_json::to_vec_pretty(&body).unwrap());
+    let _ = fs::write(
+        dir.join(".mcp.json"),
+        serde_json::to_vec_pretty(&body).unwrap(),
+    );
     Ok(path)
 }
 

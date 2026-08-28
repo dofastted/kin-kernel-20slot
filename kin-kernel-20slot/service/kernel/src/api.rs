@@ -298,7 +298,8 @@ impl ActiveTurn {
         let worker_id = self.worker_id.clone();
         let generation = self.worker_generation;
         let expose_slot = state.config.expose_slot_header;
-        let (out_tx, out_rx) = mpsc::channel::<Result<Event, Infallible>>(crate::config::EVENT_CHANNEL_SIZE);
+        let (out_tx, out_rx) =
+            mpsc::channel::<Result<Event, Infallible>>(crate::config::EVENT_CHANNEL_SIZE);
         tokio::spawn(async move {
             let mut finished = None;
             let mut model = self.request.model.clone();
@@ -318,7 +319,9 @@ impl ActiveTurn {
                         continue;
                     }
                 };
-                let Some(item) = item else { break; };
+                let Some(item) = item else {
+                    break;
+                };
                 match item {
                     Ok(StreamItem::Event(event)) => {
                         if let Some(id) = event.pointer("/message/id").and_then(Value::as_str) {
@@ -348,9 +351,11 @@ impl ActiveTurn {
                 }
             }
             let Some(response) = finished else {
-                let _ = out_tx.send(Ok(error_event(&KernelError::Provider(
-                    "stream ended without a result".into(),
-                )))).await;
+                let _ = out_tx
+                    .send(Ok(error_event(&KernelError::Provider(
+                        "stream ended without a result".into(),
+                    ))))
+                    .await;
                 return;
             };
             match self.complete(&state, response) {
@@ -362,7 +367,11 @@ impl ActiveTurn {
                         "generation": result.generation,
                         "slot": result.worker_id
                     });
-                    let _ = out_tx.send(Ok(Event::default().event("kin.done").data(meta.to_string()))).await;
+                    let _ = out_tx
+                        .send(Ok(Event::default()
+                            .event("kin.done")
+                            .data(meta.to_string())))
+                        .await;
                     if matches!(format, ClientFormat::OpenAi) {
                         let _ = out_tx.send(Ok(Event::default().data("[DONE]"))).await;
                     }
@@ -384,11 +393,14 @@ impl ActiveTurn {
             "x-kin-generation",
             &generation.to_string(),
         );
-        response.headers_mut().insert(
-            CONTENT_TYPE,
-            HeaderValue::from_static("text/event-stream"),
+        response
+            .headers_mut()
+            .insert(CONTENT_TYPE, HeaderValue::from_static("text/event-stream"));
+        insert_header(
+            response.headers_mut(),
+            "cache-control",
+            "no-cache, no-transform",
         );
-        insert_header(response.headers_mut(), "cache-control", "no-cache, no-transform");
         insert_header(response.headers_mut(), "x-accel-buffering", "no");
         insert_header(response.headers_mut(), "connection", "keep-alive");
         response
@@ -620,9 +632,8 @@ fn openai_event(id: &str, model: &str, event: &Value, role_sent: &mut bool) -> O
         Some("message_start") => {
             *role_sent = true;
             Some(
-                Event::default().data(
-                    openai_chunk(id, model, json!({"role": "assistant"}), None).to_string(),
-                ),
+                Event::default()
+                    .data(openai_chunk(id, model, json!({"role": "assistant"}), None).to_string()),
             )
         }
         Some("content_block_delta") => {
@@ -630,15 +641,19 @@ fn openai_event(id: &str, model: &str, event: &Value, role_sent: &mut bool) -> O
             match delta.get("type").and_then(Value::as_str) {
                 Some("text_delta") => {
                     let text = delta.get("text").and_then(Value::as_str).unwrap_or("");
-                    Some(Event::default().data(
-                        openai_chunk(id, model, json!({"content": text}), None).to_string(),
-                    ))
+                    Some(
+                        Event::default().data(
+                            openai_chunk(id, model, json!({"content": text}), None).to_string(),
+                        ),
+                    )
                 }
                 Some("thinking_delta") => {
                     let text = delta.get("thinking").and_then(Value::as_str).unwrap_or("");
-                    Some(Event::default().data(
-                        openai_chunk(id, model, json!({"content": text}), None).to_string(),
-                    ))
+                    Some(
+                        Event::default().data(
+                            openai_chunk(id, model, json!({"content": text}), None).to_string(),
+                        ),
+                    )
                 }
                 Some("input_json_delta") => None,
                 _ => None,

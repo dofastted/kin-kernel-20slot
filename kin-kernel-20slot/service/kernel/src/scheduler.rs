@@ -217,9 +217,12 @@ impl Scheduler {
 }
 
 fn score_worker(worker: &Worker, counters: &Counters) -> u64 {
-    let utilization = ((counters.active + counters.waiting_tool) as u64 * 1_000_000)
-        / worker.capacity as u64;
-    let latency = worker.latency_ewma_micros.load(Ordering::Relaxed).min(1_000_000);
+    let utilization =
+        ((counters.active + counters.waiting_tool) as u64 * 1_000_000) / worker.capacity as u64;
+    let latency = worker
+        .latency_ewma_micros
+        .load(Ordering::Relaxed)
+        .min(1_000_000);
     let errors = worker.error_ewma_ppm.load(Ordering::Relaxed).min(1_000_000);
     35 * utilization + 15 * latency + 15 * errors
 }

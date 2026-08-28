@@ -186,9 +186,11 @@ impl MemoryGuard {
     }
 
     pub fn end(&self, request_bytes: usize) {
-        self.pending.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
-            Some(n.saturating_sub(1))
-        }).ok();
+        self.pending
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
+                Some(n.saturating_sub(1))
+            })
+            .ok();
         self.inflight_payload
             .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
                 Some(n.saturating_sub(request_bytes))

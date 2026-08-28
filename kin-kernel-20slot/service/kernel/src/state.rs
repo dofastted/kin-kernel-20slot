@@ -1,8 +1,6 @@
 use std::sync::Arc;
 
-use crate::{
-    config::Config, provider::Provider, scheduler::Scheduler, session::SessionDirectory,
-};
+use crate::{config::Config, provider::Provider, scheduler::Scheduler, session::SessionDirectory};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -27,4 +25,3 @@ impl AppState {
         }
     }
 }
-

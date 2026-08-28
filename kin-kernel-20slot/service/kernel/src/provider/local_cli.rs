@@ -119,8 +119,7 @@ impl Provider for LocalCliProvider {
         &self,
         request: &MessageRequest,
         context: &ExecutionContext,
-    ) -> Result<StreamRx, KernelError>
-    {
+    ) -> Result<StreamRx, KernelError> {
         let bin = self.bin.clone();
         let mock = self.mock;
         let isolation = self.isolation;
@@ -262,7 +261,11 @@ fn put_session(table: &Mutex<SessionTable>, session_id: &str, parked: Parked) {
 }
 
 fn release_busy(table: &Mutex<SessionTable>, session_id: &str) {
-    table.lock().expect("cli table poisoned").busy.remove(session_id);
+    table
+        .lock()
+        .expect("cli table poisoned")
+        .busy
+        .remove(session_id);
 }
 
 fn evict_idle(table: &mut SessionTable, keep: usize) {
@@ -422,7 +425,12 @@ fn spawn_parked(
         std::thread::spawn(move || {
             let mut reader = BufReader::new(stderr);
             let mut line = String::new();
-            while reader.read_line(&mut line).ok().filter(|n| *n > 0).is_some() {
+            while reader
+                .read_line(&mut line)
+                .ok()
+                .filter(|n| *n > 0)
+                .is_some()
+            {
                 if let Ok(mut slot) = buf.lock() {
                     if slot.len() < 8_192 {
                         slot.push_str(&line);
@@ -551,7 +559,9 @@ fn latest_user(request: &MessageRequest, session_id: &str) -> Value {
         });
     let content = match &message.content {
         MessageContent::Text(text) => json!([{ "type": "text", "text": text }]),
-        MessageContent::Blocks(blocks) => serde_json::to_value(blocks).unwrap_or_else(|_| json!([])),
+        MessageContent::Blocks(blocks) => {
+            serde_json::to_value(blocks).unwrap_or_else(|_| json!([]))
+        }
     };
     json!({
         "type": "user",
@@ -706,11 +716,19 @@ mod tests {
     fn multiplex_same_session_reuses_pid() {
         let provider = provider(IsolationMode::Multiplexed);
         let session = "sess-sticky";
-        let first = run(&provider, &text_request("hello one"), &ctx(session, false, 1))
-            .expect("first");
+        let first = run(
+            &provider,
+            &text_request("hello one"),
+            &ctx(session, false, 1),
+        )
+        .expect("first");
         let pid = provider.session_pid(session).expect("pid");
-        let second = run(&provider, &text_request("hello two"), &ctx(session, false, 1))
-            .expect("second");
+        let second = run(
+            &provider,
+            &text_request("hello two"),
+            &ctx(session, false, 1),
+        )
+        .expect("second");
         assert_eq!(provider.session_pid(session).expect("still"), pid);
         assert!(first.id.contains(&pid.to_string()));
         assert!(second.id.contains(&pid.to_string()));

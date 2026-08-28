@@ -171,9 +171,7 @@ impl StreamAssembler {
                 if let Some(raw) = self.tool_json.get(index) {
                     if !raw.is_empty() {
                         if let Ok(parsed) = serde_json::from_str::<Value>(raw) {
-                            if let ContentBlock::ToolUse { input, .. } =
-                                &mut self.content[index]
-                            {
+                            if let ContentBlock::ToolUse { input, .. } = &mut self.content[index] {
                                 *input = parsed;
                             }
                         }
@@ -189,10 +187,7 @@ impl StreamAssembler {
                         self.usage.input_tokens = tokens;
                     }
                 }
-                if let Some(reason) = event
-                    .pointer("/delta/stop_reason")
-                    .and_then(Value::as_str)
-                {
+                if let Some(reason) = event.pointer("/delta/stop_reason").and_then(Value::as_str) {
                     self.stop = map_stop_reason(reason);
                 }
             }
