@@ -51,22 +51,30 @@ pub async fn proxy(State(state): State<RelayState>, req: Request<Body>) -> Respo
         Ok(response) => response,
         Err(err) => return err.into_response(),
     };
-    upstream_response(response, correlated, state)
+    let tap = match &correlated {
+        Some(job) => state.runtime.tap_binding(&job.job_id).await,
+        None => None,
+    };
+    let tap = tap.or_else(|| state.tap_events.clone().map(|events| (events, None)));
+    upstream_response(response, correlated, state, tap)
 }
 
 fn upstream_response(
     response: reqwest::Response,
     correlated: Option<super::correlate::CorrelatedJob>,
     state: RelayState,
+    tap_binding: Option<(
+        tokio::sync::mpsc::Sender<super::sse_tap::TapEvent>,
+        Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
+    )>,
 ) -> Response<Body> {
     let status = response.status();
     let headers = filtered_headers(response.headers());
     let tap = if status.is_success() {
         correlated.and_then(|job| {
-            state
-                .tap_events
-                .clone()
-                .map(|events| TapQueue::spawn(job.job_id, events, Arc::clone(&state.metrics)))
+            tap_binding.map(|(events, poisoned)| {
+                TapQueue::spawn(job.job_id, events, Arc::clone(&state.metrics), poisoned)
+            })
         })
     } else {
         None

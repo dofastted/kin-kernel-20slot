@@ -23,6 +23,7 @@ pub struct SpawnSpec {
     pub slot_count: usize,
     pub mcp_url: String,
     pub session_dir: PathBuf,
+    pub anthropic_base_url: Option<String>,
 }
 
 pub fn write_oauth_file(dir: &Path) -> Result<(), KernelError> {
@@ -155,6 +156,10 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
     .stdout(Stdio::piped())
     .stderr(Stdio::piped())
     .kill_on_drop(true);
+    if let Some(url) = &spec.anthropic_base_url {
+        cmd.env("ANTHROPIC_BASE_URL", url);
+    }
+
     if let Ok(debug) = env::var("KIN_CLAUDE_DEBUG_FILE") {
         cmd.arg("--debug-file").arg(debug);
     }

@@ -43,6 +43,7 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/healthz", get(health))
         .route("/readyz", get(ready))
+        .route("/status", get(health))
         .route("/v1/messages", post(messages))
         .route("/v1/chat/completions", post(chat_completions))
         .route("/internal/v1/slots", get(slots))
@@ -62,6 +63,7 @@ async fn health(State(state): State<AppState>) -> Json<serde_json::Value> {
         "workers": state.config.worker_count,
         "slots_per_worker": state.config.slots_per_worker,
         "memory": state.provider.memory_snapshot(),
+        "relay": state.provider.relay_snapshot(),
         "limits": {
             "max_body_bytes": state.config.max_body_bytes,
             "max_tool_result_bytes": state.config.max_tool_result_bytes,

@@ -23,7 +23,7 @@ use std::{
     path::PathBuf,
     sync::{
         Arc, OnceLock, Weak,
-        atomic::{AtomicU32, AtomicU64, AtomicUsize, Ordering},
+        atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicUsize, Ordering},
     },
     time::Duration,
 };
@@ -46,7 +46,11 @@ use self::{
     job_stream::JobStream,
     memory_guard::MemoryGuard,
     pending_call::{Job, JobOutcome, PendingCalls, SlotWaitPayload, new_id},
-    relay::correlate::{CorrelatedJob, RelayContextToken},
+    relay::{
+        arbiter::{ArbiterEffect, SourceArbiter},
+        correlate::{CorrelatedJob, RelayContextToken},
+        sse_tap::TapEvent,
+    },
     scheduler::SlotScheduler,
     slot::{Slot, SlotPhase, SlotSnapshot},
 };
@@ -147,6 +151,10 @@ pub struct Runtime {
     streamed: Mutex<HashSet<String>>,
     job_streams: Mutex<HashMap<String, JobStream>>,
     job_sizes: Mutex<HashMap<String, usize>>,
+    arbiters: Mutex<HashMap<String, SourceArbiter>>,
+    tap_senders: Mutex<HashMap<String, mpsc::Sender<TapEvent>>>,
+    tap_poisoned: Mutex<HashMap<String, Arc<AtomicBool>>>,
+    relay: OnceLock<relay::RelayHandle>,
     pub memory: MemoryGuard,
     running: AtomicUsize,
     peak_running: AtomicUsize,
@@ -331,6 +339,10 @@ impl Runtime {
             streamed: Mutex::new(HashSet::new()),
             job_streams: Mutex::new(HashMap::new()),
             job_sizes: Mutex::new(HashMap::new()),
+            arbiters: Mutex::new(HashMap::new()),
+            tap_senders: Mutex::new(HashMap::new()),
+            tap_poisoned: Mutex::new(HashMap::new()),
+            relay: OnceLock::new(),
             memory: MemoryGuard::from_env(),
             running: AtomicUsize::new(0),
             peak_running: AtomicUsize::new(0),
@@ -368,6 +380,13 @@ impl Runtime {
         )
         .await?;
         tracing::info!(mcp = %mcp_addr, "kin mcp listening");
+        let mut anthropic_base_url = None;
+        if self.cfg.relay_mode != RelayMode::Off {
+            let handle = relay::spawn(Arc::clone(self), &self.cfg).await?;
+            relay::confirm_healthy(handle.addr).await?;
+            anthropic_base_url = Some(format!("http://{}", handle.addr));
+            let _ = self.relay.set(handle);
+        }
         let dir = PathBuf::from("/tmp/kin-cli/multiplex").join(Uuid::new_v4().to_string());
         let spec = supervisor::SpawnSpec {
             bin: self.cfg.bin.clone(),
@@ -376,6 +395,7 @@ impl Runtime {
             slot_count: self.cfg.slot_count,
             mcp_url: format!("http://{mcp_addr}/mcp"),
             session_dir: dir,
+            anthropic_base_url,
         };
         let mut supervised = supervisor::spawn(&spec).await?;
         self.pid.store(supervised.pid, Ordering::Relaxed);
@@ -737,30 +757,28 @@ impl Runtime {
             .await
             .remove(job_id)
             .unwrap_or_else(JobStream::new);
+        let mut arbiter = self.arbiters.lock().await.remove(job_id);
+        let finish = finish_body(arbiter.as_mut(), &mut stream, &fallback, usage);
+        self.record_digest_mismatch(job_id, arbiter.as_ref(), &stream.text, &fallback);
         for event in stream.fallback_text(&fallback) {
             if self.emit(job_id, StreamItem::Event(event)).await == EmitResult::Failed {
                 self.abort_terminal_job(job_id).await;
                 return Ok(());
             }
         }
-        for event in stream.finish(stop_reason, usage) {
+        for event in stream.finish(stop_reason, finish.usage.clone()) {
             if self.emit(job_id, StreamItem::Event(event)).await == EmitResult::Failed {
                 self.abort_terminal_job(job_id).await;
                 return Ok(());
             }
         }
-        let text = if stream.text.is_empty() {
-            fallback.clone()
-        } else {
-            stream.text.clone()
-        };
         let response = MessageResponse {
             id: format!("msg_{}", self.pid.load(Ordering::Relaxed)),
             r#type: "message",
             role: "assistant",
             model: job.request.model.clone(),
             content: vec![ContentBlock::Text {
-                text: text.clone(),
+                text: finish.text.clone(),
                 cache_control: None,
             }],
             stop_reason: if is_error {
@@ -768,7 +786,7 @@ impl Runtime {
             } else {
                 StopReason::EndTurn
             },
-            usage: Usage::default(),
+            usage: usage_from_value(&finish.usage),
         };
         if self.emit(job_id, StreamItem::Finished(response)).await != EmitResult::Sent {
             self.abort_terminal_job(job_id).await;
@@ -784,10 +802,13 @@ impl Runtime {
             self.abort_terminal_job(job_id).await;
             return Ok(());
         }
-        self.pending
-            .lock()
-            .await
-            .finish_job(job_id, JobOutcome { text, is_error })?;
+        self.pending.lock().await.finish_job(
+            job_id,
+            JobOutcome {
+                text: finish.text,
+                is_error,
+            },
+        )?;
         self.running
             .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
                 Some(n.saturating_sub(1))
@@ -797,6 +818,7 @@ impl Runtime {
             self.memory.end(size);
         }
         self.streamed.lock().await.remove(job_id);
+        self.drop_job_tap(job_id).await;
         let retire = {
             let mut slots = self.slots.lock().await;
             if let Some(slot) = slots.iter_mut().find(|slot| slot.id == job.slot_id) {
@@ -915,6 +937,13 @@ impl Runtime {
                         None => Vec::new(),
                     }
                 };
+                let events = {
+                    let mut arbiters = self.arbiters.lock().await;
+                    match arbiters.get_mut(&job_id) {
+                        Some(arbiter) => arbiter.filter_stdout(events),
+                        None => events,
+                    }
+                };
                 for event in events {
                     self.emit(&job_id, StreamItem::Event(event)).await;
                 }
@@ -956,11 +985,90 @@ impl Runtime {
         self.sinks.lock().await.insert(job_id.clone(), sink.clone());
         tokio::spawn(job_egress(
             Arc::downgrade(self),
-            job_id,
+            job_id.clone(),
             data_rx,
             sink,
             self.cfg.client_stall_timeout,
         ));
+        self.start_tap_forwarder(job_id).await;
+    }
+
+    async fn start_tap_forwarder(self: &Arc<Self>, job_id: String) {
+        if self.cfg.relay_mode == RelayMode::Off {
+            return;
+        }
+        let (tap_tx, tap_rx) = mpsc::channel(256);
+        let poisoned = Arc::new(AtomicBool::new(false));
+        self.tap_senders.lock().await.insert(job_id.clone(), tap_tx);
+        self.tap_poisoned
+            .lock()
+            .await
+            .insert(job_id.clone(), Arc::clone(&poisoned));
+        self.arbiters
+            .lock()
+            .await
+            .insert(job_id.clone(), SourceArbiter::new(self.cfg.relay_mode));
+        let runtime = Arc::downgrade(self);
+        tokio::spawn(async move {
+            job_tap_forwarder(runtime, job_id, tap_rx, poisoned).await;
+        });
+    }
+
+    pub(crate) async fn tap_binding(
+        &self,
+        job_id: &str,
+    ) -> Option<(mpsc::Sender<TapEvent>, Option<Arc<AtomicBool>>)> {
+        let tx = self.tap_senders.lock().await.get(job_id).cloned()?;
+        let poisoned = self.tap_poisoned.lock().await.get(job_id).cloned();
+        Some((tx, poisoned))
+    }
+
+    pub fn relay_snapshot(&self) -> Value {
+        let (healthy, dropped, mismatch) = match self.relay.get() {
+            Some(handle) => (
+                handle.healthy(),
+                handle.metrics.tap_dropped.load(Ordering::Relaxed),
+                handle.metrics.digest_mismatch.load(Ordering::Relaxed),
+            ),
+            None => (false, 0, 0),
+        };
+        json!({
+            "relay_mode": self.cfg.relay_mode.as_str(),
+            "relay_healthy": healthy,
+            "tap_dropped": dropped,
+            "digest_mismatch": mismatch,
+        })
+    }
+
+    fn record_digest_mismatch(
+        &self,
+        job_id: &str,
+        arbiter: Option<&SourceArbiter>,
+        stdout: &str,
+        fallback: &str,
+    ) {
+        let Some(arbiter) = arbiter else {
+            return;
+        };
+        let stdout = if stdout.is_empty() { fallback } else { stdout };
+        let Some((upstream, stdout)) = arbiter.mismatch_digests(stdout) else {
+            return;
+        };
+        if let Some(handle) = self.relay.get() {
+            handle.metrics.inc_digest_mismatch();
+        }
+        tracing::warn!(
+            job_id,
+            upstream = %upstream,
+            stdout = %stdout,
+            "relay digest mismatch"
+        );
+    }
+
+    async fn drop_job_tap(&self, job_id: &str) {
+        self.arbiters.lock().await.remove(job_id);
+        self.tap_senders.lock().await.remove(job_id);
+        self.tap_poisoned.lock().await.remove(job_id);
     }
 
     async fn abort_terminal_job(&self, job_id: &str) {
@@ -981,6 +1089,7 @@ impl Runtime {
         self.sinks.lock().await.remove(job_id);
         self.job_streams.lock().await.remove(job_id);
         self.streamed.lock().await.remove(job_id);
+        self.drop_job_tap(job_id).await;
         if let Some(size) = self.job_sizes.lock().await.remove(job_id) {
             self.memory.end(size);
         }
@@ -1222,6 +1331,126 @@ fn is_lossless_delta(item: &StreamItem) -> bool {
         event.pointer("/delta/type").and_then(Value::as_str),
         Some("text_delta" | "thinking_delta")
     )
+}
+
+struct JobFinish {
+    text: String,
+    usage: Value,
+}
+
+fn finish_body(
+    arbiter: Option<&mut SourceArbiter>,
+    stream: &mut JobStream,
+    fallback: &str,
+    usage: Value,
+) -> JobFinish {
+    if let Some(arbiter) = arbiter {
+        if arbiter.upstream_authoritative() {
+            stream.streamed_text = true;
+        }
+        arbiter.on_kin_done();
+        let usage = arbiter.usage().unwrap_or(usage);
+        return JobFinish {
+            text: arbiter.final_text(&stream.text, fallback),
+            usage,
+        };
+    }
+    let text = if stream.text.is_empty() {
+        fallback.to_string()
+    } else {
+        stream.text.clone()
+    };
+    JobFinish { text, usage }
+}
+
+fn usage_from_value(value: &Value) -> Usage {
+    Usage {
+        input_tokens: value
+            .get("input_tokens")
+            .and_then(Value::as_u64)
+            .unwrap_or(0),
+        output_tokens: value
+            .get("output_tokens")
+            .and_then(Value::as_u64)
+            .unwrap_or(0),
+    }
+}
+
+async fn job_tap_forwarder(
+    runtime: Weak<Runtime>,
+    job_id: String,
+    mut rx: mpsc::Receiver<TapEvent>,
+    poisoned: Arc<AtomicBool>,
+) {
+    while let Some(event) = rx.recv().await {
+        let Some(runtime) = runtime.upgrade() else {
+            return;
+        };
+        if apply_tap_event(&runtime, &job_id, event).await {
+            return;
+        }
+        if poisoned.load(Ordering::Relaxed) && fail_if_upstream_poisoned(&runtime, &job_id).await {
+            return;
+        }
+    }
+}
+
+async fn apply_tap_event(runtime: &Runtime, job_id: &str, event: TapEvent) -> bool {
+    if event.is_poisoned() {
+        return fail_if_upstream_poisoned(runtime, job_id).await;
+    }
+    if let Some(usage) = event.usage_value() {
+        if let Some(arbiter) = runtime.arbiters.lock().await.get_mut(job_id) {
+            arbiter.note_usage(usage);
+        }
+        return false;
+    }
+    let effect = {
+        let mut arbiters = runtime.arbiters.lock().await;
+        match arbiters.get_mut(job_id) {
+            Some(arbiter) => arbiter.on_upstream(&event.event),
+            None => ArbiterEffect::Ignore,
+        }
+    };
+    match effect {
+        ArbiterEffect::Forward => {
+            let mapped = {
+                let mut streams = runtime.job_streams.lock().await;
+                streams
+                    .get_mut(job_id)
+                    .map(|stream| stream.adopt_tap_event(event.event))
+            };
+            if let Some(event) = mapped {
+                runtime.emit(job_id, StreamItem::Event(event)).await;
+            }
+            false
+        }
+        ArbiterEffect::FailJob => fail_tap_job(runtime, job_id).await,
+        ArbiterEffect::Suppress | ArbiterEffect::Ignore => false,
+    }
+}
+
+async fn fail_if_upstream_poisoned(runtime: &Runtime, job_id: &str) -> bool {
+    let effect = {
+        let mut arbiters = runtime.arbiters.lock().await;
+        match arbiters.get_mut(job_id) {
+            Some(arbiter) => arbiter.on_tap_poisoned(),
+            None => ArbiterEffect::Ignore,
+        }
+    };
+    if effect == ArbiterEffect::FailJob {
+        return fail_tap_job(runtime, job_id).await;
+    }
+    false
+}
+
+async fn fail_tap_job(runtime: &Runtime, job_id: &str) -> bool {
+    if let Some(sink) = runtime.sinks.lock().await.get(job_id).cloned() {
+        sink.set_terminal(Terminal::Failed(KernelError::Provider(
+            "relay tap overflow".into(),
+        )));
+    }
+    true
 }
 
 fn tool_results(request: &MessageRequest) -> Vec<(String, Value)> {
@@ -1511,6 +1740,18 @@ impl Provider for MultiplexCliProvider {
     fn memory_snapshot(&self) -> Option<serde_json::Value> {
         self.runtime.get().map(|runtime| {
             serde_json::to_value(runtime.memory.snapshot()).unwrap_or(serde_json::Value::Null)
+        })
+    }
+
+    fn relay_snapshot(&self) -> Option<serde_json::Value> {
+        Some(match self.runtime.get() {
+            Some(runtime) => runtime.relay_snapshot(),
+            None => json!({
+                "relay_mode": self.cfg.relay_mode.as_str(),
+                "relay_healthy": false,
+                "tap_dropped": 0,
+                "digest_mismatch": 0,
+            }),
         })
     }
 
@@ -2054,5 +2295,17 @@ mod tests {
         assert_eq!(decoded.job_id, "job-ctx");
         assert_eq!(decoded.slot_id, "slot-ctx");
         assert_eq!(decoded.generation, 1);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn simulated_off_mode_does_not_start_relay() {
+        let provider = MultiplexCliProvider::simulated(1);
+        provider.runtime().await.expect("start");
+        let snap = provider.relay_snapshot().expect("snapshot");
+        assert_eq!(snap["relay_mode"], "off");
+        assert_eq!(snap["relay_healthy"], false);
+        assert_eq!(snap["tap_dropped"], 0);
+        assert_eq!(snap["digest_mismatch"], 0);
+        assert!(provider.runtime.get().unwrap().relay.get().is_none());
     }
 }

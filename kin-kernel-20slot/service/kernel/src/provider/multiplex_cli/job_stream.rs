@@ -5,7 +5,7 @@
 //! `user` frames. We forward those as stage-level SSE blocks — never by
 //! slicing a finished string into fake tokens.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use serde_json::{Value, json};
 
@@ -14,6 +14,7 @@ pub struct JobStream {
     seen: HashSet<String>,
     internal_ids: HashSet<String>,
     web_search_ids: HashSet<String>,
+    tap_index_map: HashMap<u64, u32>,
     pub streamed_text: bool,
     pub text: String,
     pub started: bool,
@@ -26,6 +27,7 @@ impl JobStream {
             seen: HashSet::new(),
             internal_ids: HashSet::new(),
             web_search_ids: HashSet::new(),
+            tap_index_map: HashMap::new(),
             streamed_text: false,
             text: String::new(),
             started: false,
@@ -253,6 +255,27 @@ impl JobStream {
         let index = self.next_index;
         self.next_index += 1;
         index
+    }
+
+    pub fn adopt_tap_event(&mut self, mut event: Value) -> Value {
+        if let Some(old) = event.get("index").and_then(Value::as_u64) {
+            let new = match self.tap_index_map.get(&old).copied() {
+                Some(index) => index,
+                None => {
+                    let index = self.next();
+                    self.tap_index_map.insert(old, index);
+                    index
+                }
+            };
+            event["index"] = Value::from(new);
+        }
+        if let Some(block) = event.get("content_block") {
+            let _ = self.seen.insert(fingerprint(block));
+        }
+        if event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta") {
+            self.streamed_text = true;
+        }
+        event
     }
 }
 

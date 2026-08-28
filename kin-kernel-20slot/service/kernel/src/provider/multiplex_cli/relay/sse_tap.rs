@@ -15,6 +15,8 @@ use super::metrics::RelayMetrics;
 const TAP_QUEUE_ITEMS: usize = 256;
 const TAP_QUEUE_BYTES: usize = 2 * 1024 * 1024;
 const MAX_FRAME_BYTES: usize = 1024 * 1024;
+pub(crate) const TAP_POISONED: &str = "kin_tap_poisoned";
+pub(crate) const TAP_USAGE: &str = "kin_tap_usage";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TapEvent {
@@ -28,56 +30,43 @@ pub struct TapQueue {
     budget: Arc<TapBudget>,
     poisoned: Arc<AtomicBool>,
     metrics: Arc<RelayMetrics>,
+    job_id: String,
+    out: mpsc::Sender<TapEvent>,
 }
 
 impl TapQueue {
-    pub fn spawn(job_id: String, out: mpsc::Sender<TapEvent>, metrics: Arc<RelayMetrics>) -> Self {
+    pub fn spawn(
+        job_id: String,
+        out: mpsc::Sender<TapEvent>,
+        metrics: Arc<RelayMetrics>,
+        job_poisoned: Option<Arc<AtomicBool>>,
+    ) -> Self {
         let (tx, mut rx) = mpsc::channel::<Bytes>(TAP_QUEUE_ITEMS);
         let budget = Arc::new(TapBudget::new(TAP_QUEUE_BYTES));
-        let poisoned = Arc::new(AtomicBool::new(false));
+        let poisoned = job_poisoned.unwrap_or_else(|| Arc::new(AtomicBool::new(false)));
         let task_budget = Arc::clone(&budget);
         let task_poisoned = Arc::clone(&poisoned);
         let task_metrics = Arc::clone(&metrics);
+        let task_out = out.clone();
+        let task_job = job_id.clone();
         tokio::spawn(async move {
-            let mut decoder = SseDecoder::default();
-            let mut filter = EventFilter::default();
-            'chunks: while let Some(bytes) = rx.recv().await {
-                task_budget.release(bytes.len());
-                if task_poisoned.load(Ordering::Relaxed) {
-                    continue;
-                }
-                let frames = match decoder.push(&bytes) {
-                    Ok(frames) => frames,
-                    Err(()) => {
-                        if !task_poisoned.swap(true, Ordering::Relaxed) {
-                            task_metrics.inc_tap_dropped();
-                        }
-                        continue;
-                    }
-                };
-                for frame in frames {
-                    for event in filter.apply(frame) {
-                        if out
-                            .try_send(TapEvent {
-                                job_id: job_id.clone(),
-                                event,
-                            })
-                            .is_err()
-                        {
-                            if !task_poisoned.swap(true, Ordering::Relaxed) {
-                                task_metrics.inc_tap_dropped();
-                            }
-                            continue 'chunks;
-                        }
-                    }
-                }
-            }
+            drain_tap_chunks(
+                &mut rx,
+                task_budget,
+                task_poisoned,
+                task_metrics,
+                task_out,
+                task_job,
+            )
+            .await;
         });
         Self {
             tx,
             budget,
             poisoned,
             metrics,
+            job_id,
+            out,
         }
     }
 
@@ -104,10 +93,127 @@ impl TapQueue {
     }
 
     fn poison(&self) {
-        if !self.poisoned.swap(true, Ordering::Relaxed) {
-            self.metrics.inc_tap_dropped();
+        mark_poisoned(&self.poisoned, &self.metrics, &self.out, &self.job_id);
+    }
+}
+
+impl TapEvent {
+    pub fn poisoned(job_id: String) -> Self {
+        Self {
+            job_id,
+            event: json!({ "type": TAP_POISONED }),
         }
     }
+
+    pub fn usage(job_id: String, usage: Value) -> Self {
+        Self {
+            job_id,
+            event: json!({ "type": TAP_USAGE, "usage": usage }),
+        }
+    }
+
+    pub fn is_poisoned(&self) -> bool {
+        self.event.get("type").and_then(Value::as_str) == Some(TAP_POISONED)
+    }
+
+    pub fn usage_value(&self) -> Option<Value> {
+        if self.event.get("type").and_then(Value::as_str) != Some(TAP_USAGE) {
+            return None;
+        }
+        self.event.get("usage").cloned()
+    }
+}
+
+async fn drain_tap_chunks(
+    rx: &mut mpsc::Receiver<Bytes>,
+    budget: Arc<TapBudget>,
+    poisoned: Arc<AtomicBool>,
+    metrics: Arc<RelayMetrics>,
+    out: mpsc::Sender<TapEvent>,
+    job_id: String,
+) {
+    let mut decoder = SseDecoder::default();
+    let mut filter = EventFilter::default();
+    let mut last_usage = Value::Null;
+    while let Some(bytes) = rx.recv().await {
+        budget.release(bytes.len());
+        if poisoned.load(Ordering::Relaxed) {
+            continue;
+        }
+        let frames = match decoder.push(&bytes) {
+            Ok(frames) => frames,
+            Err(()) => {
+                mark_poisoned(&poisoned, &metrics, &out, &job_id);
+                continue;
+            }
+        };
+        if !forward_frames(
+            frames,
+            &mut filter,
+            &mut last_usage,
+            &out,
+            &job_id,
+            &poisoned,
+            &metrics,
+        ) {
+            break;
+        }
+    }
+}
+
+fn forward_frames(
+    frames: Vec<Value>,
+    filter: &mut EventFilter,
+    last_usage: &mut Value,
+    out: &mpsc::Sender<TapEvent>,
+    job_id: &str,
+    poisoned: &AtomicBool,
+    metrics: &RelayMetrics,
+) -> bool {
+    for frame in frames {
+        let events = filter.apply(frame);
+        let usage = filter.usage();
+        if usage != *last_usage && !usage_is_empty(&usage) {
+            *last_usage = usage.clone();
+            if out
+                .try_send(TapEvent::usage(job_id.to_string(), usage))
+                .is_err()
+            {
+                mark_poisoned(poisoned, metrics, out, job_id);
+                return false;
+            }
+        }
+        for event in events {
+            if out
+                .try_send(TapEvent {
+                    job_id: job_id.to_string(),
+                    event,
+                })
+                .is_err()
+            {
+                mark_poisoned(poisoned, metrics, out, job_id);
+                return false;
+            }
+        }
+    }
+    true
+}
+
+fn usage_is_empty(usage: &Value) -> bool {
+    usage.as_object().map(Map::is_empty).unwrap_or(true)
+}
+
+fn mark_poisoned(
+    poisoned: &AtomicBool,
+    metrics: &RelayMetrics,
+    out: &mpsc::Sender<TapEvent>,
+    job_id: &str,
+) {
+    if poisoned.swap(true, Ordering::Relaxed) {
+        return;
+    }
+    metrics.inc_tap_dropped();
+    let _ = out.try_send(TapEvent::poisoned(job_id.to_string()));
 }
 
 struct TapBudget {
@@ -360,7 +466,7 @@ mod tests {
     async fn tap_overflow_poisoned_and_counts_drop() {
         let (tx, _rx) = mpsc::channel(1);
         let metrics = Arc::new(RelayMetrics::default());
-        let tap = TapQueue::spawn("job-1".into(), tx, Arc::clone(&metrics));
+        let tap = TapQueue::spawn("job-1".into(), tx, Arc::clone(&metrics), None);
         tap.offer(Bytes::from(vec![b'x'; TAP_QUEUE_BYTES + 1]));
         assert!(tap.poisoned());
         assert_eq!(metrics.tap_dropped.load(Ordering::Relaxed), 1);

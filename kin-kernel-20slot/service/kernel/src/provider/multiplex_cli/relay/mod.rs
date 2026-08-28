@@ -1,9 +1,11 @@
-//! Loopback Messages Relay data plane.
+//! Loopback Messages Relay data plane plus boot/health helpers.
 //!
-//! Not yet wired into `start_claude`; stage D connects the boot path and the
-//! tap consumer. Remove the dead_code allowance once that wiring lands.
+//! Production wiring lives in `start_claude` and the per-job tap forwarder.
+//! Keep this module-level allowance while test-only helpers (`TapQueue::poisoned`,
+//! `SseDecoder::poisoned`, scanner `last_valid`) are unused on the bin path.
 #![allow(dead_code)]
 
+pub mod arbiter;
 pub mod correlate;
 pub mod metrics;
 pub mod server;
@@ -16,6 +18,7 @@ use std::{
         Arc,
         atomic::{AtomicBool, Ordering},
     },
+    time::Duration,
 };
 
 use axum::{Router, extract::State, http::StatusCode, response::IntoResponse, routing::get};
@@ -100,6 +103,26 @@ pub async fn spawn_with_tap(
         metrics,
     })
 }
+pub async fn confirm_healthy(addr: SocketAddr) -> Result<(), KernelError> {
+    let client = reqwest::Client::builder()
+        .no_proxy()
+        .timeout(Duration::from_secs(2))
+        .build()
+        .map_err(|err| KernelError::Provider(format!("relay healthz client: {err}")))?;
+    let url = format!("http://{addr}/healthz");
+    let response = client
+        .get(url)
+        .send()
+        .await
+        .map_err(|err| KernelError::Provider(format!("relay healthz: {err}")))?;
+    if !response.status().is_success() {
+        return Err(KernelError::Provider(format!(
+            "relay healthz status {}",
+            response.status()
+        )));
+    }
+    Ok(())
+}
 
 async fn healthz_handler(State(state): State<RelayState>) -> impl IntoResponse {
     if state.healthz.load(Ordering::Relaxed) {
@@ -167,6 +190,7 @@ mod tests {
         let runtime = Runtime::new(cfg.clone());
         let handle = spawn(runtime, &cfg).await.unwrap();
         assert!(handle.healthy());
+        confirm_healthy(handle.addr).await.unwrap();
         let mut stream = TcpStream::connect(handle.addr).await.unwrap();
         stream
             .write_all(b"GET /healthz HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n")

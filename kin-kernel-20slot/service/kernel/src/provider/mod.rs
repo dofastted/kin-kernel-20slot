@@ -74,6 +74,10 @@ pub trait Provider: Send + Sync {
     fn memory_snapshot(&self) -> Option<serde_json::Value> {
         None
     }
+
+    fn relay_snapshot(&self) -> Option<serde_json::Value> {
+        None
+    }
 }
 
 pub async fn collect_stream(mut rx: StreamRx) -> Result<MessageResponse, KernelError> {
