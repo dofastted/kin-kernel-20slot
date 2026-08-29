@@ -117,11 +117,19 @@ frame's own `job_id` when no `parent` field is present (needed for
 native_messages frames); `x-kin-native-slot` diagnostic response header
 added via new `Provider::session_slot()`. `cargo build` clean, `cargo test
 --bin kin-kernel provider::multiplex_cli` 108/108 passing (no `McpSlot`
-regression). `config_hash` is round-tripped and logged but only checked for
-*presence*, not compared against a desired value — that comparison needs the
-Go `RuntimeProfile` below.
+regression). `config_hash` is round-tripped, logged, and (once the Go side
+below landed) compared against `KIN_DESIRED_CONFIG_HASH`.
 
-Go console (`config_hash` / `RuntimeProfile`, design.md §6) is **not
-started**. S3 functional acceptance (AC1–AC15) has not been run. Default
-`KIN_EXECUTION_MODE` remains `mcp_slot` until Go S4 and S3 acceptance pass on
-native.
+Go console (`config_hash` / `RuntimeProfile`, design.md §6) is **implemented
+and verified**: `RuntimeProfile.ConfigHash()` normalizes via a
+`map[string]any` round-trip (key-sorted, whitespace-free JSON) before
+SHA-256; `PUT`/`GET /api/v1/runtime-profile` validate and serve it. Rust
+`validate_host_ready()` now compares the CLI's echoed `config_hash` against
+`KIN_DESIRED_CONFIG_HASH` (set from the Go-computed hash at process
+startup — no runtime re-fetch, changes require drain + restart) and
+`/readyz` returns `503 {"reason":"config_hash_mismatch"}` on drift. `go
+build/vet/test` clean; `cargo test --bin kin-kernel provider::multiplex_cli`
+109/109, `config::` 2/2, `api::` 3/3, all passing; clippy flat at 57
+warnings (no new lint debt). S3 functional acceptance (AC1–AC15) has not
+been run — needs the Docker/SOCKS5 test harness. Default
+`KIN_EXECUTION_MODE` remains `mcp_slot` until S3 acceptance passes on native.
