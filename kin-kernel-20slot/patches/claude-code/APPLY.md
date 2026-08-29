@@ -147,6 +147,28 @@ emitting `kin_job_error` with the extracted error text instead; verified
 by replaying the same failing job and observing `kin_job_error` in place
 of the previous silent `kin_job_done`.
 
+A follow-up AC2 (tool_use) smoke test surfaced a second protocol defect in
+the same `runJob()`: the CLI yields the assistant message at
+`content_block_stop` time, when `stop_reason` is still `null` from the
+partial message; the real `stop_reason`/`usage` only arrive later via
+`message_delta`, which mutates that *same already-yielded* object in
+place rather than emitting a new event. `runJob()` was reading
+`stop_reason`/`usage` off the assistant event, so it always captured the
+pre-mutation snapshot — `kin_job_done` reported the hardcoded
+`'end_turn'` default even when the real turn ended on `tool_use`, which
+would have silently broken Rust's AC3 tool_result-continuation detection.
+Fixed by no longer reading these fields from the assistant event at all:
+`kin_job_done` now always sends `stop_reason: ''` / `usage: {}`, which
+activates the fallback already present in `complete_job()` — it pulls the
+authoritative `stop_reason`/`usage` from `StreamAssembler`, which parses
+them directly out of the forwarded `kin_stream_event` frames. Verified by
+replaying the same AC2 job pre/post-fix: `kin_job_done` changed from
+`{"stop_reason":"end_turn",...}` to `{"stop_reason":"","usage":{}}`.
+`cargo test --bin kin-kernel provider::multiplex_cli` still 109/109.
+
 S3 functional acceptance (AC1–AC15) has not been run — needs systematic
-coverage beyond this one smoke test. Default `KIN_EXECUTION_MODE` remains
-`mcp_slot` until S3 acceptance passes on native.
+coverage beyond these smoke tests, and AC3 (tool_result continuation,
+possibly across a slot switch) has not yet had an end-to-end two-turn
+test proving Rust actually parses `tool_use` from the stream and waits
+for the client's tool_result correctly. Default `KIN_EXECUTION_MODE`
+remains `mcp_slot` until S3 acceptance passes on native.
