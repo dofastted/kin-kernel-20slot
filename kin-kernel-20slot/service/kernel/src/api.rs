@@ -66,6 +66,7 @@ async fn health(State(state): State<AppState>) -> Json<serde_json::Value> {
         "memory": state.provider.memory_snapshot(),
         "relay": state.provider.relay_snapshot(),
         "execution_mode": std::env::var("KIN_EXECUTION_MODE").unwrap_or_else(|_| "mcp_slot".into()),
+        "config_hash": state.config.desired_config_hash,
         "envelope": crate::provider::multiplex_cli::envelope::load(),
         "limits": {
             "max_body_bytes": state.config.max_body_bytes,
@@ -104,15 +105,21 @@ async fn ready(State(state): State<AppState>) -> Response {
         }
         ProviderBootStatus::Ready => {}
     }
-    if state.scheduler.ready() {
-        (StatusCode::OK, Json(json!({"status": "ready"}))).into_response()
-    } else {
-        (
+    if !state.scheduler.ready() {
+        return (
             StatusCode::SERVICE_UNAVAILABLE,
             Json(json!({"status": "not_ready", "reason": "no_capacity"})),
         )
-            .into_response()
+            .into_response();
     }
+    if state.provider.config_hash_mismatch() {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(json!({"status": "not_ready", "reason": "config_hash_mismatch"})),
+        )
+            .into_response();
+    }
+    (StatusCode::OK, Json(json!({"status": "ready"}))).into_response()
 }
 
 async fn slots(State(state): State<AppState>) -> Json<serde_json::Value> {
@@ -796,6 +803,7 @@ mod tests {
             default_tenant: "demo".into(),
             expose_slot_header: true,
             provider: "mock".into(),
+            desired_config_hash: None,
         }
     }
 
@@ -815,6 +823,56 @@ mod tests {
     async fn response_json(response: Response) -> serde_json::Value {
         let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         serde_json::from_slice(&body).unwrap()
+    }
+
+    /// Wraps `MockProvider` but reports a config_hash mismatch, for
+    /// simulating the AC14 `/readyz` 503 path without a real native CLI.
+    #[derive(Default)]
+    struct ConfigHashMismatchProvider(MockProvider);
+
+    #[async_trait::async_trait]
+    impl provider::Provider for ConfigHashMismatchProvider {
+        fn name(&self) -> &'static str {
+            self.0.name()
+        }
+
+        fn capabilities(&self) -> provider::ProviderCapabilities {
+            self.0.capabilities()
+        }
+
+        async fn execute_stream(
+            &self,
+            request: &crate::model::MessageRequest,
+            context: &ExecutionContext,
+        ) -> Result<crate::provider::StreamRx, KernelError> {
+            self.0.execute_stream(request, context).await
+        }
+
+        fn config_hash_mismatch(&self) -> bool {
+            true
+        }
+    }
+
+    #[tokio::test]
+    async fn readyz_returns_503_on_config_hash_mismatch() {
+        let state = AppState::new(
+            test_config(),
+            Arc::new(Scheduler::new(1, 1)),
+            Arc::new(SessionDirectory::new(
+                Duration::from_secs(60),
+                Duration::from_secs(60),
+                1024 * 1024,
+            )),
+            Arc::new(ConfigHashMismatchProvider::default()),
+        );
+        state.mark_provider_ready();
+
+        let response = ready(State(state)).await;
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(
+            response_json(response).await["reason"],
+            "config_hash_mismatch"
+        );
     }
 
     #[tokio::test]

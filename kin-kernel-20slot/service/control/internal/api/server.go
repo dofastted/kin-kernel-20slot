@@ -53,6 +53,8 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/v1/reconcile", s.reconcileNow)
 	s.mux.HandleFunc("POST /api/v1/credentials/exchange", s.exchange)
 	s.mux.HandleFunc("POST /api/v1/credentials/refresh", s.refresh)
+	s.mux.HandleFunc("PUT /api/v1/runtime-profile", s.putRuntimeProfile)
+	s.mux.HandleFunc("GET /api/v1/runtime-profile", s.getRuntimeProfile)
 }
 
 func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
@@ -178,6 +180,39 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+func (s *Server) putRuntimeProfile(w http.ResponseWriter, r *http.Request) {
+	var profile model.RuntimeProfile
+	if err := decodeJSON(w, r, &profile); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	if err := validateRuntimeProfile(profile); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	hash, err := profile.ConfigHash()
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "internal_error", "failed to compute config_hash")
+		return
+	}
+	s.store.SetRuntimeProfile(profile)
+	writeJSON(w, http.StatusOK, map[string]any{"profile": profile, "config_hash": hash})
+}
+
+func (s *Server) getRuntimeProfile(w http.ResponseWriter, _ *http.Request) {
+	profile, ok := s.store.GetRuntimeProfile()
+	if !ok {
+		writeError(w, http.StatusNotFound, "not_found", "runtime profile not set")
+		return
+	}
+	hash, err := profile.ConfigHash()
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "internal_error", "failed to compute config_hash")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"profile": profile, "config_hash": hash})
+}
+
 func decodeJSONAllowUnknown(w http.ResponseWriter, r *http.Request, target any) error {
 	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 	decoder := json.NewDecoder(r.Body)
@@ -212,6 +247,28 @@ func validatePolicy(policy model.RoutePolicy) error {
 	}
 	if policy.MaxInflight < 1 || policy.MaxWaitingTool < 0 {
 		return errors.New("max_inflight must be positive and max_waiting_tool non-negative")
+	}
+	return nil
+}
+
+func validateRuntimeProfile(profile model.RuntimeProfile) error {
+	if profile.ExecutionMode == "" {
+		return errors.New("execution_mode is required")
+	}
+	if profile.SystemLayout == "" {
+		return errors.New("system_layout is required")
+	}
+	if profile.Timezone == "" {
+		return errors.New("timezone is required")
+	}
+	if profile.SlotCount < 1 || profile.SlotCount > 20 {
+		return errors.New("slot_count must be between 1 and 20")
+	}
+	if profile.MaxBodyBytes < 1 {
+		return errors.New("max_body_bytes must be positive")
+	}
+	if profile.MaxOutputTokens < 1 {
+		return errors.New("max_output_tokens must be positive")
 	}
 	return nil
 }

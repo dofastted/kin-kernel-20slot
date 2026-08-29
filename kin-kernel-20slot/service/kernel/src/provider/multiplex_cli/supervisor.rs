@@ -25,6 +25,7 @@ pub struct SpawnSpec {
     pub session_dir: PathBuf,
     pub anthropic_base_url: Option<String>,
     pub native_slots: Option<usize>,
+    pub desired_config_hash: Option<String>,
 }
 
 #[allow(dead_code)]
@@ -114,6 +115,9 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
         cmd.env("CLAUDE_CODE_KIN_NATIVE_SLOTS", &n)
             .env("CLAUDE_CODE_SYSTEM_LAYOUT", layout.mode.as_str())
             .env("CLAUDE_CODE_TIMEZONE", &layout.timezone);
+        if let Some(hash) = &spec.desired_config_hash {
+            cmd.env("CLAUDE_CODE_KIN_CONFIG_HASH", hash);
+        }
     } else {
         let mcp_path = write_mcp_config(&spec.session_dir, &spec.mcp_url)?;
         let mcp_path_str = mcp_path.to_string_lossy().into_owned();

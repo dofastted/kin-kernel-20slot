@@ -82,6 +82,10 @@ pub struct MultiplexConfig {
     pub relay_addr: std::net::SocketAddr,
     pub relay_upstream: String,
     pub execution_mode: ExecutionMode,
+    /// Go control-plane's computed `RuntimeProfile` hash (design.md §6),
+    /// mirrors `crate::config::Config::desired_config_hash`. Read once at
+    /// startup; `None` skips three-way config_hash validation.
+    pub desired_config_hash: Option<String>,
 }
 
 impl MultiplexConfig {
@@ -148,6 +152,7 @@ impl MultiplexConfig {
             relay_upstream: env::var("KIN_RELAY_UPSTREAM")
                 .unwrap_or_else(|_| "https://api.anthropic.com".into()),
             execution_mode: ExecutionMode::from_env()?,
+            desired_config_hash: env::var("KIN_DESIRED_CONFIG_HASH").ok(),
         })
     }
 }
@@ -187,6 +192,10 @@ pub struct Runtime {
     /// for populating `complete_job()`'s response content under
     /// native/native_messages. Only touched from the native code paths.
     stream_assemblers: Mutex<HashMap<String, StreamAssembler>>,
+    /// Set when `validate_host_ready()` rejects a `kin_host_ready` handshake
+    /// due to config_hash mismatch (design.md §6, AC14). Surfaced via
+    /// `Provider::config_hash_mismatch()` for `/readyz`.
+    config_hash_mismatch: AtomicBool,
 }
 
 const JOB_SINK_ITEMS: usize = 256;
@@ -401,6 +410,7 @@ impl Runtime {
             stage_dropped: AtomicU64::new(0),
             native_host: Mutex::new(None),
             stream_assemblers: Mutex::new(HashMap::new()),
+            config_hash_mismatch: AtomicBool::new(false),
         })
     }
 
@@ -460,6 +470,7 @@ impl Runtime {
             session_dir: dir,
             anthropic_base_url,
             native_slots: native.then_some(self.cfg.slot_count),
+            desired_config_hash: self.cfg.desired_config_hash.clone(),
         };
         let mut supervised = supervisor::spawn(&spec).await?;
         self.pid.store(supervised.pid, Ordering::Relaxed);
@@ -1149,8 +1160,12 @@ impl Runtime {
                     &system_layout,
                     &timezone,
                     &capabilities,
+                    config_hash.as_deref(),
                 ) {
                     tracing::error!(reason, "native host ready validation failed, refusing to register slots");
+                    if reason.starts_with("config_hash mismatch") {
+                        self.config_hash_mismatch.store(true, Ordering::Relaxed);
+                    }
                     return;
                 }
                 *self.native_host.lock().await = Some(NativeHostInfo {
@@ -1251,6 +1266,7 @@ impl Runtime {
         system_layout: &str,
         timezone: &str,
         capabilities: &[String],
+        config_hash: Option<&str>,
     ) -> Result<(), String> {
         if protocol_version != native_protocol::KIN_PROTOCOL_VERSION {
             return Err(format!(
@@ -1281,6 +1297,13 @@ impl Runtime {
             if !capabilities.iter().any(|c| c == required) {
                 return Err(format!("missing required capability {required}"));
             }
+        }
+        if let Some(expected_hash) = &self.cfg.desired_config_hash
+            && config_hash != Some(expected_hash.as_str())
+        {
+            return Err(format!(
+                "config_hash mismatch: cli={config_hash:?} expected={expected_hash}"
+            ));
         }
         Ok(())
     }
@@ -1863,6 +1886,12 @@ impl Runtime {
             .iter()
             .find(|slot| slot.session_id.as_deref() == Some(session_id))
             .map(|slot| slot.id.clone())
+    }
+
+    /// True if the native host's last `kin_host_ready` was rejected for a
+    /// config_hash mismatch against `desired_config_hash` (design.md §6).
+    pub fn config_hash_mismatch(&self) -> bool {
+        self.config_hash_mismatch.load(Ordering::Relaxed)
     }
 }
 
@@ -2470,6 +2499,7 @@ impl MultiplexCliProvider {
                 relay_addr: "127.0.0.1:0".parse().unwrap(),
                 relay_upstream: "https://api.anthropic.com".into(),
                 execution_mode: ExecutionMode::McpSlot,
+                desired_config_hash: None,
             },
             runtime: OnceCell::new(),
         }
@@ -2496,6 +2526,7 @@ impl MultiplexCliProvider {
                     relay_addr: self.cfg.relay_addr,
                     relay_upstream: self.cfg.relay_upstream.clone(),
                     execution_mode: self.cfg.execution_mode,
+                    desired_config_hash: self.cfg.desired_config_hash.clone(),
                 });
                 runtime.start().await?;
                 Ok(runtime)
@@ -2530,6 +2561,13 @@ impl Provider for MultiplexCliProvider {
 
     fn session_slot(&self, session_id: &str) -> Option<String> {
         self.runtime.get().and_then(|runtime| runtime.session_slot(session_id))
+    }
+
+    fn config_hash_mismatch(&self) -> bool {
+        self.runtime
+            .get()
+            .map(|runtime| runtime.config_hash_mismatch())
+            .unwrap_or(false)
     }
 
     fn memory_snapshot(&self) -> Option<serde_json::Value> {
@@ -2637,6 +2675,7 @@ mod tests {
             relay_addr: "127.0.0.1:0".parse().unwrap(),
             relay_upstream: "https://api.anthropic.com".into(),
             execution_mode: ExecutionMode::McpSlot,
+            desired_config_hash: None,
         }
     }
 
@@ -3682,5 +3721,44 @@ mod tests {
         assert_eq!(snap["tap_dropped"], 0);
         assert_eq!(snap["digest_mismatch"], 0);
         assert!(provider.runtime.get().unwrap().relay.get().is_none());
+    }
+
+    #[test]
+    fn validate_host_ready_rejects_config_hash_mismatch() {
+        let mut cfg = test_cfg(Duration::from_secs(1));
+        cfg.slot_count = 1;
+        cfg.desired_config_hash = Some("expected-hash".into());
+        let runtime = Runtime::new(cfg);
+        let expected_envelope = envelope::load();
+        let capabilities: Vec<String> = native_protocol::KIN_CAPABILITIES
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+
+        let err = runtime
+            .validate_host_ready(
+                native_protocol::KIN_PROTOCOL_VERSION,
+                1,
+                expected_envelope.mode.as_str(),
+                &expected_envelope.timezone,
+                &capabilities,
+                Some("wrong-hash"),
+            )
+            .expect_err("mismatched config_hash must be rejected");
+        assert!(
+            err.contains("config_hash mismatch"),
+            "unexpected error: {err}"
+        );
+
+        runtime
+            .validate_host_ready(
+                native_protocol::KIN_PROTOCOL_VERSION,
+                1,
+                expected_envelope.mode.as_str(),
+                &expected_envelope.timezone,
+                &capabilities,
+                Some("expected-hash"),
+            )
+            .expect("matching config_hash must be accepted");
     }
 }

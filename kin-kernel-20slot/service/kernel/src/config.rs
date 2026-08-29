@@ -117,6 +117,11 @@ pub struct Config {
     pub default_tenant: String,
     pub expose_slot_header: bool,
     pub provider: String,
+    /// Go control-plane's computed `RuntimeProfile` hash (design.md §6).
+    /// Read once at process startup only — config changes require a drain +
+    /// restart cycle, never a runtime re-fetch. `None` means the Go
+    /// integration isn't wired up yet; three-way validation is skipped.
+    pub desired_config_hash: Option<String>,
 }
 
 impl Config {
@@ -184,6 +189,7 @@ impl Config {
             default_tenant: env::var("KIN_DEFAULT_TENANT").unwrap_or_else(|_| "demo".to_string()),
             expose_slot_header: parse_bool_env("KIN_EXPOSE_SLOT_HEADER", true)?,
             provider: env::var("KIN_PROVIDER").unwrap_or_else(|_| "mock".to_string()),
+            desired_config_hash: env::var("KIN_DESIRED_CONFIG_HASH").ok(),
         })
     }
 }

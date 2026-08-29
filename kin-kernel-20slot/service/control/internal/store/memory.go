@@ -15,6 +15,7 @@ type Memory struct {
 	mu       sync.RWMutex
 	kernels  map[string]model.Kernel
 	policies map[string]model.RoutePolicy
+	profile  *model.RuntimeProfile
 	revision uint64
 }
 
@@ -136,5 +137,21 @@ func (m *Memory) Revision() uint64 {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.revision
+}
+
+func (m *Memory) SetRuntimeProfile(profile model.RuntimeProfile) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.profile = &profile
+	m.revision++
+}
+
+func (m *Memory) GetRuntimeProfile() (model.RuntimeProfile, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if m.profile == nil {
+		return model.RuntimeProfile{}, false
+	}
+	return *m.profile, true
 }
 

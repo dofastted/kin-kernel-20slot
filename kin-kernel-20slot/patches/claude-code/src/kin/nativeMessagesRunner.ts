@@ -64,6 +64,7 @@ export async function runNativeMessagesLoop(_ctx: {
     const id = slotId(i)
     slots.set(id, { id, phase: 'idle' })
   }
+  const configHash = process.env.CLAUDE_CODE_KIN_CONFIG_HASH
   await writeStdout({
     type: 'kin_host_ready',
     protocol_version: KIN_PROTOCOL_VERSION,
@@ -71,6 +72,7 @@ export async function runNativeMessagesLoop(_ctx: {
     system_layout: getSystemLayout(),
     timezone: getKinTimezone(),
     capabilities: [...KIN_CAPABILITIES],
+    ...(configHash ? { config_hash: configHash } : {}),
   })
   for (const id of slots.keys()) {
     await writeStdout({ type: 'kin_slot_ready', slot_id: id })

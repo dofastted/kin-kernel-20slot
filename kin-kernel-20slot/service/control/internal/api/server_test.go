@@ -46,6 +46,107 @@ func TestRegisterAndListKernel(t *testing.T) {
 	}
 }
 
+func TestRuntimeProfilePutAndGet(t *testing.T) {
+	t.Parallel()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	memory := store.NewMemory()
+	reconciler := reconcile.New(memory, 20*time.Second, logger)
+	server := httptest.NewServer(New(memory, reconciler, time.Hour, logger).Handler())
+	defer server.Close()
+
+	body := `{
+		"execution_mode": "native_slot",
+		"system_layout": "zero",
+		"timezone": "America/New_York",
+		"slot_count": 20,
+		"socks5": "socks5h://127.0.0.1:1080",
+		"allowed_models": ["claude-opus-5"],
+		"allowed_server_tools": ["web_search"],
+		"allowed_betas": ["beta-1"],
+		"max_body_bytes": 1048576,
+		"max_output_tokens": 8192
+	}`
+	req, err := http.NewRequest(http.MethodPut, server.URL+"/api/v1/runtime-profile", bytes.NewBufferString(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("content-type", "application/json")
+	putResp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer putResp.Body.Close()
+	putPayload, _ := io.ReadAll(putResp.Body)
+	if putResp.StatusCode != http.StatusOK {
+		t.Fatalf("put status = %d body = %s", putResp.StatusCode, putPayload)
+	}
+	if !strings.Contains(string(putPayload), `"config_hash"`) {
+		t.Fatalf("expected config_hash in put response: %s", putPayload)
+	}
+
+	getResp, err := http.Get(server.URL + "/api/v1/runtime-profile")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer getResp.Body.Close()
+	getPayload, _ := io.ReadAll(getResp.Body)
+	if getResp.StatusCode != http.StatusOK {
+		t.Fatalf("get status = %d body = %s", getResp.StatusCode, getPayload)
+	}
+	if string(getPayload) != string(putPayload) {
+		t.Fatalf("get response should match put response: get=%s put=%s", getPayload, putPayload)
+	}
+}
+
+func TestRuntimeProfileGetNotFound(t *testing.T) {
+	t.Parallel()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	memory := store.NewMemory()
+	reconciler := reconcile.New(memory, 20*time.Second, logger)
+	server := httptest.NewServer(New(memory, reconciler, time.Hour, logger).Handler())
+	defer server.Close()
+
+	resp, err := http.Get(server.URL + "/api/v1/runtime-profile")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("status = %d", resp.StatusCode)
+	}
+}
+
+func TestRuntimeProfilePutInvalidSlotCount(t *testing.T) {
+	t.Parallel()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	memory := store.NewMemory()
+	reconciler := reconcile.New(memory, 20*time.Second, logger)
+	server := httptest.NewServer(New(memory, reconciler, time.Hour, logger).Handler())
+	defer server.Close()
+
+	body := `{
+		"execution_mode": "native_slot",
+		"system_layout": "zero",
+		"timezone": "America/New_York",
+		"slot_count": 21,
+		"max_body_bytes": 1048576,
+		"max_output_tokens": 8192
+	}`
+	req, err := http.NewRequest(http.MethodPut, server.URL+"/api/v1/runtime-profile", bytes.NewBufferString(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("content-type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("status = %d", resp.StatusCode)
+	}
+}
+
 func TestSessionKeyExchangeGone(t *testing.T) {
 	t.Parallel()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
