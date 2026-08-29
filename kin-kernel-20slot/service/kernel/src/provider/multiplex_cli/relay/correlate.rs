@@ -312,6 +312,7 @@ mod tests {
             relay_mode: RelayMode::Observe,
             relay_addr: "127.0.0.1:0".parse().unwrap(),
             relay_upstream: "https://api.anthropic.com".into(),
+            execution_mode: crate::provider::multiplex_cli::execution_mode::ExecutionMode::McpSlot,
         }
     }
 

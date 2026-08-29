@@ -1,0 +1,27 @@
+--- a/src/cli/print.ts
++++ b/src/cli/print.ts
+@@ -577,6 +577,24 @@ export async function runHeadless(
+   // Without this, the disk cache is empty and all flags fall back to defaults.
+   void initializeGrowthBook()
+ 
++  // Native slot host: exclusive stdin/stdout kin_* protocol. Skip structuredIO
++  // so SDK stream-json does not steal stdin from NativeSlotRunner.
++  if (process.env.CLAUDE_CODE_KIN_NATIVE_SLOTS) {
++    const { runNativeSlotLoop } = await import('../kin/nativeSlotRunner.js')
++    const { cwd } = await import('../utils/cwd.js')
++    await runNativeSlotLoop({
++      getAppState,
++      setAppState,
++      commands,
++      tools,
++      agents,
++      cwd,
++      canUseTool: async () => ({ behavior: 'allow' }),
++      options,
++    })
++    return
++  }
++
+   if (options.resumeSessionAt && !options.resume) {
+     process.stderr.write(`Error: --resume-session-at requires --resume\n`)
+     gracefulShutdownSync(1)

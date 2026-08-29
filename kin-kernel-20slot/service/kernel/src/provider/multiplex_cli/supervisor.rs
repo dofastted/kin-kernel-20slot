@@ -24,6 +24,7 @@ pub struct SpawnSpec {
     pub mcp_url: String,
     pub session_dir: PathBuf,
     pub anthropic_base_url: Option<String>,
+    pub native_slots: Option<usize>,
 }
 
 #[allow(dead_code)]
@@ -90,55 +91,73 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
         Command::new(&spec.bin)
     };
     apply_proxy_env(&mut cmd, spec.anthropic_base_url.is_some())?;
-    let mcp_path_str = mcp_path.to_string_lossy().into_owned();
-    cmd.args([
-        "-p",
-        "--input-format",
-        "stream-json",
-        "--output-format",
-        "stream-json",
-        "--verbose",
-        "--include-partial-messages",
-        "--forward-subagent-text",
-        "--replay-user-messages",
-        "--no-session-persistence",
-        "--permission-mode",
-        "acceptEdits",
-        "--agents",
-        &agents,
-        "--mcp-config",
-        &mcp_path_str,
-        "--strict-mcp-config",
-        "--allowedTools",
-        "Agent,WebSearch,mcp__kin_runtime__slot_wait,mcp__kin_runtime__client_tool,mcp__kin_runtime__kin_done,mcp__kin_runtime__kin_fail",
-        "--model",
-        &spec.model,
-    ])
-    .current_dir(&spec.session_dir)
-    .env("CLAUDE_CONFIG_DIR", &spec.session_dir)
-    .env("CLAUDE_CODE_ENTRYPOINT", "cli")
-    .env("CLAUDE_CODE_DISABLE_TELEMETRY", "1")
-    .env("CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS", &n)
-    .env("CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY", &n)
-    .env("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH", "1")
-    .env("CLAUDE_CODE_FORWARD_SUBAGENT_TEXT", "1");
-    apply_envelope_env(&mut cmd);
-    if env::var("KIN_FORWARD_SUBAGENT_PARTIALS")
-        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-        .unwrap_or(false)
-    {
-        cmd.arg("--forward-subagent-partials")
-            .env("CLAUDE_CODE_FORWARD_SUBAGENT_PARTIALS", "1");
+    if spec.native_slots.is_some() {
+        cmd.args([
+            "-p",
+            "--output-format",
+            "stream-json",
+            "--verbose",
+            "--include-partial-messages",
+            "--no-session-persistence",
+            "--permission-mode",
+            "acceptEdits",
+            "--model",
+            &spec.model,
+        ]);
+        let layout = crate::provider::multiplex_cli::envelope::load();
+        cmd.env("CLAUDE_CODE_KIN_NATIVE_SLOTS", &n)
+            .env("CLAUDE_CODE_SYSTEM_LAYOUT", layout.mode.as_str())
+            .env("CLAUDE_CODE_TIMEZONE", &layout.timezone);
+    } else {
+        let mcp_path_str = mcp_path.to_string_lossy().into_owned();
+        cmd.args([
+            "-p",
+            "--input-format",
+            "stream-json",
+            "--output-format",
+            "stream-json",
+            "--verbose",
+            "--include-partial-messages",
+            "--forward-subagent-text",
+            "--replay-user-messages",
+            "--no-session-persistence",
+            "--permission-mode",
+            "acceptEdits",
+            "--agents",
+            &agents,
+            "--mcp-config",
+            &mcp_path_str,
+            "--strict-mcp-config",
+            "--allowedTools",
+            "Agent,WebSearch,mcp__kin_runtime__slot_wait,mcp__kin_runtime__client_tool,mcp__kin_runtime__kin_done,mcp__kin_runtime__kin_fail",
+            "--model",
+            &spec.model,
+        ])
+        .env("CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS", &n)
+        .env("CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY", &n)
+        .env("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH", "1")
+        .env("CLAUDE_CODE_FORWARD_SUBAGENT_TEXT", "1");
+        if env::var("KIN_FORWARD_SUBAGENT_PARTIALS")
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false)
+        {
+            cmd.arg("--forward-subagent-partials")
+                .env("CLAUDE_CODE_FORWARD_SUBAGENT_PARTIALS", "1");
+        }
+        if let Some(url) = &spec.anthropic_base_url {
+            cmd.env("ANTHROPIC_BASE_URL", url);
+        }
     }
+    cmd.current_dir(&spec.session_dir)
+        .env("CLAUDE_CONFIG_DIR", &spec.session_dir)
+        .env("CLAUDE_CODE_ENTRYPOINT", "cli")
+        .env("CLAUDE_CODE_DISABLE_TELEMETRY", "1");
+    apply_envelope_env(&mut cmd);
     auth.apply_tokio(&mut cmd);
     cmd.stdin(Stdio::piped())
-    .stdout(Stdio::piped())
-    .stderr(Stdio::piped())
-    .kill_on_drop(true);
-    if let Some(url) = &spec.anthropic_base_url {
-        cmd.env("ANTHROPIC_BASE_URL", url);
-    }
-
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .kill_on_drop(true);
     if let Ok(debug) = env::var("KIN_CLAUDE_DEBUG_FILE") {
         cmd.arg("--debug-file").arg(debug);
     }

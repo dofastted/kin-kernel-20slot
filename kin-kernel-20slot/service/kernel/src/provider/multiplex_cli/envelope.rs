@@ -102,7 +102,7 @@ pub fn build_system(
     leftover: Option<&str>,
 ) -> serde_json::Value {
     let billing = billing_line(cfg.mode, first_user, session_id);
-    let env_block = format!("# Environment\n - Timezone: {}", cfg.timezone.trim());
+    let env_block = format!("# Environment\nTime zone: {}", cfg.timezone.trim());
     let mut blocks = vec![text_block(&billing)];
     if cfg.mode == SystemMode::Identity {
         blocks.push(text_block(IDENTITY));
@@ -120,7 +120,7 @@ pub fn billing_line(mode: SystemMode, first_user: &str, session_id: &str) -> Str
     let prompt_id = prompt_id(session_id, &fp);
     match mode {
         SystemMode::Zero => format!(
-            "x-anthropic-billing-header: cc_version={CLI_VER}.{fp}; cc_entrypoint=sdk-cli; cch={cch}; cc_prompt_id={prompt_id}; prompt_version=<{IDENTITY}>"
+            "x-anthropic-billing-header: cc_version={CLI_VER}.{fp}; cc_entrypoint=sdk-cli; cch={cch}; cc_prompt_id={prompt_id}; prompt_version={IDENTITY}"
         ),
         SystemMode::Identity => format!(
             "x-anthropic-billing-header: cc_version={CLI_VER}.{fp}; cc_entrypoint=sdk-cli; cch={cch}; cc_prompt_id={prompt_id}"
@@ -204,10 +204,10 @@ mod tests {
         let blocks = system.as_array().unwrap();
         assert_eq!(blocks.len(), 2);
         let billing = blocks[0]["text"].as_str().unwrap();
-        assert!(billing.contains("prompt_version=<You are a Claude agent"));
+        assert!(billing.contains("prompt_version=You are a Claude agent"));
         assert_eq!(
             blocks[1]["text"].as_str().unwrap(),
-            "# Environment\n - Timezone: America/New_York"
+            "# Environment\nTime zone: America/New_York"
         );
     }
 

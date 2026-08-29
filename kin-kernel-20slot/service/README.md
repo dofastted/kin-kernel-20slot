@@ -69,10 +69,12 @@ cli-node.js → HTTPS_PROXY (http_to_socks) → SOCKS5 → api.anthropic.com
 
 ```bash
 export KIN_RELAY_MODE=off          # default
-export KIN_SYSTEM_MODE=zero        # billing.prompt_version=<official sentence>
+export KIN_EXECUTION_MODE=mcp_slot # rollback; native_slot is the 0-inject host loop
+# export KIN_EXECUTION_MODE=native_slot
+export KIN_SYSTEM_MODE=zero        # billing.prompt_version=official sentence
 # export KIN_SYSTEM_MODE=identity  # official sentence as its own system block
 export KIN_SLOT_TZ=America/New_York  # must match SOCKS egress
-# apply patches/claude-code (envelope + subagent streaming) then:
+# apply patches/claude-code (layout + NativeSlotRunner) then:
 export KIN_CLAUDE_BIN=/path/to/cli-node-wrapper
 ```
 

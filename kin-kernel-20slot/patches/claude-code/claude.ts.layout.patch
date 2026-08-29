@@ -1,0 +1,46 @@
+--- a/src/services/api/claude.ts
++++ b/src/services/api/claude.ts
+@@ -29,6 +29,11 @@ import {
+   getAttributionHeader,
+   getCLISyspromptPrefix,
+ } from '../../constants/system.js'
++import {
++  getSystemLayout,
++  layoutSystemBlocks,
++  leftoverFromSystemPrompt,
++} from '../../kin/systemLayout.js'
+@@
+-  systemPrompt = asSystemPrompt(
+-    [
+-      getAttributionHeader(),
+-      getCLISyspromptPrefix({
+-        isNonInteractive: options.isNonInteractiveSession,
+-        hasAppendSystemPrompt: options.hasAppendSystemPrompt,
+-      }),
+-      ...systemPrompt,
+-      ...(advisorModel ? [ADVISOR_TOOL_INSTRUCTIONS] : []),
+-      ...(injectChromeHere ? [CHROME_SEARCH_EXTRA_TOOLS_INSTRUCTIONS] : []),
+-    ].filter(Boolean),
+-  )
++  const layout = getSystemLayout()
++  if (layout !== 'stock') {
++    systemPrompt = asSystemPrompt(
++      layoutSystemBlocks({
++        attribution: getAttributionHeader(),
++        leftover: leftoverFromSystemPrompt(systemPrompt),
++      }),
++    )
++  } else {
++    systemPrompt = asSystemPrompt(
++      [
++        getAttributionHeader(),
++        getCLISyspromptPrefix({
++          isNonInteractive: options.isNonInteractiveSession,
++          hasAppendSystemPrompt: options.hasAppendSystemPrompt,
++        }),
++        ...systemPrompt,
++        ...(advisorModel ? [ADVISOR_TOOL_INSTRUCTIONS] : []),
++        ...(injectChromeHere ? [CHROME_SEARCH_EXTRA_TOOLS_INSTRUCTIONS] : []),
++      ].filter(Boolean),
++    )
++  }

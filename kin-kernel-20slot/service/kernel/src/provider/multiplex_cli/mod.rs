@@ -1,14 +1,19 @@
-//! One Claude OS process, N background kin-slot subagents, Rust MCP rendezvous.
+//! One Claude OS process, N slots.
 //!
-//! HTTP requests never share stdin. Jobs wake a ReadyBlocked slot via MCP
-//! `slot_wait`; stream-json is demuxed by `parent_tool_use_id`.
+//! `mcp_slot` (default): HTTP never shares stdin. Jobs wake a ReadyBlocked
+//! slot via MCP `slot_wait`; stream-json is demuxed by `parent_tool_use_id`.
+//!
+//! `native_slot`: jobs go stdin as `kin_job_start`; CLI hosts QueryEngine
+//! slots; stdout `kin_stream_event` is the only text authority.
 
 pub mod bootstrap;
 pub mod continuation;
 pub mod envelope;
+pub mod execution_mode;
 pub mod job_stream;
 pub mod mcp_server;
 pub mod memory_guard;
+pub mod native_protocol;
 pub mod pending_call;
 pub mod relay;
 pub mod replay;
@@ -44,6 +49,7 @@ use crate::{
 
 use self::{
     continuation::ContinuationToken,
+    execution_mode::ExecutionMode,
     job_stream::JobStream,
     memory_guard::MemoryGuard,
     pending_call::{Job, JobOutcome, PendingCalls, SlotWaitPayload, new_id},
@@ -75,6 +81,7 @@ pub struct MultiplexConfig {
     pub relay_mode: RelayMode,
     pub relay_addr: std::net::SocketAddr,
     pub relay_upstream: String,
+    pub execution_mode: ExecutionMode,
 }
 
 impl MultiplexConfig {
@@ -140,6 +147,7 @@ impl MultiplexConfig {
             relay_addr,
             relay_upstream: env::var("KIN_RELAY_UPSTREAM")
                 .unwrap_or_else(|_| "https://api.anthropic.com".into()),
+            execution_mode: ExecutionMode::from_env()?,
         })
     }
 }
@@ -167,6 +175,7 @@ pub struct Runtime {
     tap_drains: Mutex<HashMap<String, TapDrainState>>,
     tap_turns: Mutex<HashMap<String, u64>>,
     relay: OnceLock<relay::RelayHandle>,
+    cli_stdin: Mutex<Option<tokio::process::ChildStdin>>,
     pub memory: MemoryGuard,
     running: AtomicUsize,
     peak_running: AtomicUsize,
@@ -368,6 +377,7 @@ impl Runtime {
             tap_drains: Mutex::new(HashMap::new()),
             tap_turns: Mutex::new(HashMap::new()),
             relay: OnceLock::new(),
+            cli_stdin: Mutex::new(None),
             memory: MemoryGuard::from_env(),
             running: AtomicUsize::new(0),
             peak_running: AtomicUsize::new(0),
@@ -397,16 +407,21 @@ impl Runtime {
     }
 
     async fn start_claude(self: &Arc<Self>) -> Result<(), KernelError> {
-        let mcp_addr = mcp_server::spawn(
-            Arc::clone(self),
-            "127.0.0.1:0"
-                .parse()
-                .map_err(|err| KernelError::Provider(format!("{err}")))?,
-        )
-        .await?;
-        tracing::info!(mcp = %mcp_addr, "kin mcp listening");
+        let native = self.cfg.execution_mode.is_native();
+        let mut mcp_url = String::new();
+        if !native {
+            let mcp_addr = mcp_server::spawn(
+                Arc::clone(self),
+                "127.0.0.1:0"
+                    .parse()
+                    .map_err(|err| KernelError::Provider(format!("{err}")))?,
+            )
+            .await?;
+            tracing::info!(mcp = %mcp_addr, "kin mcp listening");
+            mcp_url = format!("http://{mcp_addr}/mcp");
+        }
         let mut anthropic_base_url = None;
-        if self.cfg.relay_mode != RelayMode::Off {
+        if !native && self.cfg.relay_mode != RelayMode::Off {
             let handle = relay::spawn(Arc::clone(self), &self.cfg).await?;
             relay::confirm_healthy(handle.addr).await?;
             relay::upstream::UpstreamClient::new(&self.cfg.relay_upstream)?
@@ -423,9 +438,10 @@ impl Runtime {
             mock: self.cfg.mock_bin,
             model: self.cfg.model.clone(),
             slot_count: self.cfg.slot_count,
-            mcp_url: format!("http://{mcp_addr}/mcp"),
+            mcp_url,
             session_dir: dir,
             anthropic_base_url,
+            native_slots: native.then_some(self.cfg.slot_count),
         };
         let mut supervised = supervisor::spawn(&spec).await?;
         self.pid.store(supervised.pid, Ordering::Relaxed);
@@ -465,17 +481,46 @@ impl Runtime {
                 }
             });
         }
-        bootstrap::write_root_prompt(&mut stdin, self.cfg.slot_count).await?;
-        tokio::spawn(async move {
-            // Keep stdin open (no more writes) and wait so kill_on_drop cannot
-            // reap the process when this task would otherwise fall off the end.
-            let _stdin = stdin;
-            match supervised.child.wait().await {
-                Ok(status) => tracing::warn!(%status, "claude process exited"),
-                Err(err) => tracing::warn!(%err, "claude wait failed"),
-            }
-        });
-        tracing::info!(pid = supervised.pid, "claude supervisor alive");
+        if native {
+            let cfg = envelope::load();
+            let hello = native_protocol::KinStdin::Hello {
+                slots: self.cfg.slot_count,
+                system_layout: cfg.mode.as_str().to_string(),
+                timezone: cfg.timezone.clone(),
+            };
+            let line = native_protocol::encode_stdin(&hello)
+                .map_err(KernelError::Provider)?;
+            use tokio::io::AsyncWriteExt;
+            stdin
+                .write_all(&line)
+                .await
+                .map_err(|err| KernelError::Provider(format!("kin_hello: {err}")))?;
+            stdin
+                .flush()
+                .await
+                .map_err(|err| KernelError::Provider(err.to_string()))?;
+            *self.cli_stdin.lock().await = Some(stdin);
+            tokio::spawn(async move {
+                match supervised.child.wait().await {
+                    Ok(status) => tracing::warn!(%status, "claude process exited"),
+                    Err(err) => tracing::warn!(%err, "claude wait failed"),
+                }
+            });
+        } else {
+            bootstrap::write_root_prompt(&mut stdin, self.cfg.slot_count).await?;
+            tokio::spawn(async move {
+                let _stdin = stdin;
+                match supervised.child.wait().await {
+                    Ok(status) => tracing::warn!(%status, "claude process exited"),
+                    Err(err) => tracing::warn!(%err, "claude wait failed"),
+                }
+            });
+        }
+        tracing::info!(
+            pid = supervised.pid,
+            native,
+            "claude supervisor alive"
+        );
         let wait = Duration::from_secs((120 + 8 * self.cfg.slot_count as u64).min(240));
         bootstrap::wait_ready(self, self.cfg.slot_count, wait).await
     }
@@ -970,6 +1015,10 @@ impl Runtime {
     }
 
     pub async fn handle_cli_frame(&self, frame: Value) {
+        if let Some(native) = native_protocol::decode_stdout_value(&frame) {
+            self.handle_native_frame(native).await;
+            return;
+        }
         match stream_decoder::decode(&frame) {
             stream_decoder::Decoded::AgentSpawn { tool_use_id } => {
                 self.note_agent_spawn(tool_use_id).await;
@@ -1021,6 +1070,69 @@ impl Runtime {
             }
             stream_decoder::Decoded::Root => {}
         }
+    }
+
+    async fn handle_native_frame(&self, frame: native_protocol::KinStdout) {
+        match frame {
+            native_protocol::KinStdout::SlotReady { slot_id } => {
+                self.register_native_ready(slot_id).await;
+            }
+            native_protocol::KinStdout::StreamEvent {
+                job_id,
+                slot_id: _,
+                event,
+            } => {
+                self.mark_delivered_text(&job_id, std::slice::from_ref(&event))
+                    .await;
+                self.emit(&job_id, StreamItem::Event(event)).await;
+            }
+            native_protocol::KinStdout::JobDone {
+                job_id,
+                slot_id: _,
+                stop_reason,
+                usage,
+            } => {
+                let _ = self
+                    .complete_job(&job_id, String::new(), false, &stop_reason, usage)
+                    .await;
+            }
+            native_protocol::KinStdout::JobError { job_id, error } => {
+                let _ = self
+                    .complete_job(&job_id, error, true, "error", json!({}))
+                    .await;
+            }
+        }
+    }
+
+    async fn register_native_ready(&self, slot_id: String) {
+        let mut slots = self.slots.lock().await;
+        if !slots.iter().any(|slot| slot.id == slot_id) {
+            slots.push(Slot::new(slot_id.clone()));
+        }
+        if let Some(slot) = slots.iter_mut().find(|slot| slot.id == slot_id) {
+            slot.unbind_ready();
+        }
+        drop(slots);
+        if self.sched.lock().await.enqueue_ready(slot_id) {
+            self.ready.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+
+    async fn write_cli_stdin(&self, frame: native_protocol::KinStdin) -> Result<(), KernelError> {
+        let line = native_protocol::encode_stdin(&frame).map_err(KernelError::Provider)?;
+        let mut guard = self.cli_stdin.lock().await;
+        let stdin = guard
+            .as_mut()
+            .ok_or_else(|| KernelError::Provider("native cli stdin closed".into()))?;
+        use tokio::io::AsyncWriteExt;
+        stdin
+            .write_all(&line)
+            .await
+            .map_err(|err| KernelError::Provider(format!("native stdin: {err}")))?;
+        stdin
+            .flush()
+            .await
+            .map_err(|err| KernelError::Provider(err.to_string()))
     }
 
     /// Mark the job's body as streamed only for events that survived
@@ -1410,6 +1522,17 @@ impl Runtime {
         self.memory.begin(request_bytes);
         let n = self.running.fetch_add(1, Ordering::Relaxed) + 1;
         self.peak_running.fetch_max(n, Ordering::Relaxed);
+        if self.cfg.execution_mode.is_native() {
+            let request = serde_json::to_value(&job.request)
+                .unwrap_or_else(|_| json!({}));
+            self.write_cli_stdin(native_protocol::KinStdin::JobStart {
+                job_id: job_id.clone(),
+                slot_id: slot_id.clone(),
+                request,
+            })
+            .await?;
+            return Ok(());
+        }
         let msg_id = format!("msg_{job_id}");
         self.emit(
             &job_id,
@@ -2098,6 +2221,7 @@ impl MultiplexCliProvider {
                 relay_mode: RelayMode::Off,
                 relay_addr: "127.0.0.1:0".parse().unwrap(),
                 relay_upstream: "https://api.anthropic.com".into(),
+                execution_mode: ExecutionMode::McpSlot,
             },
             runtime: OnceCell::new(),
         }
@@ -2123,6 +2247,7 @@ impl MultiplexCliProvider {
                     relay_mode: self.cfg.relay_mode,
                     relay_addr: self.cfg.relay_addr,
                     relay_upstream: self.cfg.relay_upstream.clone(),
+                    execution_mode: self.cfg.execution_mode,
                 });
                 runtime.start().await?;
                 Ok(runtime)
@@ -2247,6 +2372,7 @@ mod tests {
             relay_mode: RelayMode::Off,
             relay_addr: "127.0.0.1:0".parse().unwrap(),
             relay_upstream: "https://api.anthropic.com".into(),
+            execution_mode: ExecutionMode::McpSlot,
         }
     }
 

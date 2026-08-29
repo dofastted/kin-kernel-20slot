@@ -228,7 +228,7 @@ mod tests {
         let out: serde_json::Value = serde_json::from_slice(&rewrite_messages_body(&raw)).unwrap();
         let system = out["system"].as_array().unwrap();
         assert_eq!(system.len(), 2);
-        assert!(system[0]["text"].as_str().unwrap().contains("prompt_version=<You are a Claude agent"));
+        assert!(system[0]["text"].as_str().unwrap().contains("prompt_version=You are a Claude agent"));
         assert!(system[1]["text"].as_str().unwrap().starts_with("# Environment"));
     }
 

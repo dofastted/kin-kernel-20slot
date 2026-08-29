@@ -65,6 +65,7 @@ async fn health(State(state): State<AppState>) -> Json<serde_json::Value> {
         "slots_per_worker": state.config.slots_per_worker,
         "memory": state.provider.memory_snapshot(),
         "relay": state.provider.relay_snapshot(),
+        "execution_mode": std::env::var("KIN_EXECUTION_MODE").unwrap_or_else(|_| "mcp_slot".into()),
         "envelope": crate::provider::multiplex_cli::envelope::load(),
         "limits": {
             "max_body_bytes": state.config.max_body_bytes,
@@ -125,6 +126,7 @@ async fn envelope_get() -> Json<serde_json::Value> {
         "timezone": cfg.timezone,
         "path": crate::provider::multiplex_cli::envelope::config_path(),
         "identity": crate::provider::multiplex_cli::envelope::IDENTITY,
+        "execution_mode": std::env::var("KIN_EXECUTION_MODE").unwrap_or_else(|_| "mcp_slot".into()),
         "notes": {
             "zero": "official sentence lives in billing prompt_version; no identity block",
             "identity": "official sentence is a standalone system block",
