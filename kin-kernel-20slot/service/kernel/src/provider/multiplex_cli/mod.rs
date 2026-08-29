@@ -5,6 +5,7 @@
 
 pub mod bootstrap;
 pub mod continuation;
+pub mod envelope;
 pub mod job_stream;
 pub mod mcp_server;
 pub mod memory_guard;
@@ -413,6 +414,8 @@ impl Runtime {
                 .await?;
             anthropic_base_url = Some(format!("http://{}", handle.addr));
             let _ = self.relay.set(handle);
+        } else {
+            ensure_socks_http_bridge()?;
         }
         let dir = PathBuf::from("/tmp/kin-cli/multiplex").join(Uuid::new_v4().to_string());
         let spec = supervisor::SpawnSpec {
@@ -1971,6 +1974,63 @@ async fn simulate_worker(runtime: Arc<Runtime>, parent: String) {
                 .await;
         }
     }
+}
+
+fn ensure_socks_http_bridge() -> Result<(), KernelError> {
+    if env::var("KIN_HTTPS_PROXY")
+        .map(|v| !v.trim().is_empty())
+        .unwrap_or(false)
+    {
+        return Ok(());
+    }
+    let socks = env::var("KIN_SOCKS5").unwrap_or_default();
+    if socks.trim().is_empty() {
+        return Ok(());
+    }
+    let listen = env::var("KIN_HTTP_BRIDGE_ADDR").unwrap_or_else(|_| "127.0.0.1:18080".into());
+    let proxy = format!("http://{listen}");
+    // SAFETY: boot-time only, before CLI spawn.
+    unsafe {
+        env::set_var("KIN_HTTPS_PROXY", &proxy);
+        env::set_var("KIN_HTTP_BRIDGE_ADDR", &listen);
+    }
+    let script = http_to_socks_script();
+    let mut child = std::process::Command::new("python3")
+        .arg(&script)
+        .env("KIN_SOCKS5", socks)
+        .env("KIN_HTTP_BRIDGE_ADDR", &listen)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|err| KernelError::Provider(format!("http_to_socks spawn: {err}")))?;
+    std::thread::sleep(Duration::from_millis(200));
+    if let Ok(Some(status)) = child.try_wait() {
+        return Err(KernelError::Provider(format!(
+            "http_to_socks exited {status}"
+        )));
+    }
+    std::mem::forget(child);
+    tracing::info!(proxy = %proxy, "cli https proxy -> socks5 bridge");
+    Ok(())
+}
+
+fn http_to_socks_script() -> PathBuf {
+    if let Ok(path) = env::var("KIN_HTTP_TO_SOCKS") {
+        return PathBuf::from(path);
+    }
+    let manifest = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".into()));
+    for candidate in [
+        manifest.join("../../scripts/http_to_socks.py"),
+        manifest.join("../scripts/http_to_socks.py"),
+        PathBuf::from("service/scripts/http_to_socks.py"),
+        PathBuf::from("scripts/http_to_socks.py"),
+    ] {
+        if candidate.exists() {
+            return candidate;
+        }
+    }
+    manifest.join("../../scripts/http_to_socks.py")
 }
 
 async fn decode_stdout(runtime: Arc<Runtime>, stdout: impl tokio::io::AsyncRead + Unpin) {

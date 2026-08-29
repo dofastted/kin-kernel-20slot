@@ -122,6 +122,7 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
     .env("CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY", &n)
     .env("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH", "1")
     .env("CLAUDE_CODE_FORWARD_SUBAGENT_TEXT", "1");
+    apply_envelope_env(&mut cmd);
     if env::var("KIN_FORWARD_SUBAGENT_PARTIALS")
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false)
@@ -150,6 +151,16 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
         pid,
         session_dir: spec.session_dir.clone(),
     })
+}
+
+fn apply_envelope_env(cmd: &mut Command) {
+    let cfg = crate::provider::multiplex_cli::envelope::load();
+    let path = crate::provider::multiplex_cli::envelope::config_path();
+    cmd.env("KIN_SYSTEM_MODE", cfg.mode.as_str())
+        .env("KIN_SLOT_TZ", &cfg.timezone)
+        .env("TZ", &cfg.timezone)
+        .env("KIN_ENVELOPE_PATH", path.as_os_str())
+        .env("CLAUDE_CODE_KIN_ENVELOPE", cfg.mode.as_str());
 }
 
 fn apply_proxy_env(cmd: &mut Command, relay_enabled: bool) -> Result<(), KernelError> {

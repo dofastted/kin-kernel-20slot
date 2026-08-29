@@ -60,6 +60,26 @@ python3 scripts/http_to_socks.py &
 cargo run --manifest-path kernel/Cargo.toml
 ```
 
+Native path (patched Node CLI, **no relay**):
+
+```
+cli-node.js → HTTPS_PROXY (http_to_socks) → SOCKS5 → api.anthropic.com
+       ↑ stdout stream_event (parent_tool_use_id)
+```
+
+```bash
+export KIN_RELAY_MODE=off          # default
+export KIN_SYSTEM_MODE=zero        # billing.prompt_version=<official sentence>
+# export KIN_SYSTEM_MODE=identity  # official sentence as its own system block
+export KIN_SLOT_TZ=America/New_York  # must match SOCKS egress
+# apply patches/claude-code (envelope + subagent streaming) then:
+export KIN_CLAUDE_BIN=/path/to/cli-node-wrapper
+```
+
+Console: `GET/PUT /internal/v1/envelope` `{mode, timezone}`. Patched CLI re-reads `KIN_ENVELOPE_PATH` per request.
+
+See [patches/claude-code/APPLY.md](../patches/claude-code/APPLY.md).
+
 | 服务 | 默认地址 | 用途 |
 |---|---|---|
 | Rust kernel | `0.0.0.0:8080` | `/v1/messages`、`/v1/chat/completions`、健康检查 |

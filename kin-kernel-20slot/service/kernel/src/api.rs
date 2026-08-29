@@ -47,6 +47,7 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/messages", post(messages))
         .route("/v1/chat/completions", post(chat_completions))
         .route("/internal/v1/slots", get(slots))
+        .route("/internal/v1/envelope", get(envelope_get).put(envelope_put))
         .layer(DefaultBodyLimit::max(max_body_bytes))
         .layer(PropagateRequestIdLayer::new(request_id.clone()))
         .layer(SetRequestIdLayer::new(request_id, MakeRequestUuid))
@@ -64,6 +65,7 @@ async fn health(State(state): State<AppState>) -> Json<serde_json::Value> {
         "slots_per_worker": state.config.slots_per_worker,
         "memory": state.provider.memory_snapshot(),
         "relay": state.provider.relay_snapshot(),
+        "envelope": crate::provider::multiplex_cli::envelope::load(),
         "limits": {
             "max_body_bytes": state.config.max_body_bytes,
             "max_tool_result_bytes": state.config.max_tool_result_bytes,
@@ -114,6 +116,48 @@ async fn ready(State(state): State<AppState>) -> Response {
 
 async fn slots(State(state): State<AppState>) -> Json<serde_json::Value> {
     Json(json!({"workers": state.scheduler.snapshots()}))
+}
+
+async fn envelope_get() -> Json<serde_json::Value> {
+    let cfg = crate::provider::multiplex_cli::envelope::load();
+    Json(json!({
+        "mode": cfg.mode,
+        "timezone": cfg.timezone,
+        "path": crate::provider::multiplex_cli::envelope::config_path(),
+        "identity": crate::provider::multiplex_cli::envelope::IDENTITY,
+        "notes": {
+            "zero": "official sentence lives in billing prompt_version; no identity block",
+            "identity": "official sentence is a standalone system block",
+            "timezone": "must match SOCKS egress (default America/New_York)"
+        }
+    }))
+}
+
+#[derive(serde::Deserialize)]
+struct EnvelopePatch {
+    mode: Option<String>,
+    timezone: Option<String>,
+}
+
+async fn envelope_put(Json(patch): Json<EnvelopePatch>) -> Response {
+    let mut cfg = crate::provider::multiplex_cli::envelope::load();
+    if let Some(mode) = patch.mode {
+        cfg.mode = crate::provider::multiplex_cli::envelope::SystemMode::parse(&mode);
+    }
+    if let Some(tz) = patch.timezone {
+        let tz = tz.trim().to_string();
+        if !tz.is_empty() {
+            cfg.timezone = tz;
+        }
+    }
+    match crate::provider::multiplex_cli::envelope::save(&cfg) {
+        Ok(saved) => (StatusCode::OK, Json(json!(saved))).into_response(),
+        Err(err) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"error": err})),
+        )
+            .into_response(),
+    }
 }
 
 #[derive(Clone, Copy)]

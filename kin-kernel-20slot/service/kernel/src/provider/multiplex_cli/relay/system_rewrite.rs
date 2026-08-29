@@ -1,18 +1,9 @@
-//! Rewrite CLI outbound `system` to the 0-inject default header.
+//! Rewrite CLI outbound `system` when the loopback relay is on.
 //!
-//! Default blocks:
-//!   0. billing (`prompt_version=<You are a Claude agent, built on Anthropic's Claude Agent SDK.>`)
-//!   1. `# Environment` + slot timezone
-//!   2. caller `--system` leftover, only if the inbound job carried one
-//!
-//! Identity is never emitted as its own block unless the caller sent it.
+//! Native path (relay off) does this inside the patched Claude Code CLI.
+//! Keep this as a fallback so observe/authoritative still matches console config.
 
-use sha2::{Digest, Sha256};
-use uuid::Uuid;
-
-const SALT: &str = "59cf53e54c78";
-const CLI_VER: &str = "2.1.241";
-const IDENTITY: &str = "You are a Claude agent, built on Anthropic's Claude Agent SDK.";
+use super::super::envelope::{self, IDENTITY};
 
 pub fn rewrite_messages_body(raw: &[u8]) -> Vec<u8> {
     let Ok(mut body) = serde_json::from_slice::<serde_json::Value>(raw) else {
@@ -27,43 +18,12 @@ pub fn rewrite_messages_body(raw: &[u8]) -> Vec<u8> {
     let leftover = leftover_from_job(obj);
     let first_user = job_first_user(obj).unwrap_or_else(|| first_user_text(obj));
     let session_id = session_id_of(obj);
-    let tz = std::env::var("TZ").unwrap_or_else(|_| "America/New_York".into());
+    let cfg = envelope::load();
     obj.insert(
         "system".into(),
-        build_zero_system(&first_user, &tz, &session_id, leftover.as_deref()),
+        envelope::build_system(&cfg, &first_user, &session_id, leftover.as_deref()),
     );
     serde_json::to_vec(&body).unwrap_or_else(|_| raw.to_vec())
-}
-
-pub fn build_zero_system(
-    first_user: &str,
-    timezone: &str,
-    session_id: &str,
-    leftover: Option<&str>,
-) -> serde_json::Value {
-    let mut blocks = vec![
-        serde_json::json!({
-            "type": "text",
-            "text": billing_line(first_user, session_id),
-        }),
-        serde_json::json!({
-            "type": "text",
-            "text": format!("# Environment\n - Timezone: {timezone}"),
-        }),
-    ];
-    if let Some(text) = leftover.map(str::trim).filter(|s| !s.is_empty()) {
-        blocks.push(serde_json::json!({ "type": "text", "text": text }));
-    }
-    serde_json::Value::Array(blocks)
-}
-
-pub fn billing_line(first_user: &str, session_id: &str) -> String {
-    let fp = compute_fp(first_user, CLI_VER);
-    let cch = compute_cch(first_user, CLI_VER);
-    let prompt_id = prompt_id(session_id, &fp);
-    format!(
-        "x-anthropic-billing-header: cc_version={CLI_VER}.{fp}; cc_entrypoint=sdk-cli; cch={cch}; cc_prompt_id={prompt_id}; prompt_version=<{IDENTITY}>"
-    )
 }
 
 fn is_kin_slot_request(obj: &serde_json::Map<String, serde_json::Value>) -> bool {
@@ -219,75 +179,7 @@ fn session_id_of(obj: &serde_json::Map<String, serde_json::Value>) -> String {
     {
         return id.to_string();
     }
-    if let Some(raw) = obj
-        .get("metadata")
-        .and_then(|m| m.get("user_id"))
-        .and_then(serde_json::Value::as_str)
-        && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(raw)
-        && let Some(id) = parsed.get("session_id").and_then(serde_json::Value::as_str)
-        && !id.is_empty()
-    {
-        return id.to_string();
-    }
-    Uuid::new_v4().to_string()
-}
-
-fn prompt_id(session_id: &str, fp: &str) -> String {
-    let raw = session_id.trim();
-    if Uuid::parse_str(raw).is_ok() {
-        return raw.to_string();
-    }
-    uuid_from_seed(if raw.is_empty() {
-        format!("prompt:{CLI_VER}:{fp}")
-    } else {
-        raw.to_string()
-    })
-}
-
-fn uuid_from_seed(seed: String) -> String {
-    let sum = Sha256::digest(seed.as_bytes());
-    let hx = hex(sum.as_slice());
-    let variant = (u8::from_str_radix(&hx[16..18], 16).unwrap_or(0) & 0x3f) | 0x80;
-    format!(
-        "{}-{}-4{}-{:02x}{}-{}",
-        &hx[0..8],
-        &hx[8..12],
-        &hx[13..16],
-        variant,
-        &hx[18..20],
-        &hx[20..32]
-    )
-}
-
-fn compute_fp(first_user: &str, ver: &str) -> String {
-    let buf = first_user.as_bytes();
-    let mut chars = [b'0'; 3];
-    for (slot, idx) in [4usize, 7, 20].into_iter().enumerate() {
-        if idx < buf.len() {
-            chars[slot] = buf[idx];
-        }
-    }
-    let mut hasher = Sha256::new();
-    hasher.update(SALT.as_bytes());
-    hasher.update(chars);
-    hasher.update(ver.as_bytes());
-    hex(&hasher.finalize())[..3].to_string()
-}
-
-fn compute_cch(first_user: &str, ver: &str) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(format!("{SALT}:cch:{first_user}:{ver}").as_bytes());
-    hex(&hasher.finalize())[..5].to_string()
-}
-
-fn hex(data: &[u8]) -> String {
-    const H: &[u8] = b"0123456789abcdef";
-    let mut out = String::with_capacity(data.len() * 2);
-    for byte in data {
-        out.push(H[(byte >> 4) as usize] as char);
-        out.push(H[(byte & 0x0f) as usize] as char);
-    }
-    out
+    uuid::Uuid::new_v4().to_string()
 }
 
 #[cfg(test)]
@@ -317,100 +209,47 @@ mod tests {
         .to_string()
     }
 
-    #[test]
-    fn default_header_is_billing_plus_env_without_identity_block() {
-        let raw = serde_json::to_vec(&json!({
+    fn slot_body(job: String) -> Vec<u8> {
+        serde_json::to_vec(&json!({
             "model": "claude-sonnet-5",
-            "tools": slot_tools(),
-            "system": [
-                {"type": "text", "text": "x-anthropic-billing-header: cc_version=2.8.4; cc_entrypoint=cli;"},
-                {"type": "text", "text": IDENTITY},
-                {"type": "text", "text": "You are a persistent Kin request slot. mcp__kin_runtime__kin_done"}
-            ],
-            "messages": [{"role": "user", "content": "hello-slot"}]
-        }))
-        .unwrap();
-        let out: serde_json::Value = serde_json::from_slice(&rewrite_messages_body(&raw)).unwrap();
-        let blocks = out["system"].as_array().unwrap();
-        assert_eq!(blocks.len(), 2);
-        let billing = blocks[0]["text"].as_str().unwrap();
-        assert!(billing.starts_with("x-anthropic-billing-header: cc_version=2.1.241."));
-        assert!(billing.contains("cc_entrypoint=sdk-cli"));
-        assert!(billing.contains(&format!("prompt_version=<{IDENTITY}>")));
-        assert!(!blocks.iter().any(|b| b["text"].as_str() == Some(IDENTITY)));
-        assert_eq!(
-            blocks[1]["text"].as_str().unwrap(),
-            "# Environment\n - Timezone: America/New_York"
-        );
-    }
-
-    #[test]
-    fn leftover_caller_system_is_appended() {
-        let session = "41199de5-cee9-4c06-9352-9aa71290a6e0";
-        let raw = serde_json::to_vec(&json!({
-            "model": "claude-sonnet-5",
-            "tools": slot_tools(),
-            "system": [
-                {"type": "text", "text": IDENTITY}
-            ],
-            "messages": [
-                {"role": "user", "content": "bootstrap"},
-                {
-                    "role": "user",
-                    "content": [{
-                        "type": "tool_result",
-                        "tool_use_id": "toolu_1",
-                        "content": job_result(json!("你是一个高速收费员。"), "你好呀。", session)
-                    }]
-                }
-            ]
-        }))
-        .unwrap();
-        let out: serde_json::Value = serde_json::from_slice(&rewrite_messages_body(&raw)).unwrap();
-        let blocks = out["system"].as_array().unwrap();
-        assert_eq!(blocks.len(), 3);
-        assert_eq!(blocks[2]["text"], "你是一个高速收费员。");
-        let billing = blocks[0]["text"].as_str().unwrap();
-        assert!(billing.contains(&format!("cc_prompt_id={session}")));
-        assert!(billing.contains("prompt_version=<"));
-    }
-
-    #[test]
-    fn identity_only_appended_when_caller_sends_it() {
-        let raw = serde_json::to_vec(&json!({
+            "stream": true,
             "tools": slot_tools(),
             "messages": [{
                 "role": "user",
-                "content": [{
-                    "type": "tool_result",
-                    "content": job_result(json!(IDENTITY), "who are you", "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee")
-                }]
+                "content": [{"type": "tool_result", "tool_use_id": "u1", "content": job}]
             }]
         }))
-        .unwrap();
-        let out: serde_json::Value = serde_json::from_slice(&rewrite_messages_body(&raw)).unwrap();
-        let blocks = out["system"].as_array().unwrap();
-        assert_eq!(blocks.len(), 3);
-        assert_eq!(blocks[2]["text"], IDENTITY);
+        .unwrap()
     }
 
     #[test]
-    fn supervisor_without_mcp_tools_is_untouched() {
+    fn default_zero_injects_prompt_version() {
+        let raw = slot_body(job_result(json!(null), "hello there", "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"));
+        let out: serde_json::Value = serde_json::from_slice(&rewrite_messages_body(&raw)).unwrap();
+        let system = out["system"].as_array().unwrap();
+        assert_eq!(system.len(), 2);
+        assert!(system[0]["text"].as_str().unwrap().contains("prompt_version=<You are a Claude agent"));
+        assert!(system[1]["text"].as_str().unwrap().starts_with("# Environment"));
+    }
+
+    #[test]
+    fn leftover_appended() {
+        let raw = slot_body(job_result(json!("你是一个高速收费员。"), "你好呀", "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"));
+        let out: serde_json::Value = serde_json::from_slice(&rewrite_messages_body(&raw)).unwrap();
+        let last = out["system"].as_array().unwrap().last().unwrap()["text"]
+            .as_str()
+            .unwrap();
+        assert_eq!(last, "你是一个高速收费员。");
+    }
+
+    #[test]
+    fn supervisor_without_mcp_is_untouched() {
         let raw = serde_json::to_vec(&json!({
-            "system": [{"type": "text", "text": IDENTITY}],
-            "tools": [{"name": "Agent"}],
-            "messages": [{"role": "user", "content": "spawn slots"}]
+            "model": "claude-sonnet-5",
+            "system": [{"type":"text","text": IDENTITY}],
+            "messages": [{"role":"user","content":"hi"}]
         }))
         .unwrap();
         assert_eq!(rewrite_messages_body(&raw), raw);
-    }
-
-    #[test]
-    fn fingerprint_matches_zero_inject_helper() {
-        assert_eq!(compute_fp("hello", "2.1.241").len(), 3);
-        assert_eq!(compute_cch("hello", "2.1.241").len(), 5);
-        let line = billing_line("hello", "41199de5-cee9-4c06-9352-9aa71290a6e0");
-        assert!(line.contains("cc_prompt_id=41199de5-cee9-4c06-9352-9aa71290a6e0"));
-        assert!(line.contains("cc_entrypoint=sdk-cli"));
     }
 }
