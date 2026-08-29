@@ -217,6 +217,7 @@ struct ExecutionResult {
     worker_id: String,
     pid: Option<u32>,
     generation: u64,
+    native_slot: Option<String>,
 }
 
 struct ActiveTurn {
@@ -345,11 +346,12 @@ impl ActiveTurn {
 
         Ok(ExecutionResult {
             response,
-            session_id: self.session_id,
+            session_id: self.session_id.clone(),
             continuation,
             worker_id: self.worker_id,
             pid,
             generation: self.worker_generation,
+            native_slot: state.provider.session_slot(&self.session_id),
         })
     }
 
@@ -580,6 +582,9 @@ fn insert_result_headers(headers: &mut HeaderMap, state: &AppState, result: &Exe
     }
     if let Some(pid) = result.pid {
         insert_header(headers, "x-kin-pid", &pid.to_string());
+    }
+    if let Some(slot_id) = &result.native_slot {
+        insert_header(headers, "x-kin-native-slot", slot_id);
     }
     insert_header(headers, "x-kin-generation", &result.generation.to_string());
 }

@@ -550,7 +550,10 @@ mod tests {
                 "content_block": { "type": "thinking", "thinking": "" }
             }
         }));
-        assert_eq!(second[0]["index"], 1, "second response index 0 must continue the job allocator");
+        assert_eq!(
+            second[0]["index"], 1,
+            "second response index 0 must continue the job allocator"
+        );
     }
 
     #[test]

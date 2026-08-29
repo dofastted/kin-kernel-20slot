@@ -200,7 +200,12 @@ mod tests {
             mode: SystemMode::Zero,
             timezone: "America/New_York".into(),
         };
-        let system = build_system(&cfg, "hello-user", "11111111-1111-4111-8111-111111111111", None);
+        let system = build_system(
+            &cfg,
+            "hello-user",
+            "11111111-1111-4111-8111-111111111111",
+            None,
+        );
         let blocks = system.as_array().unwrap();
         assert_eq!(blocks.len(), 2);
         let billing = blocks[0]["text"].as_str().unwrap();

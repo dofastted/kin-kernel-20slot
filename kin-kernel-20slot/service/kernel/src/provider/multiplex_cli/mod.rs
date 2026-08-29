@@ -44,7 +44,7 @@ use crate::{
     error::KernelError,
     model::{ContentBlock, MessageContent, MessageRequest, MessageResponse, StopReason, Usage},
     provider::{ExecutionContext, Provider, ProviderCapabilities, StreamTx, job_event_channel},
-    stream::StreamItem,
+    stream::{StreamAssembler, StreamItem},
 };
 
 use self::{
@@ -182,6 +182,11 @@ pub struct Runtime {
     ready: AtomicUsize,
     stage_dropped: AtomicU64,
     native_host: Mutex<Option<NativeHostInfo>>,
+    /// P0(5.4): per-job aggregation of native `kin_stream_event` SSE into
+    /// real `{id,name,input}` content blocks, for `stream:false` clients and
+    /// for populating `complete_job()`'s response content under
+    /// native/native_messages. Only touched from the native code paths.
+    stream_assemblers: Mutex<HashMap<String, StreamAssembler>>,
 }
 
 const JOB_SINK_ITEMS: usize = 256;
@@ -194,6 +199,7 @@ struct NativeHostInfo {
     system_layout: String,
     timezone: String,
     capabilities: Vec<String>,
+    config_hash: Option<String>,
 }
 
 #[derive(Clone)]
@@ -394,6 +400,7 @@ impl Runtime {
             ready: AtomicUsize::new(0),
             stage_dropped: AtomicU64::new(0),
             native_host: Mutex::new(None),
+            stream_assemblers: Mutex::new(HashMap::new()),
         })
     }
 
@@ -513,11 +520,7 @@ impl Runtime {
                 }
             });
         }
-        tracing::info!(
-            pid = supervised.pid,
-            native,
-            "claude supervisor alive"
-        );
+        tracing::info!(pid = supervised.pid, native, "claude supervisor alive");
         let wait = Duration::from_secs((120 + 8 * self.cfg.slot_count as u64).min(240));
         bootstrap::wait_ready(self, self.cfg.slot_count, wait).await
     }
@@ -828,14 +831,36 @@ impl Runtime {
             return Ok(());
         }
         if self.cfg.execution_mode.is_native() {
+            let (content, assembled_stop, assembled_usage) = self
+                .stream_assemblers
+                .lock()
+                .await
+                .remove(job_id)
+                .map(StreamAssembler::parts)
+                .unwrap_or_else(|| (Vec::new(), native_stop_reason(stop_reason), Usage::default()));
+            let usage_value = if usage.is_null() {
+                json!({})
+            } else {
+                usage
+            };
+            let usage = if usage_value == json!({}) {
+                assembled_usage
+            } else {
+                usage_from_value(&usage_value)
+            };
+            let stop_reason = if stop_reason.is_empty() {
+                assembled_stop
+            } else {
+                native_stop_reason(stop_reason)
+            };
             let response = MessageResponse {
                 id: format!("msg_{}", self.pid.load(Ordering::Relaxed)),
                 r#type: "message",
                 role: "assistant",
                 model: job.request.model.clone(),
-                content: vec![],
-                stop_reason: native_stop_reason(stop_reason),
-                usage: usage_from_value(&usage),
+                content,
+                stop_reason,
+                usage,
             };
             if self.emit(job_id, StreamItem::Finished(response)).await != EmitResult::Sent {
                 self.abort_terminal_job(job_id).await;
@@ -924,6 +949,7 @@ impl Runtime {
         let slot_id = job.as_ref().map(|job| job.slot_id.clone());
         self.sinks.lock().await.remove(job_id);
         self.job_streams.lock().await.remove(job_id);
+        self.stream_assemblers.lock().await.remove(job_id);
         self.pending
             .lock()
             .await
@@ -959,9 +985,12 @@ impl Runtime {
             if let Some(slot_id) = slot_id {
                 self.retire_slot(&slot_id).await;
             }
-        } else if self.cfg.execution_mode.is_native()
-            && !matches!(response.stop_reason, StopReason::ToolUse)
-        {
+        } else if self.cfg.execution_mode.is_native() {
+            // Native jobs are always fully retired here regardless of
+            // stop_reason (including ToolUse): continuation never resumes
+            // this job_id, it always starts a fresh one via resume()'s
+            // submit() delegation (design.md §5.2), so the slot is free
+            // the moment this job's terminal frame has been delivered.
             if let Some(slot_id) = slot_id {
                 self.register_native_ready(slot_id).await;
             }
@@ -1103,6 +1132,7 @@ impl Runtime {
                 system_layout,
                 timezone,
                 capabilities,
+                config_hash,
             } => {
                 tracing::info!(
                     protocol_version,
@@ -1110,14 +1140,26 @@ impl Runtime {
                     %system_layout,
                     %timezone,
                     ?capabilities,
+                    ?config_hash,
                     "native host ready"
                 );
+                if let Err(reason) = self.validate_host_ready(
+                    protocol_version,
+                    slots,
+                    &system_layout,
+                    &timezone,
+                    &capabilities,
+                ) {
+                    tracing::error!(reason, "native host ready validation failed, refusing to register slots");
+                    return;
+                }
                 *self.native_host.lock().await = Some(NativeHostInfo {
                     protocol_version,
                     slots,
                     system_layout,
                     timezone,
                     capabilities,
+                    config_hash,
                 });
                 for index in 0..slots {
                     self.register_native_ready(native_protocol::slot_id(index))
@@ -1145,15 +1187,20 @@ impl Runtime {
                 }
                 self.mark_delivered_text(&job_id, std::slice::from_ref(&event))
                     .await;
+                let model = self
+                    .jobs
+                    .lock()
+                    .await
+                    .get(&job_id)
+                    .map(|job| job.request.model.clone())
+                    .unwrap_or_default();
+                self.stream_assemblers
+                    .lock()
+                    .await
+                    .entry(job_id.clone())
+                    .or_insert_with(|| StreamAssembler::new(model))
+                    .apply_event(&event);
                 self.emit(&job_id, StreamItem::Event(event)).await;
-            }
-            native_protocol::KinStdout::JobParked {
-                job_id,
-                slot_id,
-                tool_use_ids,
-            } => {
-                self.park_native_job(&job_id, &slot_id, &tool_use_ids)
-                    .await;
             }
             native_protocol::KinStdout::JobDone {
                 job_id,
@@ -1191,40 +1238,51 @@ impl Runtime {
         }
     }
 
-    async fn park_native_job(&self, job_id: &str, slot_id: &str, tool_use_ids: &[String]) {
-        {
-            let mut slots = self.slots.lock().await;
-            if let Some(slot) = slots.iter_mut().find(|slot| slot.id == slot_id) {
-                let _ = slot.cas(SlotPhase::Running, SlotPhase::WaitingTool);
+    /// P1-3: reject a `kin_host_ready` handshake that doesn't match what
+    /// Rust expects, instead of registering slots against a CLI running an
+    /// incompatible protocol/env. `config_hash` has no "desired" side yet
+    /// (Go `RuntimeProfile`, design.md §6, not implemented) so it is only
+    /// checked for presence under `native_messages`, not compared to a
+    /// reference value.
+    fn validate_host_ready(
+        &self,
+        protocol_version: u32,
+        slots: usize,
+        system_layout: &str,
+        timezone: &str,
+        capabilities: &[String],
+    ) -> Result<(), String> {
+        if protocol_version != native_protocol::KIN_PROTOCOL_VERSION {
+            return Err(format!(
+                "protocol_version {protocol_version} != {}",
+                native_protocol::KIN_PROTOCOL_VERSION
+            ));
+        }
+        if slots != self.cfg.slot_count {
+            return Err(format!(
+                "slots {slots} != configured slot_count {}",
+                self.cfg.slot_count
+            ));
+        }
+        let expected = envelope::load();
+        if system_layout != expected.mode.as_str() {
+            return Err(format!(
+                "system_layout {system_layout} != expected {}",
+                expected.mode.as_str()
+            ));
+        }
+        if timezone != expected.timezone {
+            return Err(format!(
+                "timezone {timezone} != expected {}",
+                expected.timezone
+            ));
+        }
+        for required in native_protocol::KIN_CAPABILITIES {
+            if !capabilities.iter().any(|c| c == required) {
+                return Err(format!("missing required capability {required}"));
             }
         }
-        let model = self
-            .jobs
-            .lock()
-            .await
-            .get(job_id)
-            .map(|job| job.request.model.clone())
-            .unwrap_or_else(|| self.cfg.model.clone());
-        let content = tool_use_ids
-            .iter()
-            .map(|id| ContentBlock::ToolUse {
-                id: id.clone(),
-                name: "tool".into(),
-                input: json!({}),
-            })
-            .collect();
-        let response = MessageResponse {
-            id: format!("msg_{}", self.pid.load(Ordering::Relaxed)),
-            r#type: "message",
-            role: "assistant",
-            model,
-            content,
-            stop_reason: StopReason::ToolUse,
-            usage: Usage::default(),
-        };
-        let _ = self
-            .emit(job_id, StreamItem::Finished(response))
-            .await;
+        Ok(())
     }
 
     async fn register_native_ready(&self, slot_id: String) {
@@ -1558,6 +1616,7 @@ impl Runtime {
         self.sinks.lock().await.remove(job_id);
         self.job_streams.lock().await.remove(job_id);
         self.streamed.lock().await.remove(job_id);
+        self.stream_assemblers.lock().await.remove(job_id);
         self.drop_job_tap(job_id).await;
         if let Some(size) = self.job_sizes.lock().await.remove(job_id) {
             self.memory.end(size);
@@ -1596,6 +1655,19 @@ impl Runtime {
         if context.resumed {
             return self.resume(request, context, tx).await;
         }
+        self.submit_fresh(request, context, tx).await
+    }
+
+    /// Bind an idle slot and dispatch a brand-new job. Shared by `submit()`
+    /// and native `resume()` (which, per design.md §5.2, treats a
+    /// continuation as a fresh job once the caller has already merged the
+    /// message history).
+    async fn submit_fresh(
+        self: &Arc<Self>,
+        request: MessageRequest,
+        context: ExecutionContext,
+        tx: StreamTx,
+    ) -> Result<(), KernelError> {
         let request_bytes = serde_json::to_vec(&request).map(|v| v.len()).unwrap_or(0);
         self.memory.admit(request_bytes)?;
         self.retire_idle().await;
@@ -1656,8 +1728,7 @@ impl Runtime {
         let n = self.running.fetch_add(1, Ordering::Relaxed) + 1;
         self.peak_running.fetch_max(n, Ordering::Relaxed);
         if self.cfg.execution_mode.is_native() {
-            let request = serde_json::to_value(&job.request)
-                .unwrap_or_else(|_| json!({}));
+            let request = serde_json::to_value(&job.request).unwrap_or_else(|_| json!({}));
             self.write_cli_stdin(native_protocol::KinStdin::JobStart {
                 job_id: job_id.clone(),
                 slot_id: slot_id.clone(),
@@ -1685,6 +1756,22 @@ impl Runtime {
         context: ExecutionContext,
         tx: StreamTx,
     ) -> Result<(), KernelError> {
+        if self.cfg.execution_mode.is_native() {
+            // native_slot/native_messages hold no cross-job state in the CLI.
+            // Continuation + tenant + tool_use_id-subset validation and the
+            // full message-history merge already happened one layer up
+            // (api.rs::ActiveTurn::begin -> session.rs::SessionDirectory::resume)
+            // by the time `context.resumed` is set here, so a "resume" is
+            // structurally a fresh job: new job_id, any idle slot (sticky
+            // preferred), fresh kin_job_start with the already-merged
+            // request. `park_native_job()` / `SlotPhase::WaitingTool` are
+            // not used in this mode (design.md §5.2).
+            let context = ExecutionContext {
+                resumed: false,
+                ..context
+            };
+            return self.submit_fresh(request, context, tx).await;
+        }
         let generation = self.process_generation.load(Ordering::Relaxed);
         let slots = self.slots.lock().await;
         let slot = slots
@@ -1757,24 +1844,6 @@ impl Runtime {
             StreamItem::Event(JobStream::message_start(&job.request.model, &msg_id)),
         )
         .await;
-        if self.cfg.execution_mode.is_native() {
-            {
-                let mut slots = self.slots.lock().await;
-                if let Some(slot) = slots.iter_mut().find(|slot| slot.id == job.slot_id) {
-                    let _ = slot.cas(SlotPhase::WaitingTool, SlotPhase::Running);
-                }
-            }
-            for (tool_use_id, content) in tool_results(&request) {
-                self.write_cli_stdin(native_protocol::KinStdin::ToolResult {
-                    job_id: job_id.clone(),
-                    slot_id: job.slot_id.clone(),
-                    tool_use_id,
-                    content,
-                })
-                .await?;
-            }
-            return Ok(());
-        }
         let results = tool_results(&request);
         self.pending
             .lock()
@@ -1785,6 +1854,15 @@ impl Runtime {
 
     pub fn pid(&self) -> u32 {
         self.pid.load(Ordering::Relaxed)
+    }
+
+    /// Diagnostic only, best-effort: current slot_id bound to `session_id`.
+    pub fn session_slot(&self, session_id: &str) -> Option<String> {
+        let slots = self.slots.try_lock().ok()?;
+        slots
+            .iter()
+            .find(|slot| slot.session_id.as_deref() == Some(session_id))
+            .map(|slot| slot.id.clone())
     }
 }
 
@@ -1814,16 +1892,22 @@ async fn job_egress(
             break;
         };
         sink.budget.release(envelope.bytes);
+        let native_mode = runtime
+            .upgrade()
+            .map(|runtime| runtime.cfg.execution_mode.is_native())
+            .unwrap_or(false);
         let final_response = match &envelope.item {
             StreamItem::Finished(response)
-                if !matches!(response.stop_reason, StopReason::ToolUse) =>
+                if native_mode || !matches!(response.stop_reason, StopReason::ToolUse) =>
             {
                 Some(response.clone())
             }
             _ => None,
         };
         let tool_response = match &envelope.item {
-            StreamItem::Finished(response) => matches!(response.stop_reason, StopReason::ToolUse),
+            StreamItem::Finished(response) => {
+                !native_mode && matches!(response.stop_reason, StopReason::ToolUse)
+            }
             StreamItem::Event(_) => false,
         };
         let Some(tx) = sink.client_tx.lock().await.clone() else {
@@ -2340,8 +2424,10 @@ async fn decode_stdout(runtime: Arc<Runtime>, stdout: impl tokio::io::AsyncRead 
         let Ok(frame) = serde_json::from_str::<Value>(&line) else {
             continue;
         };
-        if let Some(parent) = stream_decoder::parent_id(&frame) {
-            let used = job_bytes.entry(parent.to_string()).or_insert(0);
+        let metering_key = stream_decoder::parent_id(&frame)
+            .or_else(|| frame.get("job_id").and_then(Value::as_str));
+        if let Some(key) = metering_key {
+            let used = job_bytes.entry(key.to_string()).or_insert(0);
             *used = used.saturating_add(line.len());
             if *used > stream_decoder::MAX_JOB_BYTES {
                 continue;
@@ -2440,6 +2526,10 @@ impl Provider for MultiplexCliProvider {
 
     fn session_pid(&self, _session_id: &str) -> Option<u32> {
         self.runtime.get().map(|runtime| runtime.pid())
+    }
+
+    fn session_slot(&self, session_id: &str) -> Option<String> {
+        self.runtime.get().and_then(|runtime| runtime.session_slot(session_id))
     }
 
     fn memory_snapshot(&self) -> Option<serde_json::Value> {

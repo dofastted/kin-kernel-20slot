@@ -7,11 +7,7 @@
 //!   `CLAUDE_CODE_OAUTH_TOKEN`. No refresh. Local MCP still works; Remote Control
 //!   and `user:sessions:claude_code` do not.
 
-use std::{
-    env, fs,
-    os::unix::fs::PermissionsExt,
-    path::Path,
-};
+use std::{env, fs, os::unix::fs::PermissionsExt, path::Path};
 
 use serde_json::{Value, json};
 
@@ -102,11 +98,13 @@ pub fn is_setup_token_blob(blob: &Value) -> bool {
     }
     let scopes = blob.get("scopes").and_then(Value::as_array);
     match scopes {
-        None => blob.get("accessToken").or_else(|| blob.get("access_token")).is_some(),
+        None => blob
+            .get("accessToken")
+            .or_else(|| blob.get("access_token"))
+            .is_some(),
         Some(items) => {
             let names: Vec<&str> = items.iter().filter_map(Value::as_str).collect();
-            !names.is_empty()
-                && names.iter().all(|s| *s == "user:inference")
+            !names.is_empty() && names.iter().all(|s| *s == "user:inference")
         }
     }
 }
@@ -125,7 +123,10 @@ fn unwrap_oauth_json(v: Value) -> Value {
                 .and_then(Value::as_str)
                 .unwrap_or("")
                 .to_string();
-            let creds = first.get("credentials").cloned().unwrap_or_else(|| first.clone());
+            let creds = first
+                .get("credentials")
+                .cloned()
+                .unwrap_or_else(|| first.clone());
             return flatten_credentials(creds, &typ);
         }
     }
@@ -238,10 +239,7 @@ pub fn resolve() -> Result<ResolvedCliAuth, KernelError> {
             .map(sanitize_setup_token)
             .filter(|s| !s.is_empty())
             .ok_or_else(|| KernelError::Provider("setup-token missing accessToken".into()))?;
-        let expires = blob
-            .get("expiresAt")
-            .and_then(Value::as_u64)
-            .unwrap_or(0);
+        let expires = blob.get("expiresAt").and_then(Value::as_u64).unwrap_or(0);
         return Ok(ResolvedCliAuth {
             mode: CliAuthMode::SetupToken,
             blob: inference_blob(&token, expires),
@@ -315,7 +313,10 @@ mod tests {
     fn detects_explicit_env() {
         with_env(
             &[
-                ("KIN_CLAUDE_CODE_OAUTH_TOKEN", Some("sk-ant-oat01-x-AAStorethis.no")),
+                (
+                    "KIN_CLAUDE_CODE_OAUTH_TOKEN",
+                    Some("sk-ant-oat01-x-AAStorethis.no"),
+                ),
                 ("KIN_CLAUDE_AI_OAUTH_JSON", None),
             ],
             || {

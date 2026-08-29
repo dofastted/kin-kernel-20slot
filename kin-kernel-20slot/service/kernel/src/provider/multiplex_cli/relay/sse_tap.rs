@@ -1095,10 +1095,7 @@ mod tests {
 
     #[test]
     fn cli_policy_swallows_kin_done_without_synthesis() {
-        let mut filter = EventFilter::with_policy(
-            Arc::new(AtomicUsize::new(0)),
-            FilterPolicy::CLI,
-        );
+        let mut filter = EventFilter::with_policy(Arc::new(AtomicUsize::new(0)), FilterPolicy::CLI);
         assert!(
             filter
                 .apply(json!({

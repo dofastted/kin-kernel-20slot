@@ -72,6 +72,12 @@ pub trait Provider: Send + Sync {
         None
     }
 
+    /// Diagnostic only: current slot_id bound to this session, if the
+    /// provider tracks per-session slot state (native execution modes).
+    fn session_slot(&self, _session_id: &str) -> Option<String> {
+        None
+    }
+
     fn memory_snapshot(&self) -> Option<serde_json::Value> {
         None
     }

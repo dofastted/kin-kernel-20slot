@@ -92,7 +92,9 @@ fn sanitize_leftover(text: &str) -> Option<String> {
     Some(trimmed.to_string())
 }
 
-fn latest_job_payload(obj: &serde_json::Map<String, serde_json::Value>) -> Option<serde_json::Value> {
+fn latest_job_payload(
+    obj: &serde_json::Map<String, serde_json::Value>,
+) -> Option<serde_json::Value> {
     let messages = obj.get("messages")?.as_array()?;
     for message in messages.iter().rev() {
         if message.get("role").and_then(serde_json::Value::as_str) != Some("user") {
@@ -224,17 +226,35 @@ mod tests {
 
     #[test]
     fn default_zero_injects_prompt_version() {
-        let raw = slot_body(job_result(json!(null), "hello there", "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"));
+        let raw = slot_body(job_result(
+            json!(null),
+            "hello there",
+            "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        ));
         let out: serde_json::Value = serde_json::from_slice(&rewrite_messages_body(&raw)).unwrap();
         let system = out["system"].as_array().unwrap();
         assert_eq!(system.len(), 2);
-        assert!(system[0]["text"].as_str().unwrap().contains("prompt_version=You are a Claude agent"));
-        assert!(system[1]["text"].as_str().unwrap().starts_with("# Environment"));
+        assert!(
+            system[0]["text"]
+                .as_str()
+                .unwrap()
+                .contains("prompt_version=You are a Claude agent")
+        );
+        assert!(
+            system[1]["text"]
+                .as_str()
+                .unwrap()
+                .starts_with("# Environment")
+        );
     }
 
     #[test]
     fn leftover_appended() {
-        let raw = slot_body(job_result(json!("你是一个高速收费员。"), "你好呀", "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"));
+        let raw = slot_body(job_result(
+            json!("你是一个高速收费员。"),
+            "你好呀",
+            "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        ));
         let out: serde_json::Value = serde_json::from_slice(&rewrite_messages_body(&raw)).unwrap();
         let last = out["system"].as_array().unwrap().last().unwrap()["text"]
             .as_str()
