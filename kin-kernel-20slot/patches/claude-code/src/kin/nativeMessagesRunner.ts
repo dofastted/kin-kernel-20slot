@@ -191,8 +191,6 @@ async function runJob(
     ? (request.stop_sequences as string[])
     : undefined
 
-  let stopReason = 'end_turn'
-  let usage: unknown = {}
   try {
     const stream = queryKinMessagesWithStreaming({
       messages,
@@ -220,10 +218,7 @@ async function runJob(
         continue
       }
       if (ev.type === 'assistant') {
-        const rec = ev as {
-          message?: { stop_reason?: string; usage?: unknown }
-          isApiErrorMessage?: boolean
-        }
+        const rec = ev as { isApiErrorMessage?: boolean }
         if (rec.isApiErrorMessage) {
           await writeStdout({
             type: 'kin_job_error',
@@ -233,8 +228,6 @@ async function runJob(
           })
           return
         }
-        stopReason = rec.message?.stop_reason || stopReason
-        usage = rec.message?.usage || usage
         continue
       }
       if (ev.type === 'system') {
@@ -266,8 +259,8 @@ async function runJob(
     type: 'kin_job_done',
     job_id: jobId,
     slot_id: slot.id,
-    stop_reason: stopReason,
-    usage,
+    stop_reason: '',
+    usage: {},
   })
 }
 
