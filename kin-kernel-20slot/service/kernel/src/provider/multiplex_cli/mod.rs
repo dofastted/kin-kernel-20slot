@@ -482,23 +482,9 @@ impl Runtime {
             });
         }
         if native {
-            let cfg = envelope::load();
-            let hello = native_protocol::KinStdin::Hello {
-                slots: self.cfg.slot_count,
-                system_layout: cfg.mode.as_str().to_string(),
-                timezone: cfg.timezone.clone(),
-            };
-            let line = native_protocol::encode_stdin(&hello)
-                .map_err(KernelError::Provider)?;
-            use tokio::io::AsyncWriteExt;
-            stdin
-                .write_all(&line)
-                .await
-                .map_err(|err| KernelError::Provider(format!("kin_hello: {err}")))?;
-            stdin
-                .flush()
-                .await
-                .map_err(|err| KernelError::Provider(err.to_string()))?;
+            // Do not write kin_hello: official `-p` peeks stdin and, after the
+            // first byte, waits for EOF. A live job pipe never ends, so a boot
+            // hello hung the CLI before runHeadless / kin_slot_ready.
             *self.cli_stdin.lock().await = Some(stdin);
             tokio::spawn(async move {
                 match supervised.child.wait().await {
@@ -826,6 +812,22 @@ impl Runtime {
             self.abort_terminal_job(job_id).await;
             return Ok(());
         }
+        if self.cfg.execution_mode.is_native() {
+            let response = MessageResponse {
+                id: format!("msg_{}", self.pid.load(Ordering::Relaxed)),
+                r#type: "message",
+                role: "assistant",
+                model: job.request.model.clone(),
+                content: vec![],
+                stop_reason: StopReason::EndTurn,
+                usage: usage_from_value(&usage),
+            };
+            if self.emit(job_id, StreamItem::Finished(response)).await != EmitResult::Sent {
+                self.abort_terminal_job(job_id).await;
+                return Ok(());
+            }
+            return Ok(());
+        }
         if !self.wait_tap_drain(job_id, Duration::from_secs(2)).await {
             self.note_tap_incomplete(job_id).await;
             if fail_if_upstream_poisoned(self, job_id).await {
@@ -941,6 +943,10 @@ impl Runtime {
         if retire {
             if let Some(slot_id) = slot_id {
                 self.retire_slot(&slot_id).await;
+            }
+        } else if self.cfg.execution_mode.is_native() {
+            if let Some(slot_id) = slot_id {
+                self.register_native_ready(slot_id).await;
             }
         }
     }
@@ -1450,7 +1456,11 @@ impl Runtime {
                     Some(n.saturating_sub(1))
                 })
                 .ok();
-            self.retire_slot(&job.slot_id).await;
+            if self.cfg.execution_mode.is_native() {
+                self.register_native_ready(job.slot_id).await;
+            } else {
+                self.retire_slot(&job.slot_id).await;
+            }
         }
     }
 

@@ -52,6 +52,25 @@ pub fn write_mcp_config(dir: &Path, url: &str) -> Result<PathBuf, KernelError> {
     Ok(path)
 }
 
+pub fn native_cli_args(model: &str) -> Vec<String> {
+    [
+        "-p",
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--include-partial-messages",
+        "--no-session-persistence",
+        "--permission-mode",
+        "acceptEdits",
+        "--strict-mcp-config",
+        "--model",
+        model,
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect()
+}
+
 pub fn kin_slot_agents() -> String {
     json!({
         "kin-slot": {
@@ -80,8 +99,6 @@ pub fn bootstrap_prompt(n: usize) -> String {
 pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
     let auth = cli_auth::resolve()?;
     cli_auth::write_credentials(&spec.session_dir, &auth)?;
-    let mcp_path = write_mcp_config(&spec.session_dir, &spec.mcp_url)?;
-    let agents = kin_slot_agents();
     let n = spec.slot_count.to_string();
     let mut cmd = if spec.mock {
         let mut cmd = Command::new("node");
@@ -92,24 +109,15 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
     };
     apply_proxy_env(&mut cmd, spec.anthropic_base_url.is_some())?;
     if spec.native_slots.is_some() {
-        cmd.args([
-            "-p",
-            "--output-format",
-            "stream-json",
-            "--verbose",
-            "--include-partial-messages",
-            "--no-session-persistence",
-            "--permission-mode",
-            "acceptEdits",
-            "--model",
-            &spec.model,
-        ]);
+        cmd.args(native_cli_args(&spec.model));
         let layout = crate::provider::multiplex_cli::envelope::load();
         cmd.env("CLAUDE_CODE_KIN_NATIVE_SLOTS", &n)
             .env("CLAUDE_CODE_SYSTEM_LAYOUT", layout.mode.as_str())
             .env("CLAUDE_CODE_TIMEZONE", &layout.timezone);
     } else {
+        let mcp_path = write_mcp_config(&spec.session_dir, &spec.mcp_url)?;
         let mcp_path_str = mcp_path.to_string_lossy().into_owned();
+        let agents = kin_slot_agents();
         cmd.args([
             "-p",
             "--input-format",
@@ -245,6 +253,15 @@ fn proxy_env_plan(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn native_argv_skips_mcp_and_keeps_print_mode() {
+        let args = native_cli_args("claude-sonnet-5");
+        assert!(args.contains(&"--strict-mcp-config".into()));
+        assert!(!args.iter().any(|a| a == "--mcp-config"));
+        assert!(args.contains(&"-p".into()));
+        assert_eq!(args.last().map(String::as_str), Some("claude-sonnet-5"));
+    }
 
     #[test]
     fn kin_slot_prompt_requires_assistant_text_then_kin_done() {

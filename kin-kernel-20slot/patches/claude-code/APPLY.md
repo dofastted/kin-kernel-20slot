@@ -14,6 +14,7 @@ into the CLI tree. Apply:
 
 ```
 print.ts.hook.patch
+main.ts.native.patch
 claude.ts.layout.patch
 subagent-token-streaming.patch   # still useful on mcp_slot rollback
 ```
@@ -37,5 +38,9 @@ KIN_SYSTEM_MODE=zero
 KIN_SLOT_TZ=America/New_York
 KIN_SOCKS5=...
 ```
+
+Native spawn must **not** write `mcp.json` and must **not** send `kin_hello` on boot.
+Official `-p` peeks stdin and, after the first byte, waits for EOF forever —
+a live job pipe would hang before `runHeadless` / `kin_slot_ready`.
 
 P3 hello slice: text jobs only. `kin_tool_result` parking is P3.5.

@@ -15,6 +15,7 @@ import {
   writeStdout,
   type KinStdin,
 } from './stdioProtocol.js'
+import { createFileStateCacheWithSizeLimit } from '../utils/fileStateCache.js'
 
 export type NativeHost = {
   getAppState: () => unknown
@@ -51,6 +52,7 @@ export function nativeSlotCount(): number {
 export async function runNativeSlotLoop(host: NativeHost): Promise<void> {
   const n = nativeSlotCount()
   if (n <= 0) return
+  process.stderr.write(`[kin] native slot loop n=${n}\n`)
   const slots = new Map<string, SlotState>()
   for (let i = 0; i < n; i++) {
     const id = slotId(i)
@@ -121,11 +123,12 @@ async function runJob(
   const prompt = lastUserPrompt(request)
   let stopReason = 'end_turn'
   let usage: unknown = {}
+  const readFileCache = createFileStateCacheWithSizeLimit(100)
 
   for await (const message of ask({
     commands: host.commands as never,
     prompt,
-    cwd: host.cwd(),
+    cwd: host.cwd?.() || process.cwd(),
     tools: host.tools as never,
     verbose: Boolean(host.options.verbose),
     mcpClients: [],
@@ -138,7 +141,7 @@ async function runJob(
     fallbackModel: host.options.fallbackModel,
     getAppState: host.getAppState as never,
     setAppState: host.setAppState as never,
-    getReadFileCache: () => new Map(),
+    getReadFileCache: () => readFileCache,
     setReadFileCache: () => {},
     abortController: abort,
     includePartialMessages: true,
