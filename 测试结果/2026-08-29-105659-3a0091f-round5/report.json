@@ -1,0 +1,261 @@
+{
+  "commit": "3a0091f2c1b65d2b8dab94d81cdccbfcbf51c588",
+  "ok": true,
+  "steps": {
+    "S1": {
+      "verdict": "PASS",
+      "reason": "synth_like=True status=200 n_cbd=14 n_td=11 max_delta=12 first=3139ms text_len=68 Δtap_dropped=0",
+      "n_content_block_delta": 14,
+      "n_text_delta": 11,
+      "max_delta": 12,
+      "first_token_ms": 3139,
+      "text": "你好！欢迎光临，请问您是要通过收费站吗？请准备好您的通行卡或者现金，还有行驶证哦。您这是小型车还是大型车呀？麻烦车速放慢一点，安全第一。",
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_stop",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "correlations": [
+        {
+          "job_id": "job_1c3d2bedc03647df9d34f591080c03d6",
+          "slot_id": "slot_2b709d6c0d884696a4384bc072f019b4",
+          "turn_id": 0,
+          "ts": "2026-08-29T10:56:45.405028Z"
+        }
+      ],
+      "status": 200,
+      "error": null,
+      "mcp_leak": [],
+      "synth_like": true,
+      "whole_block": false,
+      "degraded": false,
+      "delta_tap_dropped": 0,
+      "healthz_before": {
+        "correlate_ambiguous": 0,
+        "correlate_hit": 0,
+        "correlate_miss": 47,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "authoritative",
+        "tap_dropped": 0,
+        "tap_response_started": 0
+      },
+      "healthz": {
+        "correlate_ambiguous": 0,
+        "correlate_hit": 1,
+        "correlate_miss": 50,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "authoritative",
+        "tap_dropped": 0,
+        "tap_response_started": 1
+      }
+    },
+    "S2": {
+      "verdict": "PASS",
+      "reason": "resume_status=200 text_len=19 same_job=True jobs_first=['job_a60db5e165de4c028c6eac60ee7ed91b'] jobs_resume=['job_a60db5e165de4c028c6eac60ee7ed91b'] slots_first=['slot_a07c8c7172d44d12a8c04afd59adb68a'] slots_resume=['slot_a07c8c7172d44d12a8c04afd59adb68a']",
+      "first": {
+        "status": 200,
+        "names": [
+          "get_weather"
+        ],
+        "n_text_delta": 0,
+        "types": [
+          "message_start",
+          "content_block_start",
+          "content_block_delta",
+          "content_block_delta",
+          "content_block_delta",
+          "content_block_stop",
+          "content_block_start",
+          "content_block_stop",
+          "message_delta",
+          "message_stop",
+          "kin.done"
+        ]
+      },
+      "resume": {
+        "status": 200,
+        "n_text_delta": 3,
+        "text": "东京目前的气温为 26°C（摄氏度）。",
+        "error": null,
+        "types": [
+          "message_start",
+          "content_block_start",
+          "content_block_delta",
+          "content_block_delta",
+          "content_block_delta",
+          "content_block_stop",
+          "message_delta",
+          "message_stop",
+          "kin.done"
+        ]
+      },
+      "correlations_first": [
+        {
+          "job_id": "job_a60db5e165de4c028c6eac60ee7ed91b",
+          "slot_id": "slot_a07c8c7172d44d12a8c04afd59adb68a",
+          "turn_id": 0,
+          "ts": "2026-08-29T10:56:49.343277Z"
+        }
+      ],
+      "correlations_resume": [
+        {
+          "job_id": "job_a60db5e165de4c028c6eac60ee7ed91b",
+          "slot_id": "slot_a07c8c7172d44d12a8c04afd59adb68a",
+          "turn_id": 1,
+          "ts": "2026-08-29T10:56:51.777237Z"
+        }
+      ],
+      "same_job": true
+    },
+    "S3": {
+      "verdict": "PASS",
+      "reason": "ok=3/3 empty=[] 503=[] fail=[] xtalk=[]",
+      "rows": [
+        {
+          "session": "r4-s3-a",
+          "status": 200,
+          "n_text_delta": 10,
+          "n_content_block_delta": 10,
+          "text": "你好！欢迎来到高速公路收费站。请问您是要进站还是出站呢？如果是出站，麻烦准备好您的通行卡或者ETC，我帮您核算一下通行费用。祝您一路平安！",
+          "error": null
+        },
+        {
+          "session": "r4-s3-b",
+          "status": 200,
+          "n_text_delta": 10,
+          "n_content_block_delta": 12,
+          "text": "你好呀！欢迎来到高速公路收费站，请出示一下您的通行卡或者告诉我您的车牌号，我帮您核对一下通行费用。请问您是从哪个入口上高速的呀？",
+          "error": null
+        },
+        {
+          "session": "r4-s3-c",
+          "status": 200,
+          "n_text_delta": 11,
+          "n_content_block_delta": 14,
+          "text": "您好！欢迎来到收费站，请问您是要通过这里吗？请准备好您的通行卡或者现金，我这边马上为您办理通行手续。祝您一路平安！",
+          "error": null
+        }
+      ],
+      "healthz_delta_tap_dropped": 0
+    },
+    "S4": {
+      "verdict": "PASS",
+      "reason": "Δhit=6 ambiguous=0 digest=0 Δtap_dropped=0 before={'correlate_ambiguous': 0, 'correlate_hit': 0, 'correlate_miss': 47, 'digest_mismatch': 0, 'relay_healthy': True, 'relay_mode': 'authoritative', 'tap_dropped': 0, 'tap_response_started': 0} after={'correlate_ambiguous': 0, 'correlate_hit': 6, 'correlate_miss': 59, 'digest_mismatch': 0, 'relay_healthy': True, 'relay_mode': 'authoritative', 'tap_dropped': 0, 'tap_response_started': 6}",
+      "delta_correlate_hit": 6,
+      "correlate_ambiguous": 0,
+      "digest_mismatch": 0,
+      "delta_tap_dropped": 0,
+      "before": {
+        "correlate_ambiguous": 0,
+        "correlate_hit": 0,
+        "correlate_miss": 47,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "authoritative",
+        "tap_dropped": 0,
+        "tap_response_started": 0
+      },
+      "after": {
+        "correlate_ambiguous": 0,
+        "correlate_hit": 6,
+        "correlate_miss": 59,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "authoritative",
+        "tap_dropped": 0,
+        "tap_response_started": 6
+      }
+    }
+  },
+  "boot": {
+    "kernel_pid": 2922,
+    "relay_mode": "authoritative",
+    "health": {
+      "status": "ok",
+      "isolation": "subagent-pool",
+      "slots_per_worker": 20,
+      "workers": 1,
+      "relay": {
+        "correlate_ambiguous": 0,
+        "correlate_hit": 0,
+        "correlate_miss": 47,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "authoritative",
+        "tap_dropped": 0,
+        "tap_response_started": 0
+      },
+      "memory": {
+        "admission": "allow",
+        "cgroup_bytes": 3848269824,
+        "claude_rss_bytes": 268824576,
+        "inflight_payload": 0,
+        "kernel_rss_bytes": 20557824,
+        "observed_bytes": 289382400,
+        "pending": 0,
+        "service_rss_bytes": 289382400
+      }
+    },
+    "claude_n": 1,
+    "claude": [
+      {
+        "pid": 2926,
+        "env": {
+          "ALL_PROXY": "http://127.0.0.1:18080",
+          "ANTHROPIC_BASE_URL": "http://127.0.0.1:18082",
+          "HTTPS_PROXY": "http://127.0.0.1:18080",
+          "HTTP_PROXY": "http://127.0.0.1:18080",
+          "KIN_HTTPS_PROXY": "http://<redacted>",
+          "KIN_RELAY_MODE": "authoritative",
+          "KIN_SOCKS5": "socks5h://<redacted>",
+          "NO_PROXY": "127.0.0.1,localhost",
+          "http_proxy": "http://127.0.0.1:18080",
+          "https_proxy": "http://127.0.0.1:18080",
+          "no_proxy": "127.0.0.1,localhost"
+        }
+      }
+    ],
+    "ready": true
+  },
+  "healthz_before": {
+    "correlate_ambiguous": 0,
+    "correlate_hit": 0,
+    "correlate_miss": 47,
+    "digest_mismatch": 0,
+    "relay_healthy": true,
+    "relay_mode": "authoritative",
+    "tap_dropped": 0,
+    "tap_response_started": 0
+  },
+  "healthz_after": {
+    "correlate_ambiguous": 0,
+    "correlate_hit": 6,
+    "correlate_miss": 59,
+    "digest_mismatch": 0,
+    "relay_healthy": true,
+    "relay_mode": "authoritative",
+    "tap_dropped": 0,
+    "tap_response_started": 6
+  }
+}

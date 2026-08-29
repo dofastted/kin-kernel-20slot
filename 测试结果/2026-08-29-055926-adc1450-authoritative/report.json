@@ -1,0 +1,598 @@
+{
+  "commit": "adc1450b24bb281ddc931843399219f8315eef18",
+  "ready": true,
+  "boot": {
+    "kernel_pid": 6507,
+    "relay_mode": "authoritative",
+    "health": {
+      "status": "ok",
+      "isolation": "subagent-pool",
+      "slots_per_worker": 20,
+      "workers": 1,
+      "relay": {
+        "correlate_ambiguous": 0,
+        "correlate_hit": 0,
+        "correlate_miss": 39,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "authoritative",
+        "tap_dropped": 0,
+        "tap_response_started": 0
+      },
+      "memory": {
+        "admission": "allow",
+        "cgroup_bytes": 3381993472,
+        "claude_rss_bytes": 266891264,
+        "inflight_payload": 0,
+        "kernel_rss_bytes": 20086784,
+        "observed_bytes": 286978048,
+        "pending": 0,
+        "service_rss_bytes": 286978048
+      }
+    },
+    "claude_n": 1,
+    "claude": [
+      {
+        "pid": 6511,
+        "env": {
+          "ALL_PROXY": "http://127.0.0.1:18080",
+          "ANTHROPIC_BASE_URL": "http://127.0.0.1:18082",
+          "HTTPS_PROXY": "http://127.0.0.1:18080",
+          "HTTP_PROXY": "http://127.0.0.1:18080",
+          "KIN_HTTPS_PROXY": "http://<redacted>",
+          "KIN_RELAY_MODE": "authoritative",
+          "KIN_SOCKS5": "socks5h://<redacted>",
+          "NO_PROXY": "127.0.0.1,localhost",
+          "http_proxy": "http://127.0.0.1:18080",
+          "https_proxy": "http://127.0.0.1:18080",
+          "no_proxy": "127.0.0.1,localhost"
+        }
+      }
+    ],
+    "ready": true
+  },
+  "scenes": {
+    "hello": {
+      "status": 200,
+      "elapsed": 2.029,
+      "text": "observe-hello",
+      "n_events": 7,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "n_text_delta": 1,
+      "delta_lens": [
+        13
+      ],
+      "max_delta": 13,
+      "first_token_ms": 2029,
+      "natural_stream": false,
+      "tool_uses": [],
+      "names": [],
+      "mcp_leak": [],
+      "kin_done": {
+        "continuation": null,
+        "generation": 1,
+        "pid": 6511,
+        "session_id": "auth-hello-1",
+        "slot": "runtime-00"
+      },
+      "saw_message_stop": true,
+      "error": null
+    },
+    "stream": {
+      "status": 200,
+      "elapsed": 2.253,
+      "text": "The quick brown fox jumps over the lazy dog while counting one two three four five six seven eight nine ten.",
+      "n_events": 7,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "n_text_delta": 1,
+      "delta_lens": [
+        108
+      ],
+      "max_delta": 108,
+      "first_token_ms": 2253,
+      "natural_stream": false,
+      "tool_uses": [],
+      "names": [],
+      "mcp_leak": [],
+      "kin_done": {
+        "continuation": null,
+        "generation": 1,
+        "pid": 6511,
+        "session_id": "auth-stream-1",
+        "slot": "runtime-00"
+      },
+      "saw_message_stop": true,
+      "error": null
+    },
+    "paragraph": {
+      "status": 200,
+      "elapsed": 4.682,
+      "text": "Rivers are among the most vital natural systems on our planet, carving valleys, nourishing soil, and sustaining countless ecosystems along their winding paths. From tiny mountain streams to mighty waterways like the Amazon or Nile, rivers connect landscapes and communities, providing water for drinking, agriculture, and industry. They support diverse wildlife, from fish to migratory birds, while also serving as vital transportation routes and sources of hydroelectric power. Beyond their practical uses, rivers hold cultural and spiritual significance worldwide, inspiring art, literature, and folklore. Protecting these dynamic, ever-flowing bodies of water remains essential for environmental balance and human prosperity alike.",
+      "n_events": 7,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "n_text_delta": 1,
+      "delta_lens": [
+        734
+      ],
+      "max_delta": 734,
+      "first_token_ms": 4682,
+      "natural_stream": false,
+      "tool_uses": [],
+      "names": [],
+      "mcp_leak": [],
+      "kin_done": {
+        "continuation": null,
+        "generation": 1,
+        "pid": 6511,
+        "session_id": "auth-para-1",
+        "slot": "runtime-00"
+      },
+      "saw_message_stop": true,
+      "error": null
+    },
+    "web_search": {
+      "status": 200,
+      "elapsed": 8.964,
+      "text": "\u4eca\u5929 UTC \u65e5\u671f\u662f 2026\u5e748\u670828\u65e5\uff08\u661f\u671f\u4e94\uff09\u3002\n\nSources:\n- [UTC Time Now](https://www.utctime.net/)\n- [Current UTC, Time Zone (Coordinated Universal Time)](https://www.timeanddate.com/worldclock/timezone/utc)",
+      "n_events": 11,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_stop",
+        "content_block_start",
+        "content_block_stop",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "n_text_delta": 1,
+      "delta_lens": [
+        189
+      ],
+      "max_delta": 189,
+      "first_token_ms": 8963,
+      "natural_stream": false,
+      "tool_uses": [
+        {
+          "id": "toolu_018BVoi4dyzSk77UKg7NDAjp",
+          "name": "web_search",
+          "type": "server_tool_use"
+        },
+        {
+          "id": null,
+          "name": null,
+          "type": "web_search_tool_result"
+        }
+      ],
+      "names": [
+        "web_search"
+      ],
+      "mcp_leak": [],
+      "kin_done": {
+        "continuation": null,
+        "generation": 1,
+        "pid": 6511,
+        "session_id": "auth-websearch-1",
+        "slot": "runtime-00"
+      },
+      "saw_message_stop": true,
+      "error": null
+    },
+    "client_tool": {
+      "first": {
+        "status": 200,
+        "elapsed": 2.064,
+        "text": "",
+        "n_events": 6,
+        "types": [
+          "message_start",
+          "content_block_start",
+          "content_block_stop",
+          "message_delta",
+          "message_stop",
+          "kin.done"
+        ],
+        "n_text_delta": 0,
+        "delta_lens": [],
+        "max_delta": 0,
+        "first_token_ms": null,
+        "natural_stream": false,
+        "tool_uses": [
+          {
+            "id": "toolu_3860d9510dec4e9b8ac6d930fee6c243",
+            "name": "get_weather",
+            "type": "tool_use"
+          }
+        ],
+        "names": [
+          "get_weather"
+        ],
+        "mcp_leak": [],
+        "kin_done": {
+          "continuation": "cont_9b929704d764461891cb8cf9a46c8fc1",
+          "generation": 1,
+          "pid": 6511,
+          "session_id": "auth-tool-1",
+          "slot": "runtime-00"
+        },
+        "saw_message_stop": true,
+        "error": null
+      },
+      "resume": {
+        "status": 200,
+        "elapsed": 2.239,
+        "text": "The weather in Tokyo is 26\u00b0C.",
+        "n_events": 7,
+        "types": [
+          "message_start",
+          "content_block_start",
+          "content_block_delta",
+          "content_block_stop",
+          "message_delta",
+          "message_stop",
+          "kin.done"
+        ],
+        "n_text_delta": 1,
+        "delta_lens": [
+          29
+        ],
+        "max_delta": 29,
+        "first_token_ms": 2239,
+        "natural_stream": false,
+        "tool_uses": [],
+        "names": [],
+        "mcp_leak": [],
+        "kin_done": {
+          "continuation": null,
+          "generation": 1,
+          "pid": 6511,
+          "session_id": "auth-tool-1",
+          "slot": "runtime-00"
+        },
+        "saw_message_stop": true,
+        "error": null
+      }
+    }
+  },
+  "conc20": {
+    "n": 20,
+    "elapsed": 4.791,
+    "ok": 17,
+    "streamed_natural": 0,
+    "unique_texts": 17,
+    "expected_hits": 17,
+    "crosstalk_n": 2,
+    "tap_dropped_delta": 0,
+    "digest_mismatch": 0,
+    "correlate_ambiguous": 0,
+    "correlate_hit": 27,
+    "no_capacity_n": 0,
+    "empty_200_n": 3,
+    "rss_before": {
+      "admission": "allow",
+      "cgroup_bytes": 3389329408,
+      "claude_rss_bytes": 273698816,
+      "inflight_payload": 0,
+      "kernel_rss_bytes": 20402176,
+      "observed_bytes": 294100992,
+      "pending": 0,
+      "service_rss_bytes": 294100992
+    },
+    "rss_after": {
+      "admission": "allow",
+      "cgroup_bytes": 3401670656,
+      "claude_rss_bytes": 282103808,
+      "inflight_payload": 0,
+      "kernel_rss_bytes": 23154688,
+      "observed_bytes": 305258496,
+      "pending": 0,
+      "service_rss_bytes": 305258496
+    },
+    "rows": [
+      {
+        "i": 0,
+        "status": 200,
+        "text": "hello-00",
+        "n_text_delta": 1,
+        "first_token_ms": 2915,
+        "error": null
+      },
+      {
+        "i": 1,
+        "status": 200,
+        "text": "hello-01",
+        "n_text_delta": 1,
+        "first_token_ms": 2910,
+        "error": null
+      },
+      {
+        "i": 2,
+        "status": 200,
+        "text": "hello-02",
+        "n_text_delta": 1,
+        "first_token_ms": 2903,
+        "error": null
+      },
+      {
+        "i": 3,
+        "status": 200,
+        "text": "hello-03",
+        "n_text_delta": 1,
+        "first_token_ms": 2909,
+        "error": null
+      },
+      {
+        "i": 4,
+        "status": 200,
+        "text": "hello-04",
+        "n_text_delta": 1,
+        "first_token_ms": 2882,
+        "error": null
+      },
+      {
+        "i": 5,
+        "status": 200,
+        "text": "hello-05",
+        "n_text_delta": 1,
+        "first_token_ms": 3101,
+        "error": null
+      },
+      {
+        "i": 6,
+        "status": 200,
+        "text": "hello-06",
+        "n_text_delta": 1,
+        "first_token_ms": 2878,
+        "error": null
+      },
+      {
+        "i": 7,
+        "status": 200,
+        "text": "hello-08",
+        "n_text_delta": 1,
+        "first_token_ms": 2872,
+        "error": null
+      },
+      {
+        "i": 8,
+        "status": 200,
+        "text": "hello-07",
+        "n_text_delta": 1,
+        "first_token_ms": 2851,
+        "error": null
+      },
+      {
+        "i": 9,
+        "status": 200,
+        "text": "hello-09",
+        "n_text_delta": 1,
+        "first_token_ms": 2898,
+        "error": null
+      },
+      {
+        "i": 10,
+        "status": 200,
+        "text": "hello-10",
+        "n_text_delta": 1,
+        "first_token_ms": 2904,
+        "error": null
+      },
+      {
+        "i": 11,
+        "status": 200,
+        "text": "hello-11",
+        "n_text_delta": 1,
+        "first_token_ms": 2898,
+        "error": null
+      },
+      {
+        "i": 12,
+        "status": 200,
+        "text": "hello-12",
+        "n_text_delta": 1,
+        "first_token_ms": 2786,
+        "error": null
+      },
+      {
+        "i": 13,
+        "status": 200,
+        "text": "hello-13",
+        "n_text_delta": 1,
+        "first_token_ms": 3644,
+        "error": null
+      },
+      {
+        "i": 14,
+        "status": 200,
+        "text": "",
+        "n_text_delta": 0,
+        "first_token_ms": null,
+        "error": null
+      },
+      {
+        "i": 15,
+        "status": 200,
+        "text": "hello-15",
+        "n_text_delta": 1,
+        "first_token_ms": 2886,
+        "error": null
+      },
+      {
+        "i": 16,
+        "status": 200,
+        "text": "hello-16",
+        "n_text_delta": 1,
+        "first_token_ms": 2777,
+        "error": null
+      },
+      {
+        "i": 17,
+        "status": 200,
+        "text": "hello-17",
+        "n_text_delta": 1,
+        "first_token_ms": 2872,
+        "error": null
+      },
+      {
+        "i": 18,
+        "status": 200,
+        "text": "",
+        "n_text_delta": 0,
+        "first_token_ms": null,
+        "error": null
+      },
+      {
+        "i": 19,
+        "status": 200,
+        "text": "",
+        "n_text_delta": 0,
+        "first_token_ms": null,
+        "error": null
+      }
+    ]
+  },
+  "slow_client": {
+    "status": 200,
+    "elapsed": 11.03,
+    "stalled_sleep_applied": true,
+    "n_events_seen": 7,
+    "types": [
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop",
+      "kin.done"
+    ],
+    "text_len": 702,
+    "text_head": "Rivers are among the most vital natural features on Earth, carving valleys, nourishing soil, and sustaining countless ec",
+    "error": null,
+    "explicit_fail": false,
+    "fake_success": false,
+    "ok": false
+  },
+  "final_relay": {
+    "correlate_ambiguous": 0,
+    "correlate_hit": 28,
+    "correlate_miss": 101,
+    "digest_mismatch": 0,
+    "relay_healthy": true,
+    "relay_mode": "authoritative",
+    "tap_dropped": 0,
+    "tap_response_started": 28
+  },
+  "kernel_log": {
+    "interesting": [
+      "{\"timestamp\":\"2026-08-29T05:58:26.228874Z\",\"level\":\"INFO\",\"fields\":{\"message\":\"kin mcp listening\",\"mcp\":\"127.0.0.1:34209\"},\"target\":\"kin_kernel::provider::multiplex_cli\"}",
+      "{\"timestamp\":\"2026-08-29T05:58:27.084144Z\",\"level\":\"INFO\",\"fields\":{\"message\":\"claude supervisor alive\",\"pid\":6511},\"target\":\"kin_kernel::provider::multiplex_cli\"}",
+      "{\"timestamp\":\"2026-08-29T05:58:45.951096Z\",\"level\":\"INFO\",\"fields\":{\"message\":\"provider boot complete\"},\"target\":\"kin_kernel\"}",
+      "{\"timestamp\":\"2026-08-29T05:58:47.510368Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_71e02056a05e491e8e5029a39391368c\",\"slot_id\":\"slot_f7cb5a4fbff34ff9928a9c3d35f5131f\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:58:49.359303Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_72660f456abf443db31dd375b3f3f5ea\",\"slot_id\":\"slot_952df71e12dc49af9e2301e46552f0d4\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:58:51.588793Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_de5431097ae247c9844e54444099d65c\",\"slot_id\":\"slot_3656fee227e24ff2aded295b41e705a2\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:58:56.464392Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_9158c7e74af24542a1584c4855095a2c\",\"slot_id\":\"slot_0c16f2a2a1e74fbba183e00acb54f58a\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:01.335400Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_9158c7e74af24542a1584c4855095a2c\",\"slot_id\":\"slot_0c16f2a2a1e74fbba183e00acb54f58a\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:05.294882Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_2591c2a2ad494ce7984390a804f65fdf\",\"slot_id\":\"slot_d339db1cfd7b43e2b23109709a517d9f\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:07.332051Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_2591c2a2ad494ce7984390a804f65fdf\",\"slot_id\":\"slot_d339db1cfd7b43e2b23109709a517d9f\",\"turn_id\":1},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:09.689031Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_975f1cf99fc54bedb705da3a98e17385\",\"slot_id\":\"slot_40077916af0245c886ef37c16ca5616e\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:09.859315Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_7328907f562b47de9caacdf02d521722\",\"slot_id\":\"slot_3c73273e417b45b2885b7c2b2728225d\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.118438Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_55c008e1f1b040dc9b55c872b1f2507e\",\"slot_id\":\"slot_0d48d435bb9a45c49be128b015dbb094\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.119367Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_50fcdac3ced645c2ac7a12bb06d0854b\",\"slot_id\":\"slot_28d52d60c63649bd80b9e62cf5470383\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.119578Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_b94f45d2e9e348f09753ab5e8416164c\",\"slot_id\":\"slot_4104614753254967a36da334acbede5b\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.119908Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_5e6f740dc486411d9df9ea3cc8c81590\",\"slot_id\":\"slot_fc39db5febf3496a9922ae19e614a1b3\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.233221Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_3e8cb8b943924070836921de90e60958\",\"slot_id\":\"slot_6690479bb7b94ee6b7be905d3d5e51bd\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.396818Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_17183b94f4374279aea3e766aeb1c2e9\",\"slot_id\":\"slot_176a85462b6148d6b24f8fe474721343\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.399820Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_468008fa65f842cfb785170ebe3cc9eb\",\"slot_id\":\"slot_273d536b9a4c4ad0b665ca5df2d35e57\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.395948Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_6e0f4b36e2ad4bff9f437b5ef0027abc\",\"slot_id\":\"slot_66768b78886847318e03066582419c66\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.506764Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_1d8eb6fc1d584e08a8bb6145d4cf65b6\",\"slot_id\":\"slot_18af1138817e4509b92aeb37fe6b2ac2\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.587788Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_7d9b628e39e84cdfa891279d03ce6879\",\"slot_id\":\"slot_5c1cd7234f6642b1aca67e0093658e75\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.588197Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_abef2395d7c243f1b65bce8e4808ca5f\",\"slot_id\":\"slot_0c513c4db8c045e7967edd1b6b11aec9\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.842224Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_bbd9aef1991b48928c8d19d1e1308cf9\",\"slot_id\":\"slot_dba3619b2c34425da3621207e23c0041\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.844173Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_67723b14a1eb4fafa98548df92ec0ffd\",\"slot_id\":\"slot_bc9973e4160d40db9b5b8d32f7f9cfb6\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:11.110276Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_779d85b63957424cb2e92153bd9a5174\",\"slot_id\":\"slot_dea915b2a65a4f0fa7b3cd22daaa5000\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:11.111908Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_4fb5c6f9bbcc4aad91a3adc76acecf7e\",\"slot_id\":\"slot_01d369e8e2bf4e938e1671d93bee8c47\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:11.115304Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_4765b94070fa4dd9b8701f737c007f3d\",\"slot_id\":\"slot_b323b6285b554f9c860e79e0c89f2a58\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:11.379881Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_863a968e445440d1824468a68718e7c5\",\"slot_id\":\"slot_f8bcdc7f5187409f89a41ae8458a84e6\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:12.360912Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_ffd0bd2b697c4a7481599755f80691e8\",\"slot_id\":\"slot_4559a3cb15314341883e388c4d93ec8f\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:14.854524Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_39227851b2864dab8df53ffc7a0c96db\",\"slot_id\":\"slot_e40562e9cc134dacbf85d7f397f0f172\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}"
+    ],
+    "correlated": [
+      "{\"timestamp\":\"2026-08-29T05:58:47.510368Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_71e02056a05e491e8e5029a39391368c\",\"slot_id\":\"slot_f7cb5a4fbff34ff9928a9c3d35f5131f\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:58:49.359303Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_72660f456abf443db31dd375b3f3f5ea\",\"slot_id\":\"slot_952df71e12dc49af9e2301e46552f0d4\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:58:51.588793Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_de5431097ae247c9844e54444099d65c\",\"slot_id\":\"slot_3656fee227e24ff2aded295b41e705a2\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:58:56.464392Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_9158c7e74af24542a1584c4855095a2c\",\"slot_id\":\"slot_0c16f2a2a1e74fbba183e00acb54f58a\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:01.335400Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_9158c7e74af24542a1584c4855095a2c\",\"slot_id\":\"slot_0c16f2a2a1e74fbba183e00acb54f58a\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:05.294882Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_2591c2a2ad494ce7984390a804f65fdf\",\"slot_id\":\"slot_d339db1cfd7b43e2b23109709a517d9f\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:07.332051Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_2591c2a2ad494ce7984390a804f65fdf\",\"slot_id\":\"slot_d339db1cfd7b43e2b23109709a517d9f\",\"turn_id\":1},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:09.689031Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_975f1cf99fc54bedb705da3a98e17385\",\"slot_id\":\"slot_40077916af0245c886ef37c16ca5616e\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:09.859315Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_7328907f562b47de9caacdf02d521722\",\"slot_id\":\"slot_3c73273e417b45b2885b7c2b2728225d\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.118438Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_55c008e1f1b040dc9b55c872b1f2507e\",\"slot_id\":\"slot_0d48d435bb9a45c49be128b015dbb094\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.119367Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_50fcdac3ced645c2ac7a12bb06d0854b\",\"slot_id\":\"slot_28d52d60c63649bd80b9e62cf5470383\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.119578Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_b94f45d2e9e348f09753ab5e8416164c\",\"slot_id\":\"slot_4104614753254967a36da334acbede5b\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.119908Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_5e6f740dc486411d9df9ea3cc8c81590\",\"slot_id\":\"slot_fc39db5febf3496a9922ae19e614a1b3\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.233221Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_3e8cb8b943924070836921de90e60958\",\"slot_id\":\"slot_6690479bb7b94ee6b7be905d3d5e51bd\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.396818Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_17183b94f4374279aea3e766aeb1c2e9\",\"slot_id\":\"slot_176a85462b6148d6b24f8fe474721343\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.399820Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_468008fa65f842cfb785170ebe3cc9eb\",\"slot_id\":\"slot_273d536b9a4c4ad0b665ca5df2d35e57\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.395948Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_6e0f4b36e2ad4bff9f437b5ef0027abc\",\"slot_id\":\"slot_66768b78886847318e03066582419c66\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.506764Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_1d8eb6fc1d584e08a8bb6145d4cf65b6\",\"slot_id\":\"slot_18af1138817e4509b92aeb37fe6b2ac2\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.587788Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_7d9b628e39e84cdfa891279d03ce6879\",\"slot_id\":\"slot_5c1cd7234f6642b1aca67e0093658e75\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.588197Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_abef2395d7c243f1b65bce8e4808ca5f\",\"slot_id\":\"slot_0c513c4db8c045e7967edd1b6b11aec9\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.842224Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_bbd9aef1991b48928c8d19d1e1308cf9\",\"slot_id\":\"slot_dba3619b2c34425da3621207e23c0041\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:10.844173Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_67723b14a1eb4fafa98548df92ec0ffd\",\"slot_id\":\"slot_bc9973e4160d40db9b5b8d32f7f9cfb6\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:11.110276Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_779d85b63957424cb2e92153bd9a5174\",\"slot_id\":\"slot_dea915b2a65a4f0fa7b3cd22daaa5000\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:11.111908Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_4fb5c6f9bbcc4aad91a3adc76acecf7e\",\"slot_id\":\"slot_01d369e8e2bf4e938e1671d93bee8c47\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:11.115304Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_4765b94070fa4dd9b8701f737c007f3d\",\"slot_id\":\"slot_b323b6285b554f9c860e79e0c89f2a58\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:11.379881Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_863a968e445440d1824468a68718e7c5\",\"slot_id\":\"slot_f8bcdc7f5187409f89a41ae8458a84e6\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:12.360912Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_ffd0bd2b697c4a7481599755f80691e8\",\"slot_id\":\"slot_4559a3cb15314341883e388c4d93ec8f\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}",
+      "{\"timestamp\":\"2026-08-29T05:59:14.854524Z\",\"level\":\"DEBUG\",\"fields\":{\"message\":\"relay correlated request\",\"job_id\":\"job_39227851b2864dab8df53ffc7a0c96db\",\"slot_id\":\"slot_e40562e9cc134dacbf85d7f397f0f172\",\"turn_id\":0},\"target\":\"kin_kernel::provider::multiplex_cli::relay::server\"}"
+    ],
+    "auth_leaks": [],
+    "n_lines": 72
+  },
+  "kernel_pid": 6507,
+  "checks": {
+    "boot_authoritative": true,
+    "fail1_hello_deltas": false,
+    "fail1_stream_deltas": false,
+    "fail1_para_deltas": false,
+    "hello_semantic": true,
+    "no_dup_trunc": true,
+    "websearch_events": true,
+    "tool_resume": true,
+    "fail2_no_crosstalk": false,
+    "fail3_conc20": false,
+    "tap_dropped_0": true,
+    "slow_client": false,
+    "rss_not_over_4g": true,
+    "digest_0": true,
+    "mcp_clean": true
+  },
+  "ok": false
+}

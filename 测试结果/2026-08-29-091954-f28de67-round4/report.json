@@ -1,0 +1,109 @@
+{
+  "commit": "f28de672b5f0e5a1f9a7302d7e7b3f9237f97b55",
+  "ok": false,
+  "steps": {
+    "S1": {
+      "verdict": "FAIL",
+      "reason": "status=200 n_content_block_delta=2 n_text_delta=1 first=4055ms text_len=70 dup=False",
+      "n_content_block_delta": 2,
+      "n_text_delta": 1,
+      "max_delta": 70,
+      "first_token_ms": 4055,
+      "text": "你好！欢迎来到收费站，请问您是要通过吗？请准备好您的通行卡或者现金，前方是ETC车道和人工车道，您可以根据需要选择。请问需要办理什么业务呢？",
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ],
+      "correlations": [
+        {
+          "job_id": "job_96bc65201fb34ab89bb65bbd22784e3f",
+          "slot_id": "slot_d1e1e02ecc87400496be76b288d744ca",
+          "turn_id": 0,
+          "ts": "2026-08-29T09:19:49.866632Z"
+        }
+      ],
+      "status": 200,
+      "error": null,
+      "mcp_leak": [],
+      "healthz": {
+        "correlate_ambiguous": 0,
+        "correlate_hit": 1,
+        "correlate_miss": 49,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "authoritative",
+        "tap_dropped": 0,
+        "tap_response_started": 1
+      }
+    }
+  },
+  "boot": {
+    "kernel_pid": 3504,
+    "relay_mode": "authoritative",
+    "health": {
+      "status": "ok",
+      "isolation": "subagent-pool",
+      "slots_per_worker": 20,
+      "workers": 1,
+      "relay": {
+        "correlate_ambiguous": 0,
+        "correlate_hit": 0,
+        "correlate_miss": 44,
+        "digest_mismatch": 0,
+        "relay_healthy": true,
+        "relay_mode": "authoritative",
+        "tap_dropped": 0,
+        "tap_response_started": 0
+      },
+      "memory": {
+        "admission": "allow",
+        "cgroup_bytes": 3758985216,
+        "claude_rss_bytes": 267513856,
+        "inflight_payload": 0,
+        "kernel_rss_bytes": 20197376,
+        "observed_bytes": 287711232,
+        "pending": 0,
+        "service_rss_bytes": 287711232
+      }
+    },
+    "claude_n": 1,
+    "claude": [
+      {
+        "pid": 3508,
+        "env": {
+          "ALL_PROXY": "http://127.0.0.1:18080",
+          "ANTHROPIC_BASE_URL": "http://127.0.0.1:18082",
+          "HTTPS_PROXY": "http://127.0.0.1:18080",
+          "HTTP_PROXY": "http://127.0.0.1:18080",
+          "KIN_HTTPS_PROXY": "http://<redacted>",
+          "KIN_RELAY_MODE": "authoritative",
+          "KIN_SOCKS5": "socks5h://<redacted>",
+          "NO_PROXY": "127.0.0.1,localhost",
+          "http_proxy": "http://127.0.0.1:18080",
+          "https_proxy": "http://127.0.0.1:18080",
+          "no_proxy": "127.0.0.1,localhost"
+        }
+      }
+    ],
+    "ready": true
+  },
+  "healthz_before": {
+    "correlate_ambiguous": 0,
+    "correlate_hit": 0,
+    "correlate_miss": 44,
+    "digest_mismatch": 0,
+    "relay_healthy": true,
+    "relay_mode": "authoritative",
+    "tap_dropped": 0,
+    "tap_response_started": 0
+  },
+  "stopped_at": "S1"
+}

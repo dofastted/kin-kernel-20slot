@@ -2,6 +2,26 @@
 
 按日期时间分目录。
 
+## `*-3a0091f-round5` — 五轮最小化 S1→S4（通过）
+
+剥 `accept-encoding` 后 tap 吃到明文 SSE；`kin_done` `input_json_delta` 合成多片 `text_delta`。
+
+- `verdict.md`：S1–S4 全 PASS
+- `report.json`：S1 n_td=11 / max_delta=12；S2 同 job/slot；S3 3/3；S4 Δhit=6 tap_dropped=0
+- `kernel.log`
+
+## `*-f28de67-round4` — 四轮最小化 S1 FAIL
+
+tap 挂上但客户端仍整块 stdout（后续定位为压缩字节流）。S2–S4 未跑。
+
+- `verdict.md` / `report.json` / `kernel.log`
+
+## `*-adc1450-authoritative` — 三轮 FAIL 复测（仍 FAIL）
+
+延迟仲裁后仍 n_delta=1；conc20 17/20 串流+空 200。
+
+- `verdict.md` / `report.json` / `kernel.log`
+
 ## `*-e28132d-authoritative` — handover 第 3 步 authoritative 采证
 
 - `verdict.md` 结论
