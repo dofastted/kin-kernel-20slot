@@ -207,7 +207,7 @@ fn tools() -> Vec<Value> {
         ),
         tool(
             "kin_done",
-            "Finish the job. Body already streamed from CLI stdout; only send stop/usage.",
+            "Finish the job. Put the complete final answer in `text`; it is the client-visible body when nothing streamed.",
             json!({
                 "type": "object",
                 "properties": {

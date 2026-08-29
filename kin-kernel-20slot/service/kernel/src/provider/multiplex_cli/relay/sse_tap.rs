@@ -346,6 +346,16 @@ impl SseDecoder {
     }
 }
 
+/// kin-slot agents deliver the final answer inside the kin_done tool call
+/// (streamed as input_json_delta), per their prompt. The filter re-streams
+/// that argument's `text` field as synthesized text_delta events.
+const KIN_DONE_TOOL: &str = "mcp__kin_runtime__kin_done";
+
+/// Top-level key marking events synthesized from kin_done arguments. The
+/// arbiter uses it to drop a synthesized duplicate when real upstream text
+/// already streamed this turn; JobStream strips it before the client.
+pub(crate) const KIN_SYNTH_MARKER: &str = "kin_synth";
+
 #[derive(Default)]
 pub struct EventFilter {
     index_allocator: Arc<AtomicUsize>,
@@ -355,6 +365,19 @@ pub struct EventFilter {
     response_usage: Map<String, Value>,
     emitted_response_usage: Map<String, Value>,
     pending_usage_delta: Option<Value>,
+    /// kin-slot agents deliver the answer as the kin_done tool call's `text`
+    /// argument (streamed via input_json_delta), not as text_delta — the
+    /// prompt tells them "do not send the full answer as text". Synthesize
+    /// real text_delta events from that argument stream so authoritative
+    /// mode still gets per-token output.
+    kin_done: Option<KinDoneSynth>,
+    saw_real_text: bool,
+}
+
+struct KinDoneSynth {
+    source_index: u64,
+    emit_index: Option<u64>,
+    extractor: KinDoneTextExtractor,
 }
 
 impl EventFilter {
@@ -367,6 +390,8 @@ impl EventFilter {
             response_usage: Map::new(),
             emitted_response_usage: Map::new(),
             pending_usage_delta: None,
+            kin_done: None,
+            saw_real_text: false,
         }
     }
 
@@ -396,7 +421,16 @@ impl EventFilter {
             }
             Some("content_block_start") => self.content_block_start(event),
             Some("content_block_delta" | "content_block_stop") => {
-                self.rewrite_index(&mut event).into_iter().collect()
+                if let Some(out) = self.kin_done_intercept(&event) {
+                    return out;
+                }
+                let out: Vec<Value> = self.rewrite_index(&mut event).into_iter().collect();
+                if !out.is_empty()
+                    && event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta")
+                {
+                    self.saw_real_text = true;
+                }
+                out
             }
             _ => vec![event],
         }
@@ -417,12 +451,78 @@ impl EventFilter {
         let block = event.get("content_block").cloned().unwrap_or(Value::Null);
         if is_internal_tool(&block) {
             self.swallowed.push(old_index);
+            if is_kin_done_tool(&block) && !self.saw_real_text {
+                self.kin_done = Some(KinDoneSynth {
+                    source_index: old_index,
+                    emit_index: None,
+                    extractor: KinDoneTextExtractor::default(),
+                });
+            }
             return Vec::new();
         }
         let new_index = self.index_allocator.fetch_add(1, Ordering::AcqRel) as u64;
         self.index_map.insert(old_index, new_index);
         event["index"] = Value::from(new_index);
         vec![event]
+    }
+
+    /// Turn a kin_done input_json_delta stream into synthesized text_delta
+    /// events. Returns Some(events) when the event belonged to the tracked
+    /// kin_done block (even if nothing is emitted for it).
+    fn kin_done_intercept(&mut self, event: &Value) -> Option<Vec<Value>> {
+        let source_index = self.kin_done.as_ref()?.source_index;
+        let index = event.get("index").and_then(Value::as_u64)?;
+        if index != source_index {
+            return None;
+        }
+        let kind = event.get("type").and_then(Value::as_str)?;
+        if kind == "content_block_stop" {
+            let synth = self.kin_done.take()?;
+            let Some(index) = synth.emit_index else {
+                return Some(Vec::new());
+            };
+            return Some(vec![json!({
+                "type": "content_block_stop",
+                "index": index,
+                KIN_SYNTH_MARKER: true
+            })]);
+        }
+        if event.pointer("/delta/type").and_then(Value::as_str) != Some("input_json_delta") {
+            return Some(Vec::new());
+        }
+        let partial = event
+            .pointer("/delta/partial_json")
+            .and_then(Value::as_str)
+            .unwrap_or("");
+        let (text, emit_index) = {
+            let synth = self.kin_done.as_mut()?;
+            (synth.extractor.push(partial), synth.emit_index)
+        };
+        if text.is_empty() {
+            return Some(Vec::new());
+        }
+        let mut out = Vec::new();
+        let index = match emit_index {
+            Some(index) => index,
+            None => {
+                let index = self.index_allocator.fetch_add(1, Ordering::AcqRel) as u64;
+                self.kin_done.as_mut()?.emit_index = Some(index);
+                out.push(json!({
+                    "type": "content_block_start",
+                    "index": index,
+                    "content_block": { "type": "text", "text": "" },
+                    KIN_SYNTH_MARKER: true
+                }));
+                index
+            }
+        };
+        out.push(json!({
+            "type": "content_block_delta",
+            "index": index,
+            "delta": { "type": "text_delta", "text": text },
+            KIN_SYNTH_MARKER: true
+        }));
+        Some(out)
     }
 
     fn rewrite_index(&self, event: &mut Value) -> Option<Value> {
@@ -510,6 +610,208 @@ fn is_internal_tool(block: &Value) -> bool {
             .get("name")
             .and_then(Value::as_str)
             .is_some_and(|name| name.starts_with("mcp__kin_runtime__"))
+}
+
+fn is_kin_done_tool(block: &Value) -> bool {
+    block.get("type").and_then(Value::as_str) == Some("tool_use")
+        && block.get("name").and_then(Value::as_str) == Some(KIN_DONE_TOOL)
+}
+
+/// Incremental extractor for the `text` field of a kin_done tool call's
+/// argument object, fed arbitrary `input_json_delta.partial_json` fragments.
+/// Never buffers the whole document: structure outside the target string is
+/// consumed char-by-char, and only unfinished escape sequences carry over
+/// between chunks.
+#[derive(Default)]
+struct KinDoneTextExtractor {
+    state: ExtractState,
+    depth: u32,
+    next_string_is_key: bool,
+    key_buf: String,
+    /// Pending escape body (chars after the backslash) inside the text value.
+    esc: Option<String>,
+    /// High surrogate from a `\uD8xx` escape awaiting its low half.
+    pending_high: Option<u16>,
+    /// Escape flag for strings we skip (keys / other values).
+    skip_escape: bool,
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
+enum ExtractState {
+    #[default]
+    Structure,
+    InKey,
+    InOtherString,
+    AwaitColon,
+    AwaitValueQuote,
+    InText,
+    Done,
+}
+
+impl KinDoneTextExtractor {
+    fn push(&mut self, chunk: &str) -> String {
+        let mut out = String::new();
+        for c in chunk.chars() {
+            match self.state {
+                ExtractState::Done => break,
+                ExtractState::Structure => self.structure_char(c),
+                ExtractState::InKey => {
+                    if self.skip_escape {
+                        self.skip_escape = false;
+                    } else if c == '\\' {
+                        self.skip_escape = true;
+                    } else if c == '"' {
+                        self.state = if self.key_buf == "text" {
+                            ExtractState::AwaitColon
+                        } else {
+                            ExtractState::Structure
+                        };
+                    } else {
+                        self.key_buf.push(c);
+                    }
+                }
+                ExtractState::InOtherString => {
+                    if self.skip_escape {
+                        self.skip_escape = false;
+                    } else if c == '\\' {
+                        self.skip_escape = true;
+                    } else if c == '"' {
+                        self.state = ExtractState::Structure;
+                    }
+                }
+                ExtractState::AwaitColon => {
+                    if c == ':' {
+                        self.state = ExtractState::AwaitValueQuote;
+                    } else if !c.is_whitespace() {
+                        self.state = ExtractState::Structure;
+                        self.structure_char(c);
+                    }
+                }
+                ExtractState::AwaitValueQuote => {
+                    if c == '"' {
+                        self.state = ExtractState::InText;
+                    } else if !c.is_whitespace() {
+                        // `text` is not a string (e.g. null); nothing to stream.
+                        self.state = ExtractState::Structure;
+                        self.structure_char(c);
+                    }
+                }
+                ExtractState::InText => self.text_char(c, &mut out),
+            }
+        }
+        out
+    }
+
+    fn structure_char(&mut self, c: char) {
+        match c {
+            '{' | '[' => {
+                self.depth += 1;
+                if self.depth == 1 {
+                    self.next_string_is_key = true;
+                }
+            }
+            '}' | ']' => self.depth = self.depth.saturating_sub(1),
+            ',' if self.depth == 1 => self.next_string_is_key = true,
+            ':' if self.depth == 1 => self.next_string_is_key = false,
+            '"' => {
+                if self.depth == 1 && self.next_string_is_key {
+                    self.key_buf.clear();
+                    self.state = ExtractState::InKey;
+                } else {
+                    self.state = ExtractState::InOtherString;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn text_char(&mut self, c: char, out: &mut String) {
+        if let Some(esc) = &mut self.esc {
+            esc.push(c);
+            match resolve_escape(esc) {
+                EscapeStep::Incomplete => {}
+                EscapeStep::Unit(unit) => {
+                    self.esc = None;
+                    self.push_unit(unit, out);
+                }
+                EscapeStep::Literal(ch) => {
+                    self.esc = None;
+                    self.flush_pending_high(out);
+                    out.push(ch);
+                }
+                EscapeStep::Invalid => {
+                    self.esc = None;
+                    self.flush_pending_high(out);
+                }
+            }
+        } else if c == '\\' {
+            self.esc = Some(String::new());
+        } else if c == '"' {
+            self.flush_pending_high(out);
+            self.state = ExtractState::Done;
+        } else {
+            self.flush_pending_high(out);
+            out.push(c);
+        }
+    }
+
+    fn push_unit(&mut self, unit: u16, out: &mut String) {
+        if let Some(high) = self.pending_high.take() {
+            if (0xDC00..=0xDFFF).contains(&unit) {
+                let combined =
+                    0x10000 + ((u32::from(high) - 0xD800) << 10) + (u32::from(unit) - 0xDC00);
+                out.push(char::from_u32(combined).unwrap_or('\u{FFFD}'));
+                return;
+            }
+            out.push('\u{FFFD}');
+        }
+        match unit {
+            0xD800..=0xDBFF => self.pending_high = Some(unit),
+            0xDC00..=0xDFFF => out.push('\u{FFFD}'),
+            _ => out.push(char::from_u32(u32::from(unit)).unwrap_or('\u{FFFD}')),
+        }
+    }
+
+    fn flush_pending_high(&mut self, out: &mut String) {
+        if self.pending_high.take().is_some() {
+            out.push('\u{FFFD}');
+        }
+    }
+}
+
+enum EscapeStep {
+    Incomplete,
+    Literal(char),
+    Unit(u16),
+    Invalid,
+}
+
+fn resolve_escape(esc: &str) -> EscapeStep {
+    let mut chars = esc.chars();
+    let Some(first) = chars.next() else {
+        return EscapeStep::Incomplete;
+    };
+    match first {
+        '"' => EscapeStep::Literal('"'),
+        '\\' => EscapeStep::Literal('\\'),
+        '/' => EscapeStep::Literal('/'),
+        'n' => EscapeStep::Literal('\n'),
+        't' => EscapeStep::Literal('\t'),
+        'r' => EscapeStep::Literal('\r'),
+        'b' => EscapeStep::Literal('\u{8}'),
+        'f' => EscapeStep::Literal('\u{c}'),
+        'u' => {
+            let hex: String = chars.collect();
+            if hex.len() < 4 {
+                return EscapeStep::Incomplete;
+            }
+            match u16::from_str_radix(&hex[..4], 16) {
+                Ok(unit) => EscapeStep::Unit(unit),
+                Err(_) => EscapeStep::Invalid,
+            }
+        }
+        _ => EscapeStep::Invalid,
+    }
 }
 
 fn add_usage(total: &mut Map<String, Value>, usage: &Map<String, Value>) {
@@ -608,6 +910,121 @@ mod tests {
         assert_eq!(server[0]["content_block"]["type"], "server_tool_use");
         assert_eq!(server[0]["index"], 1);
         assert_eq!(filter.usage(), json!({"input_tokens":3,"output_tokens":2}));
+    }
+
+    #[test]
+    fn kin_done_text_argument_synthesizes_text_deltas() {
+        // Real kin-slot responses put the answer in kin_done's `text` arg,
+        // streamed as input_json_delta — the filter must re-stream it as
+        // marked text_delta events (root cause of "no per-token output").
+        let mut filter = EventFilter::with_start_index(0);
+        assert!(
+            filter
+                .apply(json!({
+                    "type":"content_block_start",
+                    "index":1,
+                    "content_block":{"type":"tool_use","id":"toolu_kd","name":"mcp__kin_runtime__kin_done","input":{}}
+                }))
+                .is_empty()
+        );
+        let feed = |filter: &mut EventFilter, partial: &str| {
+            filter.apply(json!({
+                "type":"content_block_delta",
+                "index":1,
+                "delta":{"type":"input_json_delta","partial_json":partial}
+            }))
+        };
+        assert!(feed(&mut filter, "").is_empty());
+        assert!(feed(&mut filter, "{\"job_").is_empty());
+        assert!(feed(&mut filter, "id\": \"j1\", \"stop_reason\"").is_empty());
+        assert!(feed(&mut filter, ": \"end_turn\", \"te").is_empty());
+        let first = feed(&mut filter, "xt\": \"你好，欢");
+        assert_eq!(first.len(), 2);
+        assert_eq!(first[0]["type"], "content_block_start");
+        assert_eq!(first[0]["content_block"]["type"], "text");
+        assert_eq!(first[0][KIN_SYNTH_MARKER], true);
+        assert_eq!(first[1]["delta"]["text"], "你好，欢");
+        let second = feed(&mut filter, "迎\\n光临");
+        assert_eq!(second.len(), 1);
+        assert_eq!(second[0]["delta"]["text"], "迎\n光临");
+        // Rest of the object after text must not leak.
+        assert!(feed(&mut filter, "\", \"usage\": {\"output_tokens\": 3}}").is_empty());
+        let stop = filter.apply(json!({"type":"content_block_stop","index":1}));
+        assert_eq!(stop.len(), 1);
+        assert_eq!(stop[0]["type"], "content_block_stop");
+        assert_eq!(stop[0][KIN_SYNTH_MARKER], true);
+        // Same block index for start/delta/stop.
+        assert_eq!(first[0]["index"], stop[0]["index"]);
+    }
+
+    #[test]
+    fn kin_done_synthesis_skipped_after_real_text() {
+        // When the model streamed real text this response, kin_done's text
+        // restates it — no synthesized duplicate.
+        let mut filter = EventFilter::with_start_index(0);
+        let start = filter.apply(json!({
+            "type":"content_block_start",
+            "index":0,
+            "content_block":{"type":"text","text":""}
+        }));
+        assert_eq!(start.len(), 1);
+        assert_eq!(
+            filter
+                .apply(json!({
+                    "type":"content_block_delta",
+                    "index":0,
+                    "delta":{"type":"text_delta","text":"real"}
+                }))
+                .len(),
+            1
+        );
+        assert!(
+            filter
+                .apply(json!({
+                    "type":"content_block_start",
+                    "index":2,
+                    "content_block":{"type":"tool_use","id":"toolu_kd","name":"mcp__kin_runtime__kin_done","input":{}}
+                }))
+                .is_empty()
+        );
+        assert!(
+            filter
+                .apply(json!({
+                    "type":"content_block_delta",
+                    "index":2,
+                    "delta":{"type":"input_json_delta","partial_json":"{\"text\": \"dupe\"}"}
+                }))
+                .is_empty()
+        );
+        assert!(
+            filter
+                .apply(json!({"type":"content_block_stop","index":2}))
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn kin_done_extractor_handles_escapes_and_unicode_across_chunks() {
+        let mut ex = KinDoneTextExtractor::default();
+        let mut out = String::new();
+        out.push_str(&ex.push("{\"job_id\": \"j\\\"x\", \"text\": \"a"));
+        // Split escape across chunks.
+        out.push_str(&ex.push("\\"));
+        out.push_str(&ex.push("u4f60"));
+        out.push_str(&ex.push("\\ud83d"));
+        out.push_str(&ex.push("\\ude00 b\", \"k\": 1}"));
+        assert_eq!(out, "a你😀 b");
+        // Nothing after the closing quote leaks.
+        assert!(ex.push("{\"text\": \"again\"}").is_empty());
+    }
+
+    #[test]
+    fn kin_done_extractor_ignores_other_keys_and_nested_text() {
+        let mut ex = KinDoneTextExtractor::default();
+        let out = ex.push(
+            "{\"final_digest\": \"text: not this\", \"usage\": {\"text\": \"nested\"}, \"text\": \"real\"}",
+        );
+        assert_eq!(out, "real");
     }
 
     #[test]

@@ -10,7 +10,7 @@ use sha2::{Digest, Sha256};
 
 use crate::config::RelayMode;
 
-use super::sse_tap::{TAP_POISONED, TAP_USAGE};
+use super::sse_tap::{KIN_SYNTH_MARKER, TAP_POISONED, TAP_USAGE};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BodyState {
@@ -42,6 +42,10 @@ pub struct SourceArbiter {
     /// True once a tap response has attached to this turn. Only then is it
     /// worth deferring stdout body frames while waiting for upstream deltas.
     tap_attached: bool,
+    /// True once a genuine (non-synthesized) upstream text delta streamed
+    /// this turn. The kin_done `text` argument then duplicates/paraphrases
+    /// the already-streamed body, so synthesized events must be dropped.
+    saw_real_upstream_text: bool,
     /// Authoritative-mode holding pen: stdout body frames that arrived while
     /// still NoBody with a tap attached. Discarded on upgrade to
     /// UpstreamActive; released downstream if the tap never produces a body.
@@ -68,6 +72,7 @@ impl SourceArbiter {
             usage: Map::new(),
             suppressed_stdout_indices: Vec::new(),
             tap_attached: false,
+            saw_real_upstream_text: false,
             deferred: Vec::new(),
             deferred_bytes: 0,
         }
@@ -125,6 +130,17 @@ impl SourceArbiter {
                 self.note_usage(usage);
             }
             return ArbiterEffect::Suppress;
+        }
+        if is_synth(event) {
+            // The kin_done text argument restates the answer. EventFilter only
+            // sees one internal response; the model may have streamed the real
+            // body in an earlier response of the same turn, so the whole-turn
+            // duplicate check lives here.
+            if self.saw_real_upstream_text {
+                return ArbiterEffect::Suppress;
+            }
+        } else if body_text(event).is_some() {
+            self.saw_real_upstream_text = true;
         }
         self.push_upstream_text(event);
         self.decide_upstream(event)
@@ -267,7 +283,11 @@ impl SourceArbiter {
         if self.state == BodyState::StdoutFallback {
             return ArbiterEffect::Suppress;
         }
-        if is_body_event(event) && self.state == BodyState::NoBody {
+        // Upgrade only on visible content. Real CLI responses open with an
+        // empty thinking block whose start/deltas used to claim the body:
+        // the deferred stdout frames were cleared while upstream had nothing
+        // to show — the empty 200s in the 20-way test.
+        if visible_body_delta(event) && self.state == BodyState::NoBody {
             self.state = BodyState::UpstreamActive;
             self.upstream_authoritative = true;
             // The upstream stream owns the body now; any stdout frames held
@@ -322,6 +342,10 @@ fn is_type(event: &Value, expected: &str) -> bool {
     event.get("type").and_then(Value::as_str) == Some(expected)
 }
 
+fn is_synth(event: &Value) -> bool {
+    event.get(KIN_SYNTH_MARKER).and_then(Value::as_bool) == Some(true)
+}
+
 fn is_stop(event: &Value) -> bool {
     is_type(event, "content_block_stop")
 }
@@ -369,6 +393,19 @@ fn body_text(event: &Value) -> Option<&str> {
         .pointer("/delta/text")
         .and_then(Value::as_str)
         .filter(|text| !text.is_empty())
+}
+
+/// Non-empty text or thinking delta — content a user would actually see.
+fn visible_body_delta(event: &Value) -> bool {
+    if !is_type(event, "content_block_delta") {
+        return false;
+    }
+    let text = match event.pointer("/delta/type").and_then(Value::as_str) {
+        Some("text_delta") => event.pointer("/delta/text"),
+        Some("thinking_delta") => event.pointer("/delta/thinking"),
+        _ => return false,
+    };
+    text.and_then(Value::as_str).is_some_and(|t| !t.is_empty())
 }
 
 fn digest_hex(text: &str) -> String {
@@ -460,6 +497,84 @@ mod tests {
         let passed = arbiter.filter_stdout(vec![text_start(), text_delta("x"), text_stop()]);
         assert_eq!(passed.len(), 3);
         assert_eq!(arbiter.state(), BodyState::StdoutFallback);
+    }
+
+    #[test]
+    fn empty_thinking_prelude_does_not_claim_body() {
+        // Every real CLI response opens with an empty thinking block; if it
+        // claimed the body, the deferred stdout frames were discarded while
+        // upstream had nothing visible — the empty 200s in the 20-way test.
+        let mut arbiter = SourceArbiter::new(RelayMode::Authoritative);
+        arbiter.set_tap_attached();
+        let held =
+            arbiter.filter_stdout(vec![text_start(), text_delta("stdout body"), text_stop()]);
+        assert!(held.is_empty());
+        let start = json!({
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": { "type": "thinking", "thinking": "", "signature": "" }
+        });
+        let empty_think = json!({
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": { "type": "thinking_delta", "thinking": "" }
+        });
+        assert_eq!(arbiter.on_upstream(&start), ArbiterEffect::Forward);
+        assert_eq!(arbiter.on_upstream(&empty_think), ArbiterEffect::Forward);
+        assert_eq!(arbiter.state(), BodyState::NoBody);
+        // Deferred stdout still intact and released on kin_done.
+        let released = arbiter.take_deferred();
+        assert_eq!(released.len(), 3);
+        assert_eq!(arbiter.state(), BodyState::StdoutFallback);
+    }
+
+    #[test]
+    fn nonempty_thinking_claims_body() {
+        let mut arbiter = SourceArbiter::new(RelayMode::Authoritative);
+        let think = json!({
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": { "type": "thinking_delta", "thinking": "reasoning..." }
+        });
+        assert_eq!(arbiter.on_upstream(&think), ArbiterEffect::Forward);
+        assert_eq!(arbiter.state(), BodyState::UpstreamActive);
+    }
+
+    #[test]
+    fn synth_text_suppressed_after_real_upstream_text() {
+        // Whole-turn guard: an earlier internal response streamed real text;
+        // a later response's kin_done synthesis would duplicate the body.
+        let mut arbiter = SourceArbiter::new(RelayMode::Authoritative);
+        assert_eq!(
+            arbiter.on_upstream(&text_delta("real body")),
+            ArbiterEffect::Forward
+        );
+        let synth = json!({
+            "type": "content_block_delta",
+            "index": 3,
+            "delta": { "type": "text_delta", "text": "restated" },
+            "kin_synth": true
+        });
+        assert_eq!(arbiter.on_upstream(&synth), ArbiterEffect::Suppress);
+        assert_eq!(arbiter.upstream_text(), "real body");
+    }
+
+    #[test]
+    fn synth_text_claims_body_when_nothing_real_streamed() {
+        let mut arbiter = SourceArbiter::new(RelayMode::Authoritative);
+        arbiter.set_tap_attached();
+        let held = arbiter.filter_stdout(vec![text_start(), text_delta("stdout"), text_stop()]);
+        assert!(held.is_empty());
+        let synth = json!({
+            "type": "content_block_delta",
+            "index": 3,
+            "delta": { "type": "text_delta", "text": "tok" },
+            "kin_synth": true
+        });
+        assert_eq!(arbiter.on_upstream(&synth), ArbiterEffect::Forward);
+        assert_eq!(arbiter.state(), BodyState::UpstreamActive);
+        // Deferred stdout discarded — synthesized stream owns the body.
+        assert!(arbiter.take_deferred().is_empty());
     }
 
     #[test]

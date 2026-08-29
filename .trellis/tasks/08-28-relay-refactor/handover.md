@@ -8,6 +8,71 @@ authoritative 模式、tap 非阻塞、5xx 直通不 tap、digest 比对、慢�
 krc_ 跨 chunk、HMAC 签名 token、mock 上游端到端。历史本地结果为 62/64
 `cargo test`，2 个失败是既有 `local_cli` PID 断言，与 relay 无关。
 
+## 四轮修复摘要（adc1450 复测三 FAIL，真根因来自 b1a4f9d 实机抓包）
+
+四轮复测证明三轮的根因假设有两处错误。本轮依据测试员提交的真实 SSE 抓包
+（`测试结果/2026-08-28-200753-kin-cli/`）重新定位并修复：
+
+- FAIL-1 无逐 token（真根因）：kin-slot 提示词要求「不要把全文作为 text 发送、
+  用 kin_done 收尾」，模型照做——真实响应里**正文根本不以 text_delta 流出**，
+  而是作为 `kin_done` 工具调用 `text` 参数以 `input_json_delta`（每片 4~8 字符）
+  流式传输；而 tap 的 EventFilter 把 `mcp__kin_runtime__*` 工具块整个吞掉，
+  tap 永远产不出正文 → 延迟仲裁等不到升级 → kin_done 兜底一次性整块。
+  修复：EventFilter 内置**增量 JSON 提取器**，识别 kin_done 工具块后从
+  `input_json_delta` 流中实时抽取顶层 `text` 字段值、合成逐 token `text_delta`
+  （带内部 `kin_synth` 标记，JobStream 转发前剥除）；同响应已出现真实
+  text_delta 则不合成；arbiter 对整个 turn 做二次去重（先有真实正文则
+  Suppress 合成流）。同时 kin-slot 提示词/工具描述明确 `text` 必填全文。
+- FAIL-2 串流（真根因，三轮假设被证伪）：抓包显示每个 subagent 请求体只有
+  1 个 krc token，root 转发文本并不携带 token（这就是 correlate_ambiguous=0
+  的原因；恰好一存活规则保留，无害）。真正根因在 stdout demux：
+  `parent_tool_use_id → slot` 的配对靠 spawn 顺序启发式（subagent 调
+  slot_wait 从不带 slot_id），20 并发 boot 下 A 的 stdout 频道可绑到 B 的
+  job → #7↔#8 精确对调。修复：从 CLI 回放的 slot_wait tool_result 用户帧
+  （内含权威 `{"type":"job",job_id,slot_id}`）**确定性重学习** parent→slot
+  绑定，路由任何帧之前先校正，并清除指向同一 slot 的陈旧配对。
+- 空 200（三 FAIL 共因之一）：真实响应以空 thinking 块开场
+  （`thinking:""` delta + signature），旧逻辑任何 body 事件都可把 turn 提级
+  UpstreamActive 并清掉暂存 stdout —— upstream 却没有可见内容；且
+  `JobStream.streamed_text` 在 ingest 时就置位，被抑制/暂存的帧也算「已发」，
+  kin_done 兜底因此沉默。修复：仅**非空** text/thinking delta 才能提级；
+  `streamed_text` 改为事件真正交付客户端时由 runtime 标记（暂存释放路径
+  同样补标）。
+- FAIL-3（17/20）：503=0 证明三轮的 submit 重试已生效；剩余失败即上述
+  空 200，与调度无关，无需再动。
+- 慢客户端：仍是逐 token 生效后的衍生项，复测方法不变。
+
+### 四轮复测步骤（最小化验证）
+
+原则：**最小化**——用 1 条真实对话的录制请求复用执行，不做 20 并发、不做
+大规模扫描；每步只看该步的判定指标。目标语义：`stream:true` 逐 token 返回；
+`stream:false` 由 kernel 聚合为一条完整响应（本轮虚拟机实测固定
+`stream:true`）。
+
+准备：录制 1 条真实对话请求（建议含一次客户端工具调用的 body，可直接复用
+`07-forced-weather` 场景的 inbound-request），后续步骤全部复用该录制。
+
+- [ ] **S1 逐 token（stream:true，单发）**：重放录制的普通对话请求，
+      判定：`content_block_delta` 数 ≥ 3（非单块整段）；正文完整无重复无截断。
+      顺带记录首 token 时间。
+- [ ] **S2 工具调用回路**：重放含 client tool 的录制请求 → 收到 `tool_use`
+      block + continuation → 提交 `tool_result` resume。
+      判定：resume 后正文正常返回，恢复到同一 job/slot（日志
+      `relay correlated request` 的 job_id 前后一致），无 500/超时。
+- [ ] **S3 小并发（2~3 路复用同一录制）**：同一录制并发发 2~3 路
+      （session_id 各自独立）。
+      判定：全部成功；正文互不串流（每路响应只含自己 session 的内容）；
+      无空 200；无 503。20 并发暂不测试。
+- [ ] **S4 指标核对**（跑完 S1~S3 后读一次 `/healthz`）：
+      `correlate_hit` 增量 = 用户 turn 的内部 POST 数；
+      `correlate_ambiguous` 保持 0（四轮已证实 root 流量不带 token，
+      三轮「随 root 增长」的预期作废）；
+      `digest_mismatch` = 0；`tap_dropped` 增量 = 0。
+- [ ] （可选，逐 token 确认生效后再做）慢客户端：5s 停读 → 显式错误或异常
+      EOF，无伪成功。
+
+任一步失败即停，附该步的响应原文 + `/healthz` 快照回报，无需继续后面步骤。
+
 ## 三轮修复摘要（authoritative 实测三 FAIL）
 
 - FAIL-1 无逐 token：根因是 arbiter 竞态——stdout 整块帧先于首个 tap delta 到达
