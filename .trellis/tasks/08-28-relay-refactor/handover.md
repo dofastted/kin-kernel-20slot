@@ -1,12 +1,25 @@
 # 交接清单 — Relay 重构真实环境验收（给测试员）
 
-代码状态：`378ad7d` 静态验收二轮缺陷已在当前工作树修复，尚未提交，尚未签收。
-`authoritative` 禁止上线，直到 observe 阶段真实环境采证完成并确认通过。
+代码状态：`3a0091f`（五轮修复）。**最小化验证 S1→S4 已于 2026-08-29 全部
+PASS**（采证 `测试结果/2026-08-29-105659-3a0091f-round5`，authoritative +
+SOCKS 出口）：
 
-本地基线：上一轮阶段 A-D/E/F 已完成，覆盖 relay strict boot、off/observe/
-authoritative 模式、tap 非阻塞、5xx 直通不 tap、digest 比对、慢客户端显式失败、
-krc_ 跨 chunk、HMAC 签名 token、mock 上游端到端。历史本地结果为 62/64
-`cargo test`，2 个失败是既有 `local_cli` PID 断言，与 relay 无关。
+- S1 逐 token：n_text_delta=11 / n_cbd=14 / max_delta=12 / 首 token
+  3139ms（对照五轮前 n_delta=1 / max=70 整块）；Δtap_dropped=0，
+  确认走合成流而非压缩降级或 stdout 兜底。片长略大于文档估的 4~8
+  字符——那是 kin_done 参数流的原始片长，合成器按片转发属预期，
+  不作为缺陷。
+- S2 工具回路：get_weather → resume 恢复同 job/slot，正文正确。
+- S3 并发 3 路：3/3 成功（nd=10/10/11），无串流、无空 200、无 503。
+- S4 指标：Δhit=6（=用户 turn 内部 POST 数）、ambiguous=0、digest=0、
+  Δtap_dropped=0、tap_response_started=6。
+
+尚未覆盖（本次最小化验证明确不含，后续扩量时再测）：20 并发、慢客户端
+显式失败、WebSearch 场景事件形态、RSS 上限、`stream:false` 聚合路径、
+长时间运行的账号侧指纹观察（accept-encoding 剥除）。
+
+`authoritative` 的核心验收目标（真实上游逐 token）已达成；是否扩量签收
+由测试员/架构师按上表缺口决定。
 
 ## 五轮修复摘要（f28de67 S1 FAIL：tap 收到的是压缩字节流）
 
