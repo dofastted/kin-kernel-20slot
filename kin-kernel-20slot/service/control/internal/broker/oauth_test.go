@@ -95,3 +95,29 @@ func TestSpawnEnvPinsSameProxy(t *testing.T) {
 		t.Fatal("must not inject setup-token env")
 	}
 }
+
+func TestSanitizeSetupTokenStripsUISuffix(t *testing.T) {
+	t.Parallel()
+	got := SanitizeSetupToken("sk-ant-oat01-abc_def-wucZOwAAStorethistokensecurely.Youwon")
+	if got != "sk-ant-oat01-abc_def-wucZOwAA" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestSpawnEnvSetupToken(t *testing.T) {
+	t.Parallel()
+	env := SpawnEnvOpts(SpawnOpts{
+		ConfigDir:  "/run/kin/demo/sess",
+		Socks5:     "socks5h://user:pass@127.0.0.1:1080",
+		SetupToken: "sk-ant-oat01-x-AAStorethis.no",
+	})
+	if env["CLAUDE_CODE_OAUTH_TOKEN"] != "sk-ant-oat01-x-AA" {
+		t.Fatalf("token %q", env["CLAUDE_CODE_OAUTH_TOKEN"])
+	}
+	if env["KIN_CLAUDE_CODE_OAUTH_TOKEN"] != env["CLAUDE_CODE_OAUTH_TOKEN"] {
+		t.Fatal("kin and cli env must match")
+	}
+	if env["ALL_PROXY"] != env["HTTPS_PROXY"] {
+		t.Fatal("proxy pin")
+	}
+}

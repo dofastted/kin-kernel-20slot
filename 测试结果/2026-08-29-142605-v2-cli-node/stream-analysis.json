@@ -1,0 +1,22 @@
+{
+  "cli": "node-24 cli-node.js 2.8.4",
+  "auth": "setup-token",
+  "ready": true,
+  "tee": {
+    "n_stream_event": 433,
+    "n_parented": 258,
+    "n_parented_text_delta": 0,
+    "n_parented_input_json_delta": 213,
+    "parents": 2,
+    "progress": 0
+  },
+  "http": {
+    "hello_n_text_delta": 5,
+    "stream_n_text_delta": 16,
+    "para_n_text_delta": 117,
+    "s1_n_text_delta": 12,
+    "source": "kin_done.text synth"
+  },
+  "native_subagent_text_stream": false,
+  "kin_uses_parented_frames": true
+}
