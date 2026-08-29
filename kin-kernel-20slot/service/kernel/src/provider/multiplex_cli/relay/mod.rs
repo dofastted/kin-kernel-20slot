@@ -178,6 +178,7 @@ mod tests {
             simulate_latency: Duration::from_millis(1),
             continuation_ttl_secs: 600,
             client_stall_timeout: Duration::from_secs(30),
+            submit_wait: Duration::from_millis(200),
             relay_mode: RelayMode::Observe,
             relay_addr: "127.0.0.1:0".parse().unwrap(),
             relay_upstream: "https://api.anthropic.com".into(),

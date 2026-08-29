@@ -74,10 +74,17 @@ impl RelayContextToken {
     }
 }
 
+/// Cap on distinct signed job_ids collected per request. A root-supervisor
+/// transcript embedding many subagent tokens hits ambiguity long before this;
+/// exceeding it is treated as ambiguous outright.
+const MAX_SIGNED_JOBS: usize = 32;
+
 pub struct ContextScanner {
     buf: Vec<u8>,
     secret: Vec<u8>,
-    last_valid: Option<RelayContextToken>,
+    /// Deduped-by-job_id validly-signed tokens, in order of last appearance.
+    signed: Vec<RelayContextToken>,
+    overflowed: bool,
 }
 
 impl ContextScanner {
@@ -85,7 +92,8 @@ impl ContextScanner {
         Self {
             buf: Vec::new(),
             secret: secret.to_vec(),
-            last_valid: None,
+            signed: Vec::new(),
+            overflowed: false,
         }
     }
 
@@ -99,18 +107,36 @@ impl ContextScanner {
         self.buf.clear();
     }
 
-    pub async fn last_valid(&self, runtime: &Runtime) -> Option<CorrelatedJob> {
-        let token = self.last_valid.as_ref()?;
-        runtime.correlate_lookup(token).await
-    }
-
-    pub(crate) fn signed_token(&self) -> Option<RelayContextToken> {
-        self.last_valid.clone()
+    /// Correlate only when exactly one signed token maps to a live job.
+    ///
+    /// A kin-slot transcript may still contain tokens of its *previous* jobs,
+    /// but those fail the runtime liveness check. The root supervisor's
+    /// transcript (with --forward-subagent-text) embeds tokens of several
+    /// *live* jobs at once — correlating such a request would tee the root
+    /// response into some unrelated user stream. Exactly-one is the only safe
+    /// answer; zero is a miss and two-or-more is ambiguous.
+    pub async fn last_valid(&self, runtime: &Runtime) -> CorrelationOutcome {
+        if self.overflowed {
+            return CorrelationOutcome::Ambiguous;
+        }
+        let mut live: Option<CorrelatedJob> = None;
+        for token in self.signed.iter().rev() {
+            if let Some(job) = runtime.correlate_lookup(token).await {
+                if live.is_some() {
+                    return CorrelationOutcome::Ambiguous;
+                }
+                live = Some(job);
+            }
+        }
+        match live {
+            Some(job) => CorrelationOutcome::Matched(job),
+            None => CorrelationOutcome::Miss,
+        }
     }
 
     #[cfg(test)]
     pub(crate) fn last_valid_token(&self) -> Option<&RelayContextToken> {
-        self.last_valid.as_ref()
+        self.signed.last()
     }
 
     fn scan(&mut self, final_chunk: bool) {
@@ -178,8 +204,34 @@ impl ContextScanner {
         let Ok(candidate) = std::str::from_utf8(candidate) else {
             return;
         };
-        if let Ok(token) = RelayContextToken::decode(candidate, &self.secret) {
-            self.last_valid = Some(token);
+        let Ok(token) = RelayContextToken::decode(candidate, &self.secret) else {
+            return;
+        };
+        // Dedupe by job_id, keeping last-appearance order.
+        self.signed.retain(|kept| kept.job_id != token.job_id);
+        if self.signed.len() == MAX_SIGNED_JOBS {
+            self.overflowed = true;
+            return;
+        }
+        self.signed.push(token);
+    }
+}
+
+/// Result of the exactly-one-live-job correlation rule.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum CorrelationOutcome {
+    Matched(CorrelatedJob),
+    Miss,
+    /// More than one live job's token (or scanner overflow) — root or unknown
+    /// traffic; forward without tapping.
+    Ambiguous,
+}
+
+impl CorrelationOutcome {
+    pub fn matched(self) -> Option<CorrelatedJob> {
+        match self {
+            Self::Matched(job) => Some(job),
+            _ => None,
         }
     }
 }
@@ -256,6 +308,7 @@ mod tests {
             simulate_latency: Duration::from_millis(1),
             continuation_ttl_secs: 600,
             client_stall_timeout: Duration::from_secs(30),
+            submit_wait: Duration::from_millis(200),
             relay_mode: RelayMode::Observe,
             relay_addr: "127.0.0.1:0".parse().unwrap(),
             relay_upstream: "https://api.anthropic.com".into(),
@@ -326,8 +379,90 @@ mod tests {
         scanner.push(&Bytes::from(format!("{stale} {good}")));
         scanner.finish();
         assert_eq!(
-            scanner.last_valid(&runtime).await.unwrap().job_id,
+            scanner.last_valid(&runtime).await.matched().unwrap().job_id,
             "job-good"
+        );
+    }
+
+    #[tokio::test]
+    async fn two_live_job_tokens_are_ambiguous_not_correlated() {
+        // Root-supervisor bodies (with --forward-subagent-text) embed several
+        // live jobs' tokens; correlating one of them teed root output into an
+        // unrelated user stream in the 20-way test. Exactly-one is required.
+        let runtime = runtime_with_job("job-a", "slot-1", 7).await;
+        runtime.jobs.lock().await.insert(
+            "job-b".to_string(),
+            Job {
+                job_id: "job-b".to_string(),
+                tenant_id: "tenant".into(),
+                session_id: "session".into(),
+                slot_id: "slot-2".to_string(),
+                generation: 7,
+                request: MessageRequest::default(),
+            },
+        );
+        let mut slot = Slot::new("slot-2");
+        slot.phase = SlotPhase::Running;
+        slot.job_id = Some("job-b".to_string());
+        runtime.slots.lock().await.push(slot);
+        let token_a = RelayContextToken {
+            job_id: "job-a".into(),
+            slot_id: "slot-1".into(),
+            generation: 7,
+            nonce: "na".into(),
+        }
+        .encode(runtime.secret())
+        .unwrap();
+        let token_b = RelayContextToken {
+            job_id: "job-b".into(),
+            slot_id: "slot-2".into(),
+            generation: 7,
+            nonce: "nb".into(),
+        }
+        .encode(runtime.secret())
+        .unwrap();
+        let mut scanner = ContextScanner::new(runtime.secret());
+        scanner.push(&Bytes::from(format!("{token_a} … {token_b}")));
+        scanner.finish();
+        assert_eq!(
+            scanner.last_valid(&runtime).await,
+            CorrelationOutcome::Ambiguous
+        );
+    }
+
+    #[tokio::test]
+    async fn one_live_token_among_dead_ones_still_correlates() {
+        // A kin-slot's own transcript keeps tokens of its finished jobs; those
+        // fail the liveness check and must not force ambiguity.
+        let runtime = runtime_with_job("job-live", "slot-1", 7).await;
+        let live = RelayContextToken {
+            job_id: "job-live".into(),
+            slot_id: "slot-1".into(),
+            generation: 7,
+            nonce: "nl".into(),
+        }
+        .encode(runtime.secret())
+        .unwrap();
+        let mut body = String::new();
+        for index in 0..3 {
+            let dead = RelayContextToken {
+                job_id: format!("job-dead-{index}"),
+                slot_id: "slot-1".into(),
+                generation: 7,
+                nonce: format!("nd{index}"),
+            }
+            .encode(runtime.secret())
+            .unwrap();
+            body.push_str(&dead);
+            body.push(' ');
+        }
+        body.push_str(&live);
+        let mut scanner = ContextScanner::new(runtime.secret());
+        scanner.push(&Bytes::from(body));
+        scanner.finish();
+        assert_eq!(
+            scanner.last_valid(&runtime).await.matched().unwrap().job_id,
+            "job-live"
         );
     }
 
@@ -354,7 +489,7 @@ mod tests {
             let mut scanner = ContextScanner::new(runtime.secret());
             scanner.push(&Bytes::from(format!("{old_generation} {missing_job}")));
             scanner.finish();
-            assert!(scanner.last_valid(&runtime).await.is_none());
+            assert!(scanner.last_valid(&runtime).await.matched().is_none());
         }
         runtime.slots.lock().await[0].job_id = Some("other-job".into());
         let moved = RelayContextToken {
@@ -368,7 +503,7 @@ mod tests {
         let mut scanner = ContextScanner::new(runtime.secret());
         scanner.push(&Bytes::from(moved));
         scanner.finish();
-        assert!(scanner.last_valid(&runtime).await.is_none());
+        assert!(scanner.last_valid(&runtime).await.matched().is_none());
     }
 
     #[test]
@@ -399,7 +534,7 @@ mod tests {
         scanner.push(&Bytes::from(format!("{good}{fakes}")));
         scanner.finish();
         assert_eq!(
-            scanner.last_valid(&runtime).await.unwrap().job_id,
+            scanner.last_valid(&runtime).await.matched().unwrap().job_id,
             "job-good"
         );
     }

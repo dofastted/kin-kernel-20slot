@@ -12,7 +12,7 @@ use crate::error::KernelError;
 
 use super::{
     RelayState,
-    correlate::ContextScanner,
+    correlate::{ContextScanner, CorrelationOutcome},
     sse_tap::{TapBinding, TapQueue},
 };
 
@@ -39,32 +39,48 @@ pub async fn proxy(State(state): State<RelayState>, req: Request<Body>) -> Respo
     if let Ok(mut scanner) = scanner.lock() {
         scanner.finish();
     }
-    let token = match scanner.lock() {
-        Ok(scanner) => scanner.signed_token(),
-        Err(_) => None,
+    let outcome = {
+        // Take the scanner out of the mutex so the async liveness checks in
+        // last_valid() do not run under a std::sync lock.
+        let taken = scanner
+            .lock()
+            .map(|mut guard| std::mem::replace(&mut *guard, ContextScanner::new(&[])))
+            .ok();
+        match taken {
+            Some(scanner) => scanner.last_valid(&state.runtime).await,
+            None => CorrelationOutcome::Miss,
+        }
     };
-    let correlated = match token {
-        Some(token) => state.runtime.correlate_lookup(&token).await,
-        None => None,
+    let correlated = match outcome {
+        CorrelationOutcome::Matched(job) => Some(job),
+        CorrelationOutcome::Miss => {
+            state.metrics.inc_correlate_miss();
+            None
+        }
+        CorrelationOutcome::Ambiguous => {
+            // Root-supervisor traffic (with --forward-subagent-text) carries
+            // several live jobs' tokens at once; tapping it would tee the
+            // root response into an unrelated user stream.
+            state.metrics.inc_correlate_ambiguous();
+            tracing::debug!(
+                "relay request ambiguous: multiple live job tokens; forwarding untapped"
+            );
+            None
+        }
     };
     let tap = match &correlated {
         Some(job) => state.runtime.tap_binding(&job.job_id).await,
         None => None,
     };
-    match &correlated {
-        Some(job) => {
-            state.metrics.inc_correlate_hit();
-            let turn_id = tap.as_ref().map(|binding| binding.turn_id).unwrap_or(0);
-            tracing::debug!(
-                job_id = %job.job_id,
-                slot_id = %job.slot_id,
-                turn_id,
-                "relay correlated request"
-            );
-        }
-        None => {
-            state.metrics.inc_correlate_miss();
-        }
+    if let Some(job) = &correlated {
+        state.metrics.inc_correlate_hit();
+        let turn_id = tap.as_ref().map(|binding| binding.turn_id).unwrap_or(0);
+        tracing::debug!(
+            job_id = %job.job_id,
+            slot_id = %job.slot_id,
+            turn_id,
+            "relay correlated request"
+        );
     }
     let response = match upstream {
         Ok(response) => response,

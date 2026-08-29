@@ -7,6 +7,7 @@ pub struct RelayMetrics {
     pub relay_requests: AtomicU64,
     pub correlate_hit: AtomicU64,
     pub correlate_miss: AtomicU64,
+    pub correlate_ambiguous: AtomicU64,
     pub tap_response_started: AtomicU64,
 }
 
@@ -29,6 +30,10 @@ impl RelayMetrics {
 
     pub fn inc_correlate_miss(&self) {
         self.correlate_miss.fetch_add(1, Ordering::Relaxed);
+    }
+
+    pub fn inc_correlate_ambiguous(&self) {
+        self.correlate_ambiguous.fetch_add(1, Ordering::Relaxed);
     }
 
     pub fn inc_tap_response_started(&self) {

@@ -8,6 +8,32 @@ authoritative 模式、tap 非阻塞、5xx 直通不 tap、digest 比对、慢�
 krc_ 跨 chunk、HMAC 签名 token、mock 上游端到端。历史本地结果为 62/64
 `cargo test`，2 个失败是既有 `local_cli` PID 断言，与 relay 无关。
 
+## 三轮修复摘要（authoritative 实测三 FAIL）
+
+- FAIL-1 无逐 token：根因是 arbiter 竞态——stdout 整块帧先于首个 tap delta 到达
+  时 turn 被单向锁死 StdoutFallback，upstream delta 全被抑制。修复为『延迟仲裁』：
+  authoritative 且 tap 已附着时，stdout 正文帧（含配套 stop）暂存不转发；首个
+  tap delta 升级 UpstreamActive 后丢弃暂存；tap 始终无产出则在 kin_done 释放暂存
+  兜底（预算 2 MiB，超限立即回退）。observe/off 行为不变。
+- FAIL-2 20 并发串流：根因是 root supervisor 带 --forward-subagent-text，其
+  transcript 内嵌多个存活 job 的 krc_ token，原「取最后一个」把 root 响应 tap 进
+  错误 session。修复为『恰好一个存活』关联：签名有效 token 按 job_id 去重后逐个
+  做运行时存活校验，恰好 1 个才关联；0 → miss；≥2 → ambiguous（新指标
+  correlate_ambiguous），纯转发不 tap。
+- FAIL-3 18/20（503）：slot 完成到重入 slot_wait 的空隙撞上瞬时并发。submit 对
+  NoCapacity 做有界重试（50ms 间隔，KIN_SUBMIT_WAIT_MS 默认 2000ms），超时才 503。
+- 慢客户端测不到是 FAIL-1 的衍生（正文一次塞满 socket 缓冲）；逐 token 生效后
+  stall 检测自然可测，复测时无需改测试方法。
+
+### 三 FAIL 复测步骤
+
+- [ ] 逐 token：短句/长句/80 词段落均出现多个自然 `content_block_delta`（非单块）。
+- [ ] 首 token 时间重新采集（此前 1209ms 实为整块 stdout 帧时间，不可比）。
+- [ ] 20 并发：20/20 成功、无串流、无空 200、无 503；观察
+      `.relay.correlate_ambiguous` 应随 root 内部请求增长（这是 root 流量被正确
+      排除的证据），`correlate_hit` 仍随用户 turn 增长。
+- [ ] 慢客户端（依赖逐 token 生效）：5s 停读 → 显式错误或异常 EOF，无伪成功。
+
 ## 二轮修复摘要
 
 - F-1：新增 provider boot 状态门 `Booting -> Ready | Failed`，`/readyz` 在
@@ -60,7 +86,7 @@ export RUST_LOG=kin_kernel=debug,tower_http=info
       boot failed，`/readyz` 返回 503 且 reason 为 `boot_failed`，CLI 不启动，
       不允许静默回 off。
 - [ ] `curl :8080/healthz | jq .relay` 包含
-      `{relay_mode:"observe", relay_healthy:true, correlate_hit, correlate_miss,
+      `{relay_mode:"observe", relay_healthy:true, correlate_hit, correlate_miss, correlate_ambiguous,
       tap_response_started, tap_dropped, digest_mismatch}`。
 - [ ] 用户流行为与 off 完全一致（正文仍 stdout 整块）。
 - [ ] **关联三场景**（假设 2 的实机证明）：

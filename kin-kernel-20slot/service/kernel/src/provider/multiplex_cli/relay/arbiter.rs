@@ -39,7 +39,18 @@ pub struct SourceArbiter {
     stdout_text: String,
     usage: Map<String, Value>,
     suppressed_stdout_indices: Vec<u64>,
+    /// True once a tap response has attached to this turn. Only then is it
+    /// worth deferring stdout body frames while waiting for upstream deltas.
+    tap_attached: bool,
+    /// Authoritative-mode holding pen: stdout body frames that arrived while
+    /// still NoBody with a tap attached. Discarded on upgrade to
+    /// UpstreamActive; released downstream if the tap never produces a body.
+    deferred: Vec<Value>,
+    deferred_bytes: usize,
 }
+
+/// Byte cap for deferred stdout frames (mirrors the per-job sink budget).
+const DEFERRED_STDOUT_BYTES: usize = 2 * 1024 * 1024;
 
 impl SourceArbiter {
     pub fn new(mode: RelayMode) -> Self {
@@ -56,7 +67,24 @@ impl SourceArbiter {
             stdout_text: String::new(),
             usage: Map::new(),
             suppressed_stdout_indices: Vec::new(),
+            tap_attached: false,
+            deferred: Vec::new(),
+            deferred_bytes: 0,
         }
+    }
+
+    pub fn set_tap_attached(&mut self) {
+        self.tap_attached = true;
+    }
+
+    /// Drain any deferred stdout frames. Non-empty only when the turn never
+    /// upgraded to UpstreamActive; the caller must forward these to the user.
+    pub fn take_deferred(&mut self) -> Vec<Value> {
+        if !self.deferred.is_empty() && self.state == BodyState::NoBody {
+            self.state = BodyState::StdoutFallback;
+        }
+        self.deferred_bytes = 0;
+        std::mem::take(&mut self.deferred)
     }
 
     #[cfg(test)]
@@ -111,6 +139,8 @@ impl SourceArbiter {
             return ArbiterEffect::FailJob;
         }
         if self.state == BodyState::NoBody {
+            // Tap is gone; deferred stdout frames (if any) become the body.
+            // They are released by take_deferred() on the kin_done path.
             self.state = BodyState::StdoutFallback;
         }
         ArbiterEffect::Suppress
@@ -146,12 +176,55 @@ impl SourceArbiter {
         }
         self.push_stdout_text(&events);
         if self.state == BodyState::NoBody && events.iter().any(is_body_event) {
+            if self.mode == RelayMode::Authoritative && self.tap_attached {
+                // Deferred arbitration: the CLI's whole-block assistant frame
+                // routinely lands before the first tap delta. Committing to
+                // StdoutFallback here would permanently suppress the upstream
+                // per-token stream (the state machine is one-way), so hold the
+                // stdout body back until the tap either produces a body
+                // (upgrade, discard these) or provably will not (release).
+                return self.defer_stdout_body(events);
+            }
             self.state = BodyState::StdoutFallback;
         }
         if self.state != BodyState::UpstreamActive {
             return events;
         }
         self.drop_stdout_body(events)
+    }
+
+    fn defer_stdout_body(&mut self, events: Vec<Value>) -> Vec<Value> {
+        let mut pass = Vec::new();
+        for event in events {
+            // A content_block_stop belongs to whichever block it closes:
+            // defer it alongside its deferred start/delta or it would reach
+            // the client as an orphan stop for a block that never started.
+            let closes_deferred = is_type(&event, "content_block_stop")
+                && event
+                    .get("index")
+                    .and_then(Value::as_u64)
+                    .is_some_and(|idx| {
+                        self.deferred
+                            .iter()
+                            .any(|held| held.get("index").and_then(Value::as_u64) == Some(idx))
+                    });
+            if !is_body_event(&event) && !closes_deferred {
+                pass.push(event);
+                continue;
+            }
+            let bytes = event.to_string().len();
+            if self.deferred_bytes + bytes > DEFERRED_STDOUT_BYTES {
+                // Budget blown: stop waiting for the tap and fall back now.
+                self.state = BodyState::StdoutFallback;
+                let mut released = self.take_deferred();
+                released.push(event);
+                released.extend(pass);
+                return released;
+            }
+            self.deferred_bytes += bytes;
+            self.deferred.push(event);
+        }
+        pass
     }
 
     pub fn final_text(&self, stdout: &str, fallback: &str) -> String {
@@ -197,6 +270,10 @@ impl SourceArbiter {
         if is_body_event(event) && self.state == BodyState::NoBody {
             self.state = BodyState::UpstreamActive;
             self.upstream_authoritative = true;
+            // The upstream stream owns the body now; any stdout frames held
+            // back by deferred arbitration would be duplicates.
+            self.deferred.clear();
+            self.deferred_bytes = 0;
         }
         ArbiterEffect::Forward
     }
@@ -333,6 +410,56 @@ mod tests {
             "index": 1,
             "content_block": { "type": "server_tool_use", "id": "srv", "name": "web_search" }
         })
+    }
+
+    #[test]
+    fn deferred_arbitration_stdout_first_then_tap_streams_upstream() {
+        // The race behind FAIL-1: stdout's whole-block frame lands before the
+        // first tap delta. With a tap attached the arbiter must defer, then
+        // upgrade and discard the stdout body once upstream deltas arrive.
+        let mut arbiter = SourceArbiter::new(RelayMode::Authoritative);
+        arbiter.set_tap_attached();
+        let passed = arbiter.filter_stdout(vec![
+            text_start(),
+            text_delta("whole block"),
+            text_stop(),
+            stage_start(),
+        ]);
+        // Stage events pass through; body frames are held back.
+        assert_eq!(passed.len(), 1);
+        assert_eq!(passed[0]["content_block"]["type"], "server_tool_use");
+        assert_eq!(arbiter.state(), BodyState::NoBody);
+        // First upstream delta upgrades and discards the deferred stdout body.
+        assert_eq!(
+            arbiter.on_upstream(&text_delta("tok")),
+            ArbiterEffect::Forward
+        );
+        assert_eq!(arbiter.state(), BodyState::UpstreamActive);
+        assert!(arbiter.take_deferred().is_empty());
+    }
+
+    #[test]
+    fn deferred_stdout_released_when_tap_never_produces_body() {
+        let mut arbiter = SourceArbiter::new(RelayMode::Authoritative);
+        arbiter.set_tap_attached();
+        let passed =
+            arbiter.filter_stdout(vec![text_start(), text_delta("only body"), text_stop()]);
+        assert!(passed.is_empty());
+        // kin_done path drains the deferred frames; turn falls back to stdout.
+        let released = arbiter.take_deferred();
+        assert_eq!(released.len(), 3);
+        assert_eq!(arbiter.state(), BodyState::StdoutFallback);
+        assert_eq!(released[1]["delta"]["text"], "only body");
+    }
+
+    #[test]
+    fn no_tap_attached_keeps_immediate_stdout_fallback() {
+        // Correlation failed: no tap will ever produce a body, so waiting
+        // would only add latency. Old behavior must be preserved.
+        let mut arbiter = SourceArbiter::new(RelayMode::Authoritative);
+        let passed = arbiter.filter_stdout(vec![text_start(), text_delta("x"), text_stop()]);
+        assert_eq!(passed.len(), 3);
+        assert_eq!(arbiter.state(), BodyState::StdoutFallback);
     }
 
     #[test]

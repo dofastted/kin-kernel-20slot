@@ -69,6 +69,8 @@ pub struct MultiplexConfig {
     pub simulate_latency: Duration,
     pub continuation_ttl_secs: i64,
     pub client_stall_timeout: Duration,
+    /// Bounded wait for a slot to re-enter slot_wait before returning 503.
+    pub submit_wait: Duration,
     pub relay_mode: RelayMode,
     pub relay_addr: std::net::SocketAddr,
     pub relay_upstream: String,
@@ -127,6 +129,12 @@ impl MultiplexConfig {
             ),
             continuation_ttl_secs: 600,
             client_stall_timeout: crate::config::client_stall_timeout_from_env()?,
+            submit_wait: Duration::from_millis(
+                env::var("KIN_SUBMIT_WAIT_MS")
+                    .ok()
+                    .and_then(|value| value.parse().ok())
+                    .unwrap_or(2000),
+            ),
             relay_mode: RelayMode::from_env()?,
             relay_addr,
             relay_upstream: env::var("KIN_RELAY_UPSTREAM")
@@ -777,6 +785,22 @@ impl Runtime {
                 return Ok(());
             }
         }
+        // Deferred arbitration: if the tap never produced a body this turn,
+        // the stdout frames held back in the arbiter are the user's body —
+        // release them before finishing.
+        let deferred = {
+            let mut arbiters = self.arbiters.lock().await;
+            match arbiters.get_mut(job_id) {
+                Some(arbiter) => arbiter.take_deferred(),
+                None => Vec::new(),
+            }
+        };
+        for event in deferred {
+            if self.emit(job_id, StreamItem::Event(event)).await == EmitResult::Failed {
+                self.abort_terminal_job(job_id).await;
+                return Ok(());
+            }
+        }
         let (fallback_events, finish_events, response) = {
             let mut streams = self.job_streams.lock().await;
             let stream = streams
@@ -1099,16 +1123,17 @@ impl Runtime {
     }
 
     pub fn relay_snapshot(&self) -> Value {
-        let (healthy, dropped, mismatch, hit, miss, started) = match self.relay.get() {
+        let (healthy, dropped, mismatch, hit, miss, ambiguous, started) = match self.relay.get() {
             Some(handle) => (
                 handle.healthy(),
                 handle.metrics.tap_dropped.load(Ordering::Relaxed),
                 handle.metrics.digest_mismatch.load(Ordering::Relaxed),
                 handle.metrics.correlate_hit.load(Ordering::Relaxed),
                 handle.metrics.correlate_miss.load(Ordering::Relaxed),
+                handle.metrics.correlate_ambiguous.load(Ordering::Relaxed),
                 handle.metrics.tap_response_started.load(Ordering::Relaxed),
             ),
-            None => (false, 0, 0, 0, 0, 0),
+            None => (false, 0, 0, 0, 0, 0, 0),
         };
         json!({
             "relay_mode": self.cfg.relay_mode.as_str(),
@@ -1117,6 +1142,7 @@ impl Runtime {
             "digest_mismatch": mismatch,
             "correlate_hit": hit,
             "correlate_miss": miss,
+            "correlate_ambiguous": ambiguous,
             "tap_response_started": started,
         })
     }
@@ -1156,6 +1182,9 @@ impl Runtime {
     }
 
     pub(crate) async fn register_tap_response(&self, job_id: &str) {
+        if let Some(arbiter) = self.arbiters.lock().await.get_mut(job_id) {
+            arbiter.set_tap_attached();
+        }
         let mut drains = self.tap_drains.lock().await;
         let state = drains
             .entry(job_id.to_string())
@@ -1267,24 +1296,44 @@ impl Runtime {
         self.memory.admit(request_bytes)?;
         self.retire_idle().await;
         let generation = self.process_generation.load(Ordering::Relaxed);
-        let mut slots = self.slots.lock().await;
-        let mut sched = self.sched.lock().await;
-        let slot_id = sched.pick(&mut slots, &context.tenant_id, &context.session_id)?;
-        self.ready
-            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
-                Some(n.saturating_sub(1))
-            })
-            .ok();
-        let job_id = new_id("job");
-        let slot = slots
-            .iter_mut()
-            .find(|slot| slot.id == slot_id)
-            .ok_or(KernelError::NoCapacity)?;
-        if !slot.bind_job(&context.tenant_id, &context.session_id, &job_id) {
-            return Err(KernelError::NoCapacity);
-        }
-        drop(sched);
-        drop(slots);
+        // A slot that just finished a job is briefly neither Running nor back
+        // in slot_wait (ReadyBlocked). A burst of submissions can hit that
+        // re-entry gap and see NoCapacity even though the pool is not full,
+        // so retry with a bounded wait instead of failing fast.
+        let deadline = tokio::time::Instant::now() + self.cfg.submit_wait;
+        let (slot_id, job_id) = loop {
+            let mut slots = self.slots.lock().await;
+            let mut sched = self.sched.lock().await;
+            match sched.pick(&mut slots, &context.tenant_id, &context.session_id) {
+                Ok(slot_id) => {
+                    self.ready
+                        .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
+                            Some(n.saturating_sub(1))
+                        })
+                        .ok();
+                    let job_id = new_id("job");
+                    let slot = slots
+                        .iter_mut()
+                        .find(|slot| slot.id == slot_id)
+                        .ok_or(KernelError::NoCapacity)?;
+                    if !slot.bind_job(&context.tenant_id, &context.session_id, &job_id) {
+                        return Err(KernelError::NoCapacity);
+                    }
+                    break (slot_id, job_id);
+                }
+                Err(err) => {
+                    drop(sched);
+                    drop(slots);
+                    // Busy-now is not full-forever: keep retrying until the
+                    // deadline. A genuinely saturated pool still 503s, just
+                    // submit_wait later.
+                    if tokio::time::Instant::now() >= deadline {
+                        return Err(err);
+                    }
+                    tokio::time::sleep(Duration::from_millis(50)).await;
+                }
+            }
+        };
         let job = Job {
             job_id: job_id.clone(),
             tenant_id: context.tenant_id,
@@ -1881,6 +1930,7 @@ impl MultiplexCliProvider {
                 simulate_latency: Duration::from_millis(60),
                 continuation_ttl_secs: 600,
                 client_stall_timeout: Duration::from_secs(DEFAULT_CLIENT_STALL_SECS),
+                submit_wait: Duration::from_millis(200),
                 relay_mode: RelayMode::Off,
                 relay_addr: "127.0.0.1:0".parse().unwrap(),
                 relay_upstream: "https://api.anthropic.com".into(),
@@ -1905,6 +1955,7 @@ impl MultiplexCliProvider {
                     simulate_latency: self.cfg.simulate_latency,
                     continuation_ttl_secs: self.cfg.continuation_ttl_secs,
                     client_stall_timeout: self.cfg.client_stall_timeout,
+                    submit_wait: self.cfg.submit_wait,
                     relay_mode: self.cfg.relay_mode,
                     relay_addr: self.cfg.relay_addr,
                     relay_upstream: self.cfg.relay_upstream.clone(),
@@ -1956,6 +2007,7 @@ impl Provider for MultiplexCliProvider {
                 "digest_mismatch": 0,
                 "correlate_hit": 0,
                 "correlate_miss": 0,
+                "correlate_ambiguous": 0,
                 "tap_response_started": 0,
             }),
         })
@@ -2027,6 +2079,7 @@ mod tests {
             simulate_latency: Duration::from_millis(1),
             continuation_ttl_secs: 600,
             client_stall_timeout: stall,
+            submit_wait: Duration::from_millis(200),
             relay_mode: RelayMode::Off,
             relay_addr: "127.0.0.1:0".parse().unwrap(),
             relay_upstream: "https://api.anthropic.com".into(),
@@ -2591,6 +2644,41 @@ mod tests {
             "{err}"
         );
         assert_eq!(runtime.pid(), 0);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn submit_retries_through_slot_reentry_gap() {
+        // FAIL-3 in the 20-way live test: a burst submission can land in the
+        // window where a slot has finished its job but has not yet re-entered
+        // slot_wait, seeing a spurious NoCapacity. submit must wait it out.
+        let provider = MultiplexCliProvider::simulated(1);
+        provider.runtime().await.expect("start");
+        let runtime = Arc::clone(provider.runtime.get().unwrap());
+        // Occupy the only slot, then submit again while it is busy: the retry
+        // loop should pick it up as soon as the first job completes.
+        let (tx1, rx1) = stream_channel();
+        runtime
+            .submit(text_request("first"), ctx("sess-gap-1", false), tx1)
+            .await
+            .unwrap();
+        let second = {
+            let runtime = Arc::clone(&runtime);
+            tokio::spawn(async move {
+                let (tx2, rx2) = stream_channel();
+                runtime
+                    .submit(text_request("second"), ctx("sess-gap-2", false), tx2)
+                    .await?;
+                crate::provider::collect_stream(rx2).await
+            })
+        };
+        let first = crate::provider::collect_stream(rx1).await.unwrap();
+        assert!(matches!(first.stop_reason, StopReason::EndTurn));
+        let second = timeout(Duration::from_secs(5), second)
+            .await
+            .expect("second submit within retry window")
+            .unwrap()
+            .unwrap();
+        assert!(matches!(second.stop_reason, StopReason::EndTurn));
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
