@@ -36,6 +36,8 @@ nohup.out
 .env.*
 *.credentials.json
 oauth.json
+.local/
+claude-acc/
 
 # --- Editor / OS noise ---
 .DS_Store
