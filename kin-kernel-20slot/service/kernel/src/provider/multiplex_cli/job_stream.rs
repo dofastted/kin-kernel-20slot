@@ -79,7 +79,6 @@ impl JobStream {
                     && let Some(text) = event.pointer("/delta/text").and_then(Value::as_str)
                     && !text.is_empty()
                 {
-                    self.streamed_text = true;
                     self.text.push_str(text);
                 }
                 vec![event.clone()]
@@ -163,7 +162,9 @@ impl JobStream {
                 if text.is_empty() {
                     return Vec::new();
                 }
-                self.streamed_text = true;
+                // streamed_text is set by the runtime once these events are
+                // actually delivered; marking here counted suppressed/deferred
+                // frames as sent and muted the kin_done fallback (empty 200s).
                 self.text.push_str(text);
                 self.emit_text_block(text, block.get("citations"))
             }
@@ -263,6 +264,11 @@ impl JobStream {
     }
 
     pub fn adopt_tap_event(&mut self, event: Value) -> Value {
+        let mut event = event;
+        // Internal marker for kin_done-synthesized events; never client-visible.
+        if let Value::Object(map) = &mut event {
+            map.remove(super::relay::sse_tap::KIN_SYNTH_MARKER);
+        }
         if let Some(block) = event.get("content_block") {
             let _ = self.seen.insert(fingerprint(block));
         }
@@ -382,10 +388,13 @@ mod tests {
     #[test]
     fn stdout_then_kin_done_does_not_duplicate() {
         let mut stream = JobStream::new();
-        let _ = stream.ingest(&json!({
+        let events = stream.ingest(&json!({
             "type": "assistant",
             "message": {"content": [{"type":"text","text":"from stdout"}]}
         }));
+        assert_eq!(events.len(), 3);
+        // The runtime marks streamed_text once these events are delivered.
+        stream.streamed_text = true;
         assert!(stream.fallback_text("from kin_done").is_empty());
         assert_eq!(stream.text, "from stdout");
     }
@@ -407,7 +416,6 @@ mod tests {
             }
         }));
         assert_eq!(deltas.len(), 1);
-        assert!(stream.streamed_text);
         assert_eq!(stream.text, "tok");
     }
 

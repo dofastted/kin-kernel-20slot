@@ -199,7 +199,26 @@ Invariants to preserve when touching `relay/`:
   fails the job explicitly via the JobSink terminal instead. The
   `upstream_authoritative` flag (not `upstream_text` emptiness) decides the
   final body source — observe mode accumulates upstream text for digests while
-  the user body stays stdout.
+  the user body stays stdout. Only a **non-empty** text/thinking delta upgrades
+  to UpstreamActive: every real CLI response opens with an empty thinking block
+  that must not claim the body (it discarded the deferred stdout frames and
+  produced empty 200s).
+- **kin-slot answers stream as kin_done arguments, not text_delta.** The slot
+  prompt tells the model to put the full answer in `kin_done{text}`; the real
+  upstream SSE therefore carries it as `input_json_delta` fragments on an
+  internal tool block. `EventFilter` incrementally extracts the top-level
+  `text` string from that argument stream and synthesizes per-token
+  `text_delta` events (internal `kin_synth` marker, stripped by JobStream
+  before the client; the arbiter suppresses the synthesized stream when real
+  upstream text already streamed this turn).
+- **stdout demux binding is learned, not assumed.** The spawn-order pairing of
+  `parent_tool_use_id` → slot is only a bootstrap heuristic; the replayed
+  slot_wait tool_result on stdout (`{"type":"job",job_id,slot_id}`) is the
+  authoritative binding and rebinds the parent before any frame is routed
+  (mispairing under concurrent boot caused cross-session streams).
+- **`JobStream.streamed_text` means delivered, not ingested.** The runtime
+  sets it only for events that survived arbitration and were emitted; marking
+  at ingest muted the kin_done fallback after suppression (empty 200s).
 - **No token/body/authorization logging** anywhere in `relay/` — debug with
   job_id/slot_id/generation/digests only.
 

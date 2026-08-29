@@ -795,6 +795,7 @@ impl Runtime {
                 None => Vec::new(),
             }
         };
+        self.mark_delivered_text(job_id, &deferred).await;
         for event in deferred {
             if self.emit(job_id, StreamItem::Event(event)).await == EmitResult::Failed {
                 self.abort_terminal_job(job_id).await;
@@ -973,6 +974,15 @@ impl Runtime {
             stream_decoder::Decoded::Routed {
                 parent_tool_use_id, ..
             } => {
+                // The spawn-order pairing of parent_tool_use_id to slot is a
+                // heuristic that mispairs under concurrent boot (the 20-way
+                // crosstalk). The slot_wait tool_result the CLI replays on
+                // stdout carries the authoritative job/slot for this parent —
+                // learn it before routing anything.
+                if let Some((job_id, slot_id)) = slot_wait_job_binding(&frame) {
+                    self.learn_parent_binding(&parent_tool_use_id, &job_id, &slot_id)
+                        .await;
+                }
                 let slot_id = self.parents.lock().await.get(&parent_tool_use_id).cloned();
                 let Some(slot_id) = slot_id else {
                     return;
@@ -1001,11 +1011,57 @@ impl Runtime {
                         None => events,
                     }
                 };
+                self.mark_delivered_text(&job_id, &events).await;
                 for event in events {
                     self.emit(&job_id, StreamItem::Event(event)).await;
                 }
             }
             stream_decoder::Decoded::Root => {}
+        }
+    }
+
+    /// Mark the job's body as streamed only for events that survived
+    /// arbitration. Marking at ingest time meant a suppressed/deferred stdout
+    /// block still counted as delivered, so the kin_done fallback stayed
+    /// silent and the client got an empty 200.
+    async fn mark_delivered_text(&self, job_id: &str, events: &[Value]) {
+        if !events.iter().any(is_nonempty_text_delta) {
+            return;
+        }
+        if let Some(stream) = self.job_streams.lock().await.get_mut(job_id) {
+            stream.streamed_text = true;
+        }
+    }
+
+    /// Rebind a parent_tool_use_id to the slot/job the kernel actually
+    /// assigned, as proven by the slot_wait tool_result replayed on stdout.
+    async fn learn_parent_binding(&self, parent: &str, job_id: &str, slot_id: &str) {
+        let valid = self
+            .jobs
+            .lock()
+            .await
+            .get(job_id)
+            .map(|job| job.slot_id == slot_id)
+            .unwrap_or(false);
+        if !valid {
+            return;
+        }
+        {
+            let mut parents = self.parents.lock().await;
+            // A stale heuristic pairing may point another parent at this
+            // slot; it would steal these frames. Drop it — its own binding
+            // is re-learned from its own slot_wait result.
+            parents.retain(|other, bound| !(bound == slot_id && other != parent));
+            parents.insert(parent.to_string(), slot_id.to_string());
+        }
+        let mut slots = self.slots.lock().await;
+        for slot in slots.iter_mut() {
+            if slot.parent_tool_use_id.as_deref() == Some(parent) && slot.id != slot_id {
+                slot.parent_tool_use_id = None;
+            }
+        }
+        if let Some(slot) = slots.iter_mut().find(|slot| slot.id == slot_id) {
+            slot.parent_tool_use_id = Some(parent.to_string());
         }
     }
 
@@ -1703,6 +1759,54 @@ async fn fail_tap_job(runtime: &Runtime, job_id: &str) -> bool {
         )));
     }
     true
+}
+
+/// True for a content_block_delta whose text_delta carries visible text.
+fn is_nonempty_text_delta(event: &Value) -> bool {
+    event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta")
+        && event
+            .pointer("/delta/text")
+            .and_then(Value::as_str)
+            .is_some_and(|text| !text.is_empty())
+}
+
+/// Extract the (job_id, slot_id) a replayed slot_wait tool_result proves for
+/// this parent. The CLI forwards subagent `user` frames whose tool_result
+/// content is the JSON payload mcp_slot_wait returned (`{"type":"job",...}`),
+/// possibly nested in a `[{type:"text",text:...}]` wrapper.
+fn slot_wait_job_binding(frame: &Value) -> Option<(String, String)> {
+    if frame.get("type").and_then(Value::as_str) != Some("user") {
+        return None;
+    }
+    let blocks = frame.pointer("/message/content")?.as_array()?;
+    for block in blocks {
+        if block.get("type").and_then(Value::as_str) != Some("tool_result") {
+            continue;
+        }
+        let texts: Vec<&str> = match block.get("content") {
+            Some(Value::String(text)) => vec![text.as_str()],
+            Some(Value::Array(items)) => items
+                .iter()
+                .filter_map(|item| item.get("text").and_then(Value::as_str))
+                .collect(),
+            _ => Vec::new(),
+        };
+        for text in texts {
+            let Ok(payload) = serde_json::from_str::<Value>(text) else {
+                continue;
+            };
+            if payload.get("type").and_then(Value::as_str) != Some("job") {
+                continue;
+            }
+            if let (Some(job_id), Some(slot_id)) = (
+                payload.get("job_id").and_then(Value::as_str),
+                payload.get("slot_id").and_then(Value::as_str),
+            ) {
+                return Some((job_id.to_string(), slot_id.to_string()));
+            }
+        }
+    }
+    None
 }
 
 fn tool_results(request: &MessageRequest) -> Vec<(String, Value)> {
@@ -2679,6 +2783,135 @@ mod tests {
             .unwrap()
             .unwrap();
         assert!(matches!(second.stop_reason, StopReason::EndTurn));
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn replayed_slot_wait_result_rebinds_mispaired_parent() {
+        // FAIL-2 in the 20-way live test: spawn-order pairing bound parent A
+        // to slot B, teeing B's job into A's stream. The replayed slot_wait
+        // tool_result names the authoritative job/slot; routing must relearn
+        // the binding from it before delivering any frames.
+        let runtime = Runtime::new(test_cfg(Duration::from_secs(1)));
+        insert_test_job(&runtime, "job-a", "slot-a", "sess-a").await;
+        insert_test_job(&runtime, "job-b", "slot-b", "sess-b").await;
+        {
+            // Heuristic mispairing: parent-1 got bound to slot-b.
+            let mut parents = runtime.parents.lock().await;
+            parents.insert("parent-1".into(), "slot-b".into());
+            let mut slots = runtime.slots.lock().await;
+            if let Some(slot) = slots.iter_mut().find(|slot| slot.id == "slot-b") {
+                slot.parent_tool_use_id = Some("parent-1".into());
+            }
+        }
+        let (tx_a, mut rx_a) = mpsc::channel(64);
+        runtime.start_job_sink("job-a".into(), tx_a).await;
+        let (tx_b, mut rx_b) = mpsc::channel(64);
+        runtime.start_job_sink("job-b".into(), tx_b).await;
+        // parent-1's subagent replays the slot_wait result proving it runs
+        // job-a on slot-a, then streams its answer.
+        let payload = json!({
+            "type": "job", "job_id": "job-a", "slot_id": "slot-a"
+        })
+        .to_string();
+        runtime
+            .handle_cli_frame(json!({
+                "type": "user",
+                "parent_tool_use_id": "parent-1",
+                "message": { "content": [{
+                    "type": "tool_result",
+                    "tool_use_id": "toolu_sw",
+                    "content": [{ "type": "text", "text": payload }]
+                }]}
+            }))
+            .await;
+        runtime
+            .handle_cli_frame(json!({
+                "type": "assistant",
+                "parent_tool_use_id": "parent-1",
+                "message": { "content": [{ "type": "text", "text": "answer for a" }] }
+            }))
+            .await;
+        // job-a received the text; job-b received nothing.
+        let mut got_a = String::new();
+        while let Ok(Some(item)) =
+            tokio::time::timeout(Duration::from_millis(100), rx_a.recv()).await
+        {
+            if let StreamItem::Event(event) = item.unwrap()
+                && event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta")
+            {
+                got_a.push_str(event["delta"]["text"].as_str().unwrap_or(""));
+            }
+        }
+        assert_eq!(got_a, "answer for a");
+        assert!(
+            tokio::time::timeout(Duration::from_millis(50), rx_b.recv())
+                .await
+                .is_err(),
+            "job-b must not receive parent-1's frames"
+        );
+        assert_eq!(
+            runtime.parents.lock().await.get("parent-1"),
+            Some(&"slot-a".to_string())
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn suppressed_stdout_body_still_allows_kin_done_fallback() {
+        // The empty-200 failure: authoritative mode deferred/suppressed the
+        // stdout body, no upstream text ever arrived, and streamed_text had
+        // already been set at ingest — so the kin_done fallback stayed silent.
+        let runtime = Runtime::new(relay_cfg(Duration::from_secs(1)));
+        let (tx, mut rx) = mpsc::channel(64);
+        runtime.start_job_sink("job-empty".into(), tx).await;
+        insert_test_job(&runtime, "job-empty", "slot-empty", "sess-empty").await;
+        runtime.register_tap_response("job-empty").await;
+        {
+            let mut parents = runtime.parents.lock().await;
+            parents.insert("parent-e".into(), "slot-empty".into());
+        }
+        // Whole-block stdout body arrives; with a tap attached it is deferred.
+        runtime
+            .handle_cli_frame(json!({
+                "type": "assistant",
+                "parent_tool_use_id": "parent-e",
+                "message": { "content": [{ "type": "text", "text": "the answer" }] }
+            }))
+            .await;
+        runtime
+            .mcp_kin_done(json!({
+                "job_id": "job-empty",
+                "stop_reason": "end_turn",
+                "usage": {},
+                "text": "the answer"
+            }))
+            .await
+            .unwrap();
+        let mut text = String::new();
+        let mut finished = false;
+        while let Some(item) = timeout(Duration::from_secs(1), rx.recv())
+            .await
+            .expect("stream")
+        {
+            match item.unwrap() {
+                StreamItem::Event(event) => {
+                    if event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta") {
+                        text.push_str(event["delta"]["text"].as_str().unwrap_or(""));
+                    }
+                }
+                StreamItem::Finished(response) => {
+                    if let ContentBlock::Text { text, .. } = &response.content[0] {
+                        assert_eq!(text, "the answer");
+                    }
+                    finished = true;
+                    break;
+                }
+            }
+        }
+        assert_eq!(
+            text, "the answer",
+            "body must reach the client exactly once"
+        );
+        assert!(finished);
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
