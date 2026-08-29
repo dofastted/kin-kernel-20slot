@@ -181,10 +181,20 @@ pub struct Runtime {
     peak_running: AtomicUsize,
     ready: AtomicUsize,
     stage_dropped: AtomicU64,
+    native_host: Mutex<Option<NativeHostInfo>>,
 }
 
 const JOB_SINK_ITEMS: usize = 256;
 const JOB_SINK_BYTES: usize = 2 * 1024 * 1024;
+
+#[derive(Clone, Debug, serde::Serialize)]
+struct NativeHostInfo {
+    protocol_version: u32,
+    slots: usize,
+    system_layout: String,
+    timezone: String,
+    capabilities: Vec<String>,
+}
 
 #[derive(Clone)]
 struct JobSink {
@@ -383,6 +393,7 @@ impl Runtime {
             peak_running: AtomicUsize::new(0),
             ready: AtomicUsize::new(0),
             stage_dropped: AtomicU64::new(0),
+            native_host: Mutex::new(None),
         })
     }
 
@@ -533,6 +544,10 @@ impl Runtime {
 
     pub fn peak_running(&self) -> usize {
         self.peak_running.load(Ordering::Relaxed)
+    }
+
+    pub fn running_jobs(&self) -> usize {
+        self.running.load(Ordering::Relaxed)
     }
 
     pub fn bump_generation(&self) -> u64 {
@@ -819,7 +834,7 @@ impl Runtime {
                 role: "assistant",
                 model: job.request.model.clone(),
                 content: vec![],
-                stop_reason: StopReason::EndTurn,
+                stop_reason: native_stop_reason(stop_reason),
                 usage: usage_from_value(&usage),
             };
             if self.emit(job_id, StreamItem::Finished(response)).await != EmitResult::Sent {
@@ -944,7 +959,9 @@ impl Runtime {
             if let Some(slot_id) = slot_id {
                 self.retire_slot(&slot_id).await;
             }
-        } else if self.cfg.execution_mode.is_native() {
+        } else if self.cfg.execution_mode.is_native()
+            && !matches!(response.stop_reason, StopReason::ToolUse)
+        {
             if let Some(slot_id) = slot_id {
                 self.register_native_ready(slot_id).await;
             }
@@ -1080,34 +1097,134 @@ impl Runtime {
 
     async fn handle_native_frame(&self, frame: native_protocol::KinStdout) {
         match frame {
+            native_protocol::KinStdout::HostReady {
+                protocol_version,
+                slots,
+                system_layout,
+                timezone,
+                capabilities,
+            } => {
+                tracing::info!(
+                    protocol_version,
+                    slots,
+                    %system_layout,
+                    %timezone,
+                    ?capabilities,
+                    "native host ready"
+                );
+                *self.native_host.lock().await = Some(NativeHostInfo {
+                    protocol_version,
+                    slots,
+                    system_layout,
+                    timezone,
+                    capabilities,
+                });
+                for index in 0..slots {
+                    self.register_native_ready(native_protocol::slot_id(index))
+                        .await;
+                }
+            }
             native_protocol::KinStdout::SlotReady { slot_id } => {
                 self.register_native_ready(slot_id).await;
             }
             native_protocol::KinStdout::StreamEvent {
                 job_id,
-                slot_id: _,
+                slot_id,
                 event,
             } => {
+                if let Some(job) = self.jobs.lock().await.get(&job_id)
+                    && job.slot_id != slot_id
+                {
+                    tracing::warn!(
+                        %job_id,
+                        expected = %job.slot_id,
+                        got = %slot_id,
+                        "native stream slot_id mismatch"
+                    );
+                    return;
+                }
                 self.mark_delivered_text(&job_id, std::slice::from_ref(&event))
                     .await;
                 self.emit(&job_id, StreamItem::Event(event)).await;
             }
+            native_protocol::KinStdout::JobParked {
+                job_id,
+                slot_id,
+                tool_use_ids,
+            } => {
+                self.park_native_job(&job_id, &slot_id, &tool_use_ids)
+                    .await;
+            }
             native_protocol::KinStdout::JobDone {
                 job_id,
-                slot_id: _,
+                slot_id,
                 stop_reason,
                 usage,
             } => {
+                if let Some(job) = self.jobs.lock().await.get(&job_id)
+                    && job.slot_id != slot_id
+                {
+                    tracing::warn!(
+                        %job_id,
+                        expected = %job.slot_id,
+                        got = %slot_id,
+                        "native job_done slot_id mismatch"
+                    );
+                    return;
+                }
                 let _ = self
                     .complete_job(&job_id, String::new(), false, &stop_reason, usage)
                     .await;
             }
-            native_protocol::KinStdout::JobError { job_id, error } => {
+            native_protocol::KinStdout::JobError {
+                job_id,
+                slot_id: _,
+                error,
+            } => {
                 let _ = self
                     .complete_job(&job_id, error, true, "error", json!({}))
                     .await;
             }
+            native_protocol::KinStdout::CancelAck { job_id: _, slot_id } => {
+                self.register_native_ready(slot_id).await;
+            }
         }
+    }
+
+    async fn park_native_job(&self, job_id: &str, slot_id: &str, tool_use_ids: &[String]) {
+        {
+            let mut slots = self.slots.lock().await;
+            if let Some(slot) = slots.iter_mut().find(|slot| slot.id == slot_id) {
+                let _ = slot.cas(SlotPhase::Running, SlotPhase::WaitingTool);
+            }
+        }
+        let model = self
+            .jobs
+            .lock()
+            .await
+            .get(job_id)
+            .map(|job| job.request.model.clone())
+            .unwrap_or_else(|| self.cfg.model.clone());
+        let content = tool_use_ids
+            .iter()
+            .map(|id| ContentBlock::ToolUse {
+                id: id.clone(),
+                name: "tool".into(),
+                input: json!({}),
+            })
+            .collect();
+        let response = MessageResponse {
+            id: format!("msg_{}", self.pid.load(Ordering::Relaxed)),
+            r#type: "message",
+            role: "assistant",
+            model,
+            content,
+            stop_reason: StopReason::ToolUse,
+            usage: Usage::default(),
+        };
+        let _ = self
+            .emit(job_id, StreamItem::Finished(response))
+            .await;
     }
 
     async fn register_native_ready(&self, slot_id: String) {
@@ -1457,7 +1574,13 @@ impl Runtime {
                 })
                 .ok();
             if self.cfg.execution_mode.is_native() {
-                self.register_native_ready(job.slot_id).await;
+                let frame = native_protocol::KinStdin::Cancel {
+                    job_id: job.job_id.clone(),
+                    slot_id: Some(job.slot_id.clone()),
+                };
+                if self.write_cli_stdin(frame).await.is_err() {
+                    self.register_native_ready(job.slot_id).await;
+                }
             } else {
                 self.retire_slot(&job.slot_id).await;
             }
@@ -1634,6 +1757,24 @@ impl Runtime {
             StreamItem::Event(JobStream::message_start(&job.request.model, &msg_id)),
         )
         .await;
+        if self.cfg.execution_mode.is_native() {
+            {
+                let mut slots = self.slots.lock().await;
+                if let Some(slot) = slots.iter_mut().find(|slot| slot.id == job.slot_id) {
+                    let _ = slot.cas(SlotPhase::WaitingTool, SlotPhase::Running);
+                }
+            }
+            for (tool_use_id, content) in tool_results(&request) {
+                self.write_cli_stdin(native_protocol::KinStdin::ToolResult {
+                    job_id: job_id.clone(),
+                    slot_id: job.slot_id.clone(),
+                    tool_use_id,
+                    content,
+                })
+                .await?;
+            }
+            return Ok(());
+        }
         let results = tool_results(&request);
         self.pending
             .lock()
@@ -1795,6 +1936,17 @@ fn finish_body(
         stream.text.clone()
     };
     JobFinish { text, usage }
+}
+
+fn native_stop_reason(reason: &str) -> StopReason {
+    match reason {
+        "tool_use" => StopReason::ToolUse,
+        "max_tokens" => StopReason::MaxTokens,
+        "refusal" => StopReason::Refusal,
+        "stop_sequence" => StopReason::StopSequence,
+        "pause_turn" => StopReason::PauseTurn,
+        _ => StopReason::EndTurn,
+    }
 }
 
 fn usage_from_value(value: &Value) -> Usage {
@@ -2292,7 +2444,19 @@ impl Provider for MultiplexCliProvider {
 
     fn memory_snapshot(&self) -> Option<serde_json::Value> {
         self.runtime.get().map(|runtime| {
-            serde_json::to_value(runtime.memory.snapshot()).unwrap_or(serde_json::Value::Null)
+            let mut value =
+                serde_json::to_value(runtime.memory.snapshot()).unwrap_or(serde_json::Value::Null);
+            if let Some(obj) = value.as_object_mut() {
+                obj.insert("peak_running".into(), json!(runtime.peak_running()));
+                obj.insert("running".into(), json!(runtime.running_jobs()));
+                obj.insert("ready_slots".into(), json!(runtime.ready_slots()));
+                if let Ok(host) = runtime.native_host.try_lock() {
+                    if let Some(info) = host.as_ref() {
+                        obj.insert("native_host".into(), json!(info));
+                    }
+                }
+            }
+            value
         })
     }
 

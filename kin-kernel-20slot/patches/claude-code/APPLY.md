@@ -43,4 +43,11 @@ Native spawn must **not** write `mcp.json` and must **not** send `kin_hello` on 
 Official `-p` peeks stdin and, after the first byte, waits for EOF forever —
 a live job pipe would hang before `runHeadless` / `kin_slot_ready`.
 
-P3 hello slice: text jobs only. `kin_tool_result` parking is P3.5.
+The stdin reader must **not** `await` a job. Each slot is an independent
+state machine (`idle|running|parked`) with its own QueryEngine and cache.
+`kin_host_ready` is the capability handshake (`multi_slot`, `tool_parking`,
+`native_sse`). Recycle a slot only on `kin_job_done` / `kin_job_error` /
+`kin_cancel_ack` — never on `kin_job_parked`.
+
+Default `KIN_EXECUTION_MODE` remains `mcp_slot` until 2-slot overlap,
+tool continuation, and 测试标准 01–07 pass on native.

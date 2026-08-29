@@ -1,3 +1,10 @@
+export const KIN_PROTOCOL_VERSION = 1
+export const KIN_CAPABILITIES = [
+  'multi_slot',
+  'tool_parking',
+  'native_sse',
+] as const
+
 export type KinStdin =
   | {
       type: 'kin_hello'
@@ -18,9 +25,17 @@ export type KinStdin =
       tool_use_id: string
       content: unknown
     }
-  | { type: 'kin_cancel'; job_id: string }
+  | { type: 'kin_cancel'; job_id: string; slot_id?: string }
 
 export type KinStdout =
+  | {
+      type: 'kin_host_ready'
+      protocol_version: number
+      slots: number
+      system_layout: string
+      timezone: string
+      capabilities: string[]
+    }
   | { type: 'kin_slot_ready'; slot_id: string }
   | {
       type: 'kin_stream_event'
@@ -29,13 +44,20 @@ export type KinStdout =
       event: unknown
     }
   | {
+      type: 'kin_job_parked'
+      job_id: string
+      slot_id: string
+      tool_use_ids: string[]
+    }
+  | {
       type: 'kin_job_done'
       job_id: string
       slot_id: string
       stop_reason: string
       usage?: unknown
     }
-  | { type: 'kin_job_error'; job_id: string; error: string }
+  | { type: 'kin_job_error'; job_id: string; slot_id?: string; error: string }
+  | { type: 'kin_cancel_ack'; job_id: string; slot_id: string }
 
 export function parseStdinLine(line: string): KinStdin | null {
   const trimmed = line.trim()
@@ -50,8 +72,30 @@ export function parseStdinLine(line: string): KinStdin | null {
   }
 }
 
-export function writeStdout(frame: KinStdout): void {
-  process.stdout.write(JSON.stringify(frame) + '\n')
+let writeChain: Promise<void> = Promise.resolve()
+
+export function writeStdout(frame: KinStdout): Promise<void> {
+  const line = JSON.stringify(frame) + '\n'
+  const next = writeChain.then(() => writeLine(line), () => writeLine(line))
+  writeChain = next.then(
+    () => undefined,
+    () => undefined,
+  )
+  return next
+}
+
+function writeLine(line: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let settled = false
+    const done = (err?: Error | null) => {
+      if (settled) return
+      settled = true
+      if (err) reject(err)
+      else resolve()
+    }
+    const ok = process.stdout.write(line, err => done(err))
+    if (!ok) process.stdout.once('drain', () => done())
+  })
 }
 
 export function slotId(index: number): string {
