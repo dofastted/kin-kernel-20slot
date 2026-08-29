@@ -130,6 +130,23 @@ startup — no runtime re-fetch, changes require drain + restart) and
 `/readyz` returns `503 {"reason":"config_hash_mismatch"}` on drift. `go
 build/vet/test` clean; `cargo test --bin kin-kernel provider::multiplex_cli`
 109/109, `config::` 2/2, `api::` 3/3, all passing; clippy flat at 57
-warnings (no new lint debt). S3 functional acceptance (AC1–AC15) has not
-been run — needs the Docker/SOCKS5 test harness. Default
-`KIN_EXECUTION_MODE` remains `mcp_slot` until S3 acceptance passes on native.
+warnings (no new lint debt).
+
+First real end-to-end native_messages smoke test passed against the live
+Anthropic API (Docker + SOCKS5 harness, `claude-haiku-4-5-20251001`): a
+`kin_job_start` with `thinking:{type:"disabled"}` produced a full real
+`kin_stream_event` sequence (`message_start` → `content_block_delta` ×N →
+`message_stop`) and a `kin_job_done` with non-zero `usage`. This also
+surfaced and fixed a real protocol defect: `runJob()`'s `assistant` branch
+did not check `isApiErrorMessage` on the synthetic error-wrapper message
+that `getAssistantMessageFromError()` produces for real API failures (4xx/
+5xx), so a genuine API error (e.g. a 400 from an invalid `thinking` budget)
+was silently swallowed and reported as a normal `kin_job_done` — Rust had
+no way to observe the failure. Fixed by checking `isApiErrorMessage` and
+emitting `kin_job_error` with the extracted error text instead; verified
+by replaying the same failing job and observing `kin_job_error` in place
+of the previous silent `kin_job_done`.
+
+S3 functional acceptance (AC1–AC15) has not been run — needs systematic
+coverage beyond this one smoke test. Default `KIN_EXECUTION_MODE` remains
+`mcp_slot` until S3 acceptance passes on native.

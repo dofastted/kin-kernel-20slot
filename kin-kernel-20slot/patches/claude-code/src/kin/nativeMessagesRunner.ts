@@ -222,6 +222,16 @@ async function runJob(
       if (ev.type === 'assistant') {
         const rec = ev as {
           message?: { stop_reason?: string; usage?: unknown }
+          isApiErrorMessage?: boolean
+        }
+        if (rec.isApiErrorMessage) {
+          await writeStdout({
+            type: 'kin_job_error',
+            job_id: jobId,
+            slot_id: slot.id,
+            error: extractErrorText(ev as Record<string, unknown>),
+          })
+          return
         }
         stopReason = rec.message?.stop_reason || stopReason
         usage = rec.message?.usage || usage
