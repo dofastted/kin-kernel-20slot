@@ -1,0 +1,27 @@
+--- a/src/main.tsx
++++ b/src/main.tsx
+@@ -1030,6 +1030,11 @@ async function getInputPrompt(
+   prompt: string,
+   inputFormat: 'text' | 'stream-json',
+ ): Promise<string | AsyncIterable<string>> {
++  // Native slot host owns stdin for kin_* frames. `-p` peek waits for EOF
++  // after the first byte; a live kernel pipe never ends, so we must not read.
++  if (process.env.CLAUDE_CODE_KIN_NATIVE_SLOTS) {
++    return prompt;
++  }
+   if (
+     !process.stdin.isTTY &&
+     // Input hijacking breaks MCP.
+@@ -3271,6 +3276,7 @@
+         // here. --bare skips claude.ai entirely for perf-sensitive scripts.
+         profileCheckpoint('before_connectMcp');
++        if (!process.env.CLAUDE_CODE_KIN_NATIVE_SLOTS) {
+         await connectMcpBatch(regularMcpConfigs, 'regular');
+         profileCheckpoint('after_connectMcp');
+         // Dedup: suppress plugin MCP servers that duplicate a claude.ai
+@@ -3351,6 +3357,7 @@
+             `[MCP] claude.ai connectors not ready after ${CLAUDE_AI_MCP_TIMEOUT_MS}ms — proceeding; background connection continues`,
+           );
+         }
++        }
+         profileCheckpoint('after_connectMcp_claudeai');
