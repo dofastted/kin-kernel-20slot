@@ -1,0 +1,30 @@
+event: message_start
+data: {"message":{"content":[],"id":"msg_job_08b54489d5ba4fb9a43f49718d5c4fbd","model":"claude-sonnet-5","role":"assistant","stop_reason":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
+
+event: content_block_start
+data: {"content_block":{"text":"","type":"text"},"index":0,"type":"content_block_start"}
+
+event: content_block_delta
+data: {"delta":{"text":"你","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"好！欢迎来到高速公路收费站，请出示您的通行卡或缴纳通行费。请问您是从哪个入","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"口上高速的呢？我需要核实一下里程以便为","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"您计算费用。","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn","stop_sequence":null},"type":"message_delta","usage":{"cache_creation_input_tokens":9814,"input_tokens":2,"output_tokens":157}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+event: kin.done
+data: {"continuation":null,"generation":1,"pid":8778,"session_id":"1333e256-a329-4b50-acbc-3a5049ed6db9","slot":"runtime-00"}
+

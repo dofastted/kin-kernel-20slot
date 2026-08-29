@@ -1,0 +1,14 @@
+{
+  "error": null,
+  "text": "WebSearch\nmcp__kin_runtime__slot_wait\nmcp__kin_runtime__client_tool\nmcp__kin_runtime__kin_done\nmcp__kin_runtime__kin_fail",
+  "thinking": "",
+  "tools": [],
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 151,
+    "cache_creation_input_tokens": 614,
+    "cache_read_input_tokens": 1828
+  },
+  "stop": "end_turn",
+  "n_text_delta": 2
+}

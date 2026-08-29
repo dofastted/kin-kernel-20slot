@@ -1,0 +1,61 @@
+# 2026年iPhone新功能汇总（iPhone 18系列）
+
+苹果已确定于**北京时间2026年9月10日凌晨1点**（美西时间9月9日）举办秋季发布会，今年iPhone发布策略发生重大变化：**首次拆分为两轮发布**。
+
+## 📅 发布节奏大变化
+- **9月发布会**：聚焦高端机型——iPhone 18 Pro、iPhone 18 Pro Max，以及苹果**首款折叠屏iPhone**
+- **2027年春季**：标准版iPhone 18、新款iPhone 18e，以及第二代iPhone Air才会登场
+
+这是苹果自扩充iPhone产品线以来最大的发布节奏调整。
+
+## 📱 iPhone 18 Pro / Pro Max 主要升级
+
+**芯片与性能**
+- 搭载台积电**2nm工艺A20 Pro芯片**，性能提升约15%，能效提升约30%
+- 采用**WMCM封装**（晶圆级多芯片封装），将CPU、GPU、神经网络引擎和内存集成得更紧密，提升AI效率
+
+**设计与显示**
+- 延续6.3英寸/6.9英寸LTPO自适应刷新率OLED屏幕
+- **灵动岛面积缩小约35%**
+- 整体设计延续iPhone 17 Pro的三摄+大相机平台造型
+
+**影像系统**
+- 主摄升级为**2亿像素传感器**
+- 可变光圈主摄（f/1.4-f/4.0无级调节，采用超弹性薄膜技术）
+- 48MP潜望式长焦镜头
+- 拍照按键改为纯压感方案
+
+**电池续航**
+- Pro：电池容量提升至约4056mAh
+- Pro Max：提升至约5391mAh（增幅约11.8%），并**首次采用钢壳电池**
+
+**通信**
+- 自研**C2调制解调器**芯片，性能更接近高通旗舰水准
+- 新增**卫星通信功能**，支持5G卫星连接及图片传输
+
+## 🔀 首款折叠屏iPhone（"iPhone Fold"/"iPhone Ultra"）
+- 外屏约5.4英寸，内屏约7.6英寸
+- 采用液态金属组件+复杂铰链设计以消除折痕
+- **取消Face ID，改用侧边指纹识别**
+- 预估起售价可能超过2000美元（约1999美元起）
+
+## 🤖 软件与AI
+- 深度整合**Apple Intelligence**，端侧AI能力增强
+- 传闻Gemini将成为苹果基础模型新支撑
+- 基于大模型的新版Siri预计2027年春季推出
+
+## 💰 价格
+预计维持与上代相近的定价策略。
+
+> 注：以上内容基于最新爆料和行业分析，苹果尚未官方确认全部细节，最终以9月10日发布会为准。
+
+Sources:
+- [苹果2026秋季发布会定档9月10日，iPhone 18 Pro、折叠屏iPhone等新品将登场！-CSDN博客](https://blog.csdn.net/techforward/article/details/164108644)
+- [iPhone 18 - 百度百科](https://baike.baidu.com/item/iPhone%2018/66937148)
+- [Apple's September 2026 event: Everything we know about the iPhone 18 Pro and iPhone Ultra - Digital Trends](https://www.digitaltrends.com/phones/apples-september-2026-event-everything-we-know-about-the-iphone-18-pro-and-iphone-ultra-launch-event/)
+- [最新傳聞懶人包！【新一代 iPhone 上市時間、規格、價格】全機型一次揭密](https://www.miko3c.com/news-detail/apple-iphone18-pro-max-launch-specs-price-review/)
+- [iPhone 18 Pro Launching Next Month With These 12 New Features - MacRumors](https://www.macrumors.com/2026/08/02/iphone-18-pro-next-month-12-new-features/)
+- [iPhone 18 Pro & Pro Max Rumors: Release Date, A20 Chip, Dynamic Island Changes and more | Macworld](https://www.macworld.com/article/2953687/iphone-18-pro-2026-release-date-design-specs-rumors.html)
+- [iPhone 18: Rumors and Release Date - MacRumors](https://www.macrumors.com/roundup/iphone-18/)
+- [iPhone 18 Pro: Everything We Know | MacRumors](https://www.macrumors.com/roundup/iphone-18-pro/)
+- [iPhone 18 | Rumors, Specs, Release Date - AppleInsider](https://appleinsider.com/inside/iphone-18)

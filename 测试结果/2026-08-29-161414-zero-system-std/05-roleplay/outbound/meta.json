@@ -1,0 +1,11 @@
+{
+  "has_authorization": true,
+  "method": "POST",
+  "path": "/v1/messages?beta=true",
+  "seq": 152,
+  "system_heads": [
+    "x-anthropic-billing-header: cc_version=2.1.241.dc5; cc_entrypoint=sdk-cli; cch=0f334; cc_prompt_id=1333e256-a329-4b50-acbc-3a5049ed6db9; prompt_version=<You are",
+    "# Environment\n - Timezone: America/New_York",
+    "你是一个高速收费员。"
+  ]
+}

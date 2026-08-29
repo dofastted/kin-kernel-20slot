@@ -10,6 +10,7 @@ pub mod correlate;
 pub mod metrics;
 pub mod server;
 pub mod sse_tap;
+pub mod system_rewrite;
 pub mod upstream;
 
 use std::{

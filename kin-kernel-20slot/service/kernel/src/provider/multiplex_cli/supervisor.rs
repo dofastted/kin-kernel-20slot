@@ -100,7 +100,6 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
         "--verbose",
         "--include-partial-messages",
         "--forward-subagent-text",
-        "--forward-subagent-partials",
         "--replay-user-messages",
         "--no-session-persistence",
         "--permission-mode",
@@ -122,8 +121,14 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
     .env("CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS", &n)
     .env("CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY", &n)
     .env("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH", "1")
-    .env("CLAUDE_CODE_FORWARD_SUBAGENT_TEXT", "1")
-    .env("CLAUDE_CODE_FORWARD_SUBAGENT_PARTIALS", "1");
+    .env("CLAUDE_CODE_FORWARD_SUBAGENT_TEXT", "1");
+    if env::var("KIN_FORWARD_SUBAGENT_PARTIALS")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+    {
+        cmd.arg("--forward-subagent-partials")
+            .env("CLAUDE_CODE_FORWARD_SUBAGENT_PARTIALS", "1");
+    }
     auth.apply_tokio(&mut cmd);
     cmd.stdin(Stdio::piped())
     .stdout(Stdio::piped())

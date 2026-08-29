@@ -1,0 +1,138 @@
+event: message_start
+data: {"message":{"content":[],"id":"msg_job_4680acfd1e4d4d85a27b444a682c6b1d","model":"claude-sonnet-5","role":"assistant","stop_reason":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
+
+event: content_block_start
+data: {"content_block":{"signature":"","thinking":"","type":"thinking"},"index":0,"type":"content_block_start"}
+
+event: content_block_delta
+data: {"delta":{"estimated_tokens":50,"thinking":"","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"estimated_tokens":null,"thinking":"","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"signature":"EqUDCqgBCBEYAipA1mH68fv1W+DHirAfz951XKPmiLxqZcsiPwnB83tAKUI3VSJ9qZRgN59vgO+UwbeBxBo70NY49SR9aSFXH/b0dzIPY2xhdWRlLXNvbm5ldC01OABCCHRoaW5raW5nWiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWJyEL51lci/j8gfDeI6kglvTn2IAQGoAeWJzNQGsAECEgxXXMuGofrKPo7iZU8aDJiUfrZKbONn3qc5rSIw0xI3/PulypV0emlB81JDsjO8YRrY+VQ6ICtF0rjtfk+6FbQtWkWRJt1SkU/Iyl1aKqkB7Cmz17c9sOBRqtqL7SpPmMeWTprX/iDWKclQPpmRkzml8ck8Chq0z/2c6FzbObbvnYrOAY+TVx1vNos4ad2m5gTm2jAUFhvTLgmN96nYcqlwd19ES3ZMcKlyeTQbXnx1JLm+/Hqj7uVAIJmg+Dv/u6wz3jgN9hzGsmuJ+oy945edee+KC2Y2Tpl6WKgHuzeo1AUXUZxFcX8LpdTrlNWswD6ZahZt2IU5BBgB","type":"signature_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: content_block_start
+data: {"content_block":{"caller":{"type":"direct"},"id":"toolu_0115RLccQer6LXZwWaDrk3sv","input":{},"name":"WebSearch","type":"tool_use"},"index":1,"type":"content_block_start"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":"","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":"{\"query\":","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":" \"Google Do","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":"od","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":"le World","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":" Cup 2026 \\\"","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":"The Ar","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":"t of th","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":"e Bicyc","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":"le Ki","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":"ck","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"partial_json":"\\\"\"}","type":"input_json_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":1,"type":"content_block_stop"}
+
+event: ping
+data: {"type":"ping"}
+
+event: content_block_start
+data: {"content_block":{"signature":"","thinking":"","type":"thinking"},"index":2,"type":"content_block_start"}
+
+event: content_block_delta
+data: {"delta":{"estimated_tokens":50,"thinking":"","type":"thinking_delta"},"index":2,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"estimated_tokens":null,"thinking":"","type":"thinking_delta"},"index":2,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"signature":"EsECCqgBCBEYAipATxmG/KXOonYiM6nCiBrjr4zv6mbdbYwfNQRI+KQg9g3FLxuGHNLzw86sant72VL69etGfHynaQWfPNDoRiS2pDIPY2xhdWRlLXNvbm5ldC01OABCCHRoaW5raW5nWiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWJyEL51lci/j8gfDeI6kglvTn2IAQGoAfCJzNQGsAECEgziY91e4gWh1qUu/KsaDIRXCqzWTY/ue5AaUSIwk72s6Uo9f3LQ9ggnIwavqjhEG5XdSWwlAxiWkvAt1D/ujotP42PmDb8oeln7Xgw/KkYlxm0p+7XfDFN7FVjD55DZwAgmlLnpD3+RcMwYfP4NfVDB9wOvsUDp2Ephyd3NVo5DfT28zxocrxfFQelt5ErPFDGkjbdwGAE=","type":"signature_delta"},"index":2,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":2,"type":"content_block_stop"}
+
+event: content_block_start
+data: {"content_block":{"text":"","type":"text"},"index":3,"type":"content_block_start"}
+
+event: content_block_delta
+data: {"delta":{"text":"这是一张 **Google 涂鸦(Doodle)** 图片，标题为 **\"World C","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"up 2026: The Art of the Bicycle Kick\"**（2026年世界杯：倒钩射门的艺术）。\n\n**背景介绍：**\n- 这","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"是 Google 在 2026 年 6 月 17 日左右推出的一系列庆祝 **2026 年 FIFA 世界杯** 的涂鸦之","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"一。\n- 这个系列以足球的各种精彩技巧为主题，这一张专门致敬 **\"","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"倒钩射门\"（Bicycle Kick，也称\"剪刀脚\"或\"倒挂金钩\"）**——一种球","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"员跃起后用剪刀式的腿部动作将球向身后踢出的高","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"难度动作，需要极高的运动能力、精准的时机把握和大胆的技巧。\n- 该系列还包括其他足","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"球技巧主题的涂鸦，例如：\"凌空抽射的艺术\"（Volley）、\"","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"彩虹过人\"（Rabona）、\"踩单车\"（Elástico）、\"点球的艺术\"（Penal","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"ty Kick）、\"头球俯冲\"（Diving Header）、\"长传球艺术\"（Long Ball）、\"香蕉球艺术\"（Curler）、\"滑铲","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"\"（Sliding Tackle）等等。\n\n简单来说，这就是 Google 首页在世界杯期间用来庆祝赛事、以足球经典技巧为主题制","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"作的一张趣味插画 Logo。\n\nSources:\n- [World Cup 2026: The Art of the Bicycle Kick Doodle - Google Doodles](https://doodles.google/do","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"odle/world-cup-2026-the-art-of-the-bicycle-kick-617/)\n- [Google Doodles/2026 | Logopedia | Fandom](https://logos.fandom.com/wiki/Google_Do","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"odles/2026)\n- [World Cup 2026: The art of the bicycle kick - YouTube](https://www.youtube.com/watch?v=Te8biWBDDdo)\n- [Bicycle kick - Wikipedia](https://en.wikipedia","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":".org/wiki/Bicycle_kick)","type":"text_delta"},"index":3,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":3,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn","stop_sequence":null},"type":"message_delta","usage":{"cache_creation_input_tokens":2214,"cache_read_input_tokens":4427,"input_tokens":4,"output_tokens":968}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+event: kin.done
+data: {"continuation":null,"generation":1,"pid":8778,"session_id":"19456d7f-0b36-44f9-8193-e135f52320a6","slot":"runtime-00"}
+

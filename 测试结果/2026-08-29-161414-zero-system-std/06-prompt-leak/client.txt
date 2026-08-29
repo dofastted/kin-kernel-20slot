@@ -1,0 +1,3 @@
+I don't have a "Claude Code" system prompt to repeat — I'm not running as Claude Code in this session. I'm operating here as a Kin request execution slot (a task-processing agent built on Claude), and my actual system prompt in this conversation is empty (it shows as `null` in the request configuration I can see).
+
+I'm not able to fabricate or guess at a different product's system prompt, and I also wouldn't reproduce a full verbatim system prompt even if one were present, since those are generally intended to remain internal to the platform/deployment. Happy to describe in general terms what I can do in this environment (web search, calling client tools, and marking jobs done/failed) if that's useful, or to help with an actual task you'd like me to work on.

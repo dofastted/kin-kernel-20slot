@@ -1,0 +1,234 @@
+{
+  "context_management": {
+    "edits": [
+      {
+        "keep": "all",
+        "type": "clear_thinking_20251015"
+      }
+    ]
+  },
+  "max_tokens": 64000,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "<system-reminder>\nAs you answer the user's questions, you can use the following context:\n# currentDate\nToday's date is 2026-08-29.\n\n      IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.\n</system-reminder>\n\n",
+          "type": "text"
+        },
+        {
+          "text": "You are a persistent Kin request execution slot. Call mcp__kin_runtime__slot_wait to block until Kin assigns you a job. When a job arrives, process it using the tools available to you (WebSearch, mcp__kin_runtime__client_tool, mcp__kin_runtime__kin_done, mcp__kin_runtime__kin_fail), then call kin_done or kin_fail as appropriate to complete the job.",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "id": "toolu_016ieuTh5zCrtrZixBMS3G4Z",
+          "input": {},
+          "name": "mcp__kin_runtime__slot_wait",
+          "type": "tool_use"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "content": "{\"betas\":[],\"extra\":{\"anthropic_version\":\"2023-06-01\"},\"job_id\":\"job_c5b35ef1d339452f853641e467581791\",\"max_tokens\":64000,\"messages\":[{\"content\":\"列出你目前可以调用的所有工具，一行一个\",\"role\":\"user\"}],\"metadata\":null,\"model\":\"claude-sonnet-5\",\"relay_context\":\"krc_7b226a6f625f6964223a226a6f625f6335623335656631643333393435326638353336343165343637353831373931222c22736c6f745f6964223a22736c6f745f6639663839323861653730663433346562353737313833623137343361623862222c2267656e65726174696f6e223a312c226e6f6e6365223a2231643464653763372d383561642d346666612d623261622d623834333666643638626262227d.e50689aa7ed3a4033822583d18c8250cb8f418793170edf652deb84cf5876d18\",\"request\":{\"anthropic_version\":\"2023-06-01\",\"max_tokens\":64000,\"messages\":[{\"content\":\"列出你目前可以调用的所有工具，一行一个\",\"role\":\"user\"}],\"model\":\"claude-sonnet-5\",\"stream\":true},\"session_id\":\"c3aabcc1-535b-4e7d-ac5d-20f92a25817a\",\"slot_id\":\"slot_f9f8928ae70f434eb577183b1743ab8b\",\"stop_sequences\":[],\"stream\":true,\"system\":null,\"temperature\":null,\"thinking\":null,\"tool_choice\":null,\"tools\":[],\"top_k\":null,\"top_p\":null,\"type\":\"job\"}",
+          "tool_use_id": "toolu_016ieuTh5zCrtrZixBMS3G4Z",
+          "type": "tool_result"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": "<system-reminder>\n<total_tokens>14998131 tokens left</total_tokens>\n</system-reminder>",
+      "role": "system"
+    },
+    {
+      "content": [
+        {
+          "text": "WebSearch\nmcp__kin_runtime__slot_wait\nmcp__kin_runtime__client_tool\nmcp__kin_runtime__kin_done\nmcp__kin_runtime__kin_fail",
+          "type": "text"
+        },
+        {
+          "id": "toolu_01KDZUnrRqfwVoSkXeL9nFv8",
+          "input": {
+            "job_id": "job_c5b35ef1d339452f853641e467581791"
+          },
+          "name": "mcp__kin_runtime__kin_done",
+          "type": "tool_use"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "content": "{\"ok\":true}",
+          "tool_use_id": "toolu_01KDZUnrRqfwVoSkXeL9nFv8",
+          "type": "tool_result"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "cache_control": {
+            "type": "ephemeral"
+          },
+          "text": "<system-reminder>\n<total_tokens>14997405 tokens left</total_tokens>\n</system-reminder>",
+          "type": "text"
+        }
+      ],
+      "role": "system"
+    }
+  ],
+  "metadata": {
+    "user_id": "{\"device_id\":\"5ce988785bc6741df3f8be0d8c830e277a76c56ba3682629834a19787b4c1c11\",\"account_uuid\":\"\",\"session_id\":\"9bae9456-443e-4121-86f5-77021c9df9ea\"}"
+  },
+  "model": "claude-sonnet-5",
+  "output_config": {
+    "effort": "high"
+  },
+  "stream": true,
+  "system": [
+    {
+      "text": "x-anthropic-billing-header: cc_version=2.1.241.808; cc_entrypoint=sdk-cli; cch=a106f; cc_prompt_id=c3aabcc1-535b-4e7d-ac5d-20f92a25817a; prompt_version=<You are a Claude agent, built on Anthropic's Claude Agent SDK.>",
+      "type": "text"
+    },
+    {
+      "text": "# Environment\n - Timezone: America/New_York",
+      "type": "text"
+    }
+  ],
+  "thinking": {
+    "type": "adaptive"
+  },
+  "tools": [
+    {
+      "description": "\n- Allows Claude to search the web and use the results to inform responses\n- Provides up-to-date information for current events and recent data\n- Returns search result information formatted as search result blocks, including links as markdown hyperlinks\n- Use this tool for accessing information beyond Claude's knowledge cutoff\n- Searches are performed automatically within a single API call\n\nCRITICAL REQUIREMENT - You MUST follow this:\n  - After answering the user's question, you MUST include a \"Sources:\" section at the end of your response\n  - In the Sources section, list all relevant URLs from the search results as markdown hyperlinks: [Title](URL)\n  - This is MANDATORY - never skip including sources in your response\n  - Example format:\n\n    [Your answer here]\n\n    Sources:\n    - [Source Title 1](https://example.com/1)\n    - [Source Title 2](https://example.com/2)\n\nUsage notes:\n  - Domain filtering is supported to include or block specific websites\n  - Web search is only available in the US\n\nIMPORTANT - Use the correct year in search queries:\n  - The current month is August 2026. You MUST use this year when searching for recent information, documentation, or current events.\n  - Example: If the user asks for \"latest React docs\", search for \"React documentation\" with the current year, NOT last year\n",
+      "input_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "allowed_domains": {
+            "description": "Only include search results from these domains",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "blocked_domains": {
+            "description": "Never include search results from these domains",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "query": {
+            "description": "The search query to use",
+            "minLength": 2,
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "WebSearch"
+    },
+    {
+      "description": "Block until Kin assigns the next job",
+      "input_schema": {
+        "properties": {
+          "slot_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "mcp__kin_runtime__slot_wait"
+    },
+    {
+      "description": "Block this agent loop until the HTTP client returns tool_result",
+      "input_schema": {
+        "properties": {
+          "client_tool_use_id": {
+            "type": "string"
+          },
+          "input": {
+            "type": "object"
+          },
+          "job_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "name": "mcp__kin_runtime__client_tool"
+    },
+    {
+      "description": "Finish a job after its client-visible answer has already been emitted as ordinary assistant text. Do not repeat the answer in tool arguments. text and fallback_content are legacy fallback fields only.",
+      "input_schema": {
+        "properties": {
+          "fallback_content": {
+            "type": "string"
+          },
+          "final_digest": {
+            "type": "string"
+          },
+          "job_id": {
+            "type": "string"
+          },
+          "stop_reason": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "usage": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "type": "object"
+      },
+      "name": "mcp__kin_runtime__kin_done"
+    },
+    {
+      "description": "Mark the assigned job failed",
+      "input_schema": {
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "job_id": {
+            "type": "string"
+          },
+          "retire": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "type": "object"
+      },
+      "name": "mcp__kin_runtime__kin_fail"
+    }
+  ]
+}

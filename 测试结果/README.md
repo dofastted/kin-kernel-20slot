@@ -2,6 +2,26 @@
 
 按日期时间分目录。
 
+## `*-161414-zero-system-std` — 0 注入出站头 + 测试标准（2026-08-29）
+
+出站 `system` 改为 billing（`cc_version=2.1.241.<fp>` + `prompt_version=<身份句>`）+ `# Environment` 时区；**默认不写 identity 块**，05 才带调用方 leftover。
+
+栈：kernel `authoritative` relay + 官方 Claude Code **2.1.251** 原生二进制 + setup-token + SOCKS5 `72.1.181.43:5437`，2 slot。客户端 SSE 来自 relay tap（本轮未关 relay，不是 CLI stdout 权威）。
+
+| 题 | 结果 | 客户端 `text_delta` | 出站 kinds |
+|---|---|---:|---|
+| 01 工具列表 | PASS | 2 | billing+environment |
+| 02 识图 | PASS | 15 | billing+environment |
+| 03 web_search | PASS | 34 | billing+environment |
+| 04 自我认知 | **PASS** | 16 | billing+environment（无 identity 块） |
+| 05 收费员 | PASS | 4 | billing+environment+append |
+| 06 套取 | FAIL `no_cc_identity` | 8 | 拒答里出现题面词 `Claude Code` |
+| 07 强制天气 | PASS | 0（`tool_use`） | `get_weather` 东京/celsius |
+
+结论：04 不再报 Agent SDK，0 注入头生效。Relay **不能拆**——改写出站 `system` 就在这一层；官方 2.1.251 也没有 `--forward-subagent-partials`。T4（关 relay、CLI stdout 权威）本轮未跑。
+
+- `verdict.md` / `results.json` / 各题 `outbound/request-body.json` + `client.json`
+
 ## `*-153229-t1-native-text` — prompt 修复后首次原生 parented `text_delta`
 
 `b9efab7` kin-slot prompt：先普通 assistant text，再 metadata-only `kin_done`。Node 24 + setup-token + 2-slot。
@@ -58,36 +78,3 @@ tap 挂上但客户端仍整块 stdout（后续定位为压缩字节流）。S2�
 - `report.json`：hello/stream/web_search/tool、conc20、slow-client
 - `observe-ttfb.json`：切模式前 observe 首 token 基线
 - `kernel.log`
-
-## `*-e28132d-observe` — handover 第 2 步 observe 采证
-
-e28132d：`/readyz` 门控、upstream preflight、关联三场景、SOCKS5-only。
-
-- `verdict.md` 结论
-- `fault-inject.json` + `fault-inject.kernel.log`：`KIN_RELAY_UPSTREAM=http://127.0.0.1:1` → `boot_failed`、CLI 不启动
-- `report.json`：boot 时间线、三场景 hit/miss/tap 增量
-- `kernel.log`：`relay correlated request`（仅 job/slot/turn）
-- `claude.debug.log`：CLI debug（无 token）
-
-## `*-kin-cli` — Kin CLI 出站抓包
-
-```
-入站 /v1/messages
-  → Kin multiplex (20 slots)
-  → Claude CLI 真实 POST
-  → loopback relay → dump_proxy → SOCKS5
-  → api.anthropic.com
-```
-
-目录内：
-
-- `00-boot/outbound/` 冷启动包
-- `01`–`07` 标准套件：`inbound-*` 是打进 Kin 的题和回包；`outbound/*/request-body.json` 是 CLI 实际请求体；`response.raw.txt` 是 Anthropic SSE
-- `summary.md` 总表
-
-## 入库说明
-
-- 已剔除 CLI 对 `GET /` 的探测包（404）和 `zz-idle/`，只保留真实 `POST /v1/messages` 请求体/回包与 observe/authoritative 采证。
-- `Authorization` / SOCKS / `sk-ant-*` 已打码。
-- `*.log` 在仓库根 gitignore 中；本目录日志用 `git add -f` 入库。
-- setup-token 与 OAuth JSON **不入库**。

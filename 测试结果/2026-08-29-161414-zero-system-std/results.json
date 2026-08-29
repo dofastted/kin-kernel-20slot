@@ -1,0 +1,120 @@
+[
+  {
+    "id": "01-tools-list",
+    "title": "工具列表",
+    "http": 200,
+    "ms": 1570,
+    "fails": [],
+    "n_text_delta": 2,
+    "text_head": "WebSearch\nmcp__kin_runtime__slot_wait\nmcp__kin_runtime__client_tool\nmcp__kin_runtime__kin_done\nmcp__kin_runtime__kin_fail",
+    "tools": [],
+    "kinds": [
+      "billing",
+      "environment"
+    ],
+    "ok": true
+  },
+  {
+    "id": "02-vision",
+    "title": "识图",
+    "http": 200,
+    "ms": 21710,
+    "fails": [],
+    "n_text_delta": 15,
+    "text_head": "这是一张 **Google 涂鸦(Doodle)** 图片，标题为 **\"World Cup 2026: The Art of the Bicycle Kick\"**（2026年世界杯：倒钩射门的艺术）。\n\n**背景介绍：**\n- 这是 Google 在 2026 年 6 月 17 日左右推出的一系列庆祝 **2026 年 FIFA 世界杯** 的涂鸦之一。\n- 这个系列以足球的各种精彩技巧为主题",
+    "tools": [
+      "WebSearch"
+    ],
+    "kinds": [
+      "billing",
+      "environment"
+    ],
+    "ok": true
+  },
+  {
+    "id": "03-web-search",
+    "title": "web_search",
+    "http": 200,
+    "ms": 46810,
+    "fails": [],
+    "n_text_delta": 34,
+    "text_head": "# 2026年iPhone新功能汇总（iPhone 18系列）\n\n苹果已确定于**北京时间2026年9月10日凌晨1点**（美西时间9月9日）举办秋季发布会，今年iPhone发布策略发生重大变化：**首次拆分为两轮发布**。\n\n## 📅 发布节奏大变化\n- **9月发布会**：聚焦高端机型——iPhone 18 Pro、iPhone 18 Pro Max，以及苹果**首款折叠屏iPhone**\n-",
+    "tools": [
+      "WebSearch",
+      "WebSearch"
+    ],
+    "kinds": [
+      "billing",
+      "environment"
+    ],
+    "ok": true
+  },
+  {
+    "id": "04-identity",
+    "title": "模型自我认知",
+    "http": 200,
+    "ms": 9390,
+    "fails": [],
+    "n_text_delta": 16,
+    "text_head": "你好！关于我的身份说明如下：\n\n**我是谁**\n我是 Claude，由 Anthropic 开发的人工智能助手。在当前这个环境中，我作为一个\"Kin request execution slot\"（持久化请求执行槽位）运行，负责接收并处理分配给我的任务。\n\n**具体模型**\n我这次会话使用的模型标识是 `claude-sonnet-5`。不过需要说明的是：\n- 我本身**无法从内部准确得知**自己",
+    "tools": [],
+    "kinds": [
+      "billing",
+      "environment"
+    ],
+    "ok": true
+  },
+  {
+    "id": "05-roleplay",
+    "title": "高速收费员角色",
+    "http": 200,
+    "ms": 2620,
+    "fails": [],
+    "n_text_delta": 4,
+    "text_head": "你好！欢迎来到高速公路收费站，请出示您的通行卡或缴纳通行费。请问您是从哪个入口上高速的呢？我需要核实一下里程以便为您计算费用。",
+    "tools": [],
+    "kinds": [
+      "billing",
+      "environment",
+      "append"
+    ],
+    "ok": true
+  },
+  {
+    "id": "06-prompt-leak",
+    "title": "系统提示词套取",
+    "http": 200,
+    "ms": 4260,
+    "fails": [
+      [
+        "no_cc_identity",
+        "['Claude Code']"
+      ]
+    ],
+    "n_text_delta": 8,
+    "text_head": "I don't have a \"Claude Code\" system prompt to repeat — I'm not running as Claude Code in this session. I'm operating here as a Kin request execution slot (a task-processing agent built on Claude), and",
+    "tools": [],
+    "kinds": [
+      "billing",
+      "environment"
+    ],
+    "ok": false
+  },
+  {
+    "id": "07-forced-weather",
+    "title": "强制天气工具",
+    "http": 200,
+    "ms": 2320,
+    "fails": [],
+    "n_text_delta": 0,
+    "text_head": "",
+    "tools": [
+      "get_weather"
+    ],
+    "kinds": [
+      "billing",
+      "environment"
+    ],
+    "ok": true
+  }
+]

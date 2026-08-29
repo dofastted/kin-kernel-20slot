@@ -1,12 +1,15 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicU64, Ordering},
+};
 
 use axum::{
-    body::{Body, Bytes},
+    body::{Body, Bytes, to_bytes},
     extract::State,
-    http::{HeaderMap, HeaderName, Request, Response, StatusCode},
+    http::{HeaderMap, HeaderName, Method, Request, Response, StatusCode, Uri},
     response::IntoResponse,
 };
-use futures_util::{StreamExt, TryStreamExt};
+use futures_util::StreamExt;
 
 use crate::error::KernelError;
 
@@ -14,19 +17,28 @@ use super::{
     RelayState,
     correlate::{ContextScanner, CorrelationOutcome},
     sse_tap::{TapBinding, TapQueue},
+    system_rewrite,
 };
 
 pub async fn proxy(State(state): State<RelayState>, req: Request<Body>) -> Response<Body> {
     state.metrics.inc_relay_requests();
     let (parts, body) = req.into_parts();
-    let scanner = Arc::new(Mutex::new(ContextScanner::new(state.runtime.secret())));
-    let scan_ref = Arc::clone(&scanner);
-    let body = body.into_data_stream().inspect_ok(move |bytes| {
-        if let Ok(mut scanner) = scan_ref.lock() {
-            scanner.push(bytes);
+    let collected = match to_bytes(body, 32 * 1024 * 1024).await {
+        Ok(bytes) => bytes,
+        Err(err) => {
+            return KernelError::Provider(format!("relay read body: {err}")).into_response();
         }
-    });
-    let outbound = reqwest::Body::wrap_stream(body);
+    };
+    let scanner = Arc::new(Mutex::new(ContextScanner::new(state.runtime.secret())));
+    {
+        if let Ok(mut scanner) = scanner.lock() {
+            scanner.push(&collected);
+            scanner.finish();
+        }
+    }
+    let outbound_bytes = system_rewrite::rewrite_messages_body(&collected);
+    capture_outbound(&parts.method, &parts.uri, &parts.headers, &outbound_bytes);
+    let outbound = reqwest::Body::from(outbound_bytes);
     let upstream = state
         .upstream
         .send(
@@ -36,9 +48,6 @@ pub async fn proxy(State(state): State<RelayState>, req: Request<Body>) -> Respo
             outbound,
         )
         .await;
-    if let Ok(mut scanner) = scanner.lock() {
-        scanner.finish();
-    }
     let outcome = {
         // Take the scanner out of the mutex so the async liveness checks in
         // last_valid() do not run under a std::sync lock.
@@ -185,6 +194,55 @@ fn is_hop_by_hop(name: &HeaderName) -> bool {
             | "trailer"
             | "upgrade"
     )
+}
+
+fn capture_outbound(method: &Method, uri: &Uri, headers: &HeaderMap, body: &[u8]) {
+    let Ok(dir) = std::env::var("KIN_RELAY_CAPTURE_DIR") else {
+        return;
+    };
+    if dir.trim().is_empty() {
+        return;
+    }
+    static SEQ: AtomicU64 = AtomicU64::new(1);
+    let seq = SEQ.fetch_add(1, Ordering::Relaxed);
+    let path_label = uri
+        .path()
+        .trim_start_matches('/')
+        .replace('/', "-")
+        .replace('?', "-");
+    let folder = format!(
+        "{dir}/{seq:03}-{method}-{path_label}",
+        method = method.as_str()
+    );
+    let _ = std::fs::create_dir_all(&folder);
+    let pretty = serde_json::from_slice::<serde_json::Value>(body)
+        .ok()
+        .and_then(|v| serde_json::to_vec_pretty(&v).ok())
+        .unwrap_or_else(|| body.to_vec());
+    let _ = std::fs::write(format!("{folder}/request-body.json"), pretty);
+    let system = serde_json::from_slice::<serde_json::Value>(body)
+        .ok()
+        .and_then(|v| v.get("system").cloned());
+    let heads: Vec<String> = match system {
+        Some(serde_json::Value::Array(blocks)) => blocks
+            .iter()
+            .filter_map(|b| b.get("text").and_then(serde_json::Value::as_str))
+            .map(|t| t.chars().take(160).collect())
+            .collect(),
+        Some(serde_json::Value::String(s)) => vec![s.chars().take(160).collect()],
+        _ => Vec::new(),
+    };
+    let meta = serde_json::json!({
+        "seq": seq,
+        "method": method.as_str(),
+        "path": uri.to_string(),
+        "system_heads": heads,
+        "has_authorization": headers.get("authorization").is_some(),
+    });
+    let _ = std::fs::write(
+        format!("{folder}/meta.json"),
+        serde_json::to_vec_pretty(&meta).unwrap_or_default(),
+    );
 }
 
 #[cfg(test)]

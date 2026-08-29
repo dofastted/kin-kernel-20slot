@@ -1,0 +1,33 @@
+event: message_start
+data: {"message":{"content":[],"id":"msg_job_d17ebb28053f4ff88232a818d35ca30c","model":"claude-sonnet-5","role":"assistant","stop_reason":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
+
+event: content_block_start
+data: {"content_block":{"signature":"","thinking":"","type":"thinking"},"index":0,"type":"content_block_start"}
+
+event: content_block_delta
+data: {"delta":{"estimated_tokens":100,"thinking":"","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"estimated_tokens":null,"thinking":"","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"signature":"EpIDCqgBCBEYAipAxWSdXgzqOdm98uHDPvAj6Hi4VEhj4Ae7LJHru/S0OtQn+da7UpPnkE6IouUsQVv0l5142A+IAXQWHB1qwg38ZjIPY2xhdWRlLXNvbm5ldC01OABCCHRoaW5raW5nWiQ5ZDQwYjU5ZC03ZDliLTQwNDctOTU1Yy1jNDEzZGU2OGY4YWJyEL51lci/j8gfDeI6kglvTn2IAQGoAaCLzNQGsAECEgy7l2jt5uvb+J7rehYaDCO/ej3eBMcciWqAwCIwiTyN527qrBjd+5AiHooC2mzUi2GB2GOLGjxAJ1ZYw7+/QhrfooD8GcGedQppgS3bKpYBaktYH0jftU4ZE+7vRrnpXw0ZIS7Ow9To0W3gVPFzY1dzwXCk8ocU37wLWvzRdTSEACTe95vb1b0GobtWwwnWyTPsIxOHE0yJ70QqoFHuH9ugG9ivaRFjp6HwnGSyK15o3eB1eGYOq5PRa3wrM3t7pAitM6fHDW4SVsIRFHdSFT/2fQyLu/q8IKzNONBoPkj/tmpSMDFFGAE=","type":"signature_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: content_block_start
+data: {"content_block":{"id":"toolu_8f85cc1e2f6d4b0787acd1aed1dbb45d","input":{"city":"东京","unit":"celsius"},"name":"get_weather","type":"tool_use"},"index":1,"type":"content_block_start"}
+
+event: content_block_stop
+data: {"index":1,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"tool_use","stop_sequence":null},"type":"message_delta","usage":{}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+event: kin.done
+data: {"continuation":"cont_0b8515698d08487a8a9075387c5fb339","generation":1,"pid":8778,"session_id":"91a06f32-ff85-4196-b180-fa5635fb3b57","slot":"runtime-00"}
+

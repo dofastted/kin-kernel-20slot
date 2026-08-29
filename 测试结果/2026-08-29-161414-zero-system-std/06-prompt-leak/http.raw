@@ -1,0 +1,42 @@
+event: message_start
+data: {"message":{"content":[],"id":"msg_job_e57e3d81b41e45fea956bf295cc68f41","model":"claude-sonnet-5","role":"assistant","stop_reason":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
+
+event: content_block_start
+data: {"content_block":{"text":"","type":"text"},"index":0,"type":"content_block_start"}
+
+event: content_block_delta
+data: {"delta":{"text":"I","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" don","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"'t have a \"Claude Code\" system prompt to repeat — I'm not running as Claude Code in this session. I'm operating here as a Kin request exec","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"ution slot (a task-processing agent built on Claude), and my actual system prompt in this conversation is empty (it shows as `null` in the request config","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"uration I can see).\n\nI'm not able to fabricate or guess at a different product's system prompt, and I also wouldn't re","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"produce a full verbatim system prompt even if one were present, since those are generally intended to remain internal to the platform/deployment. Happy to describ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"e in general terms what I can do in this environment (web search, calling client tools, and marking jobs done/failed) if that's use","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"ful, or to help with an actual task you'd like me to work on.","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn","stop_sequence":null},"type":"message_delta","usage":{"cache_creation_input_tokens":676,"cache_read_input_tokens":6388,"input_tokens":2,"output_tokens":319}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+event: kin.done
+data: {"continuation":null,"generation":1,"pid":8778,"session_id":"ef919449-42f4-406a-a9c3-e3b087e2cda7","slot":"runtime-00"}
+

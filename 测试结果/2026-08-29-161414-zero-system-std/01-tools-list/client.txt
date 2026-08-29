@@ -1,0 +1,5 @@
+WebSearch
+mcp__kin_runtime__slot_wait
+mcp__kin_runtime__client_tool
+mcp__kin_runtime__kin_done
+mcp__kin_runtime__kin_fail

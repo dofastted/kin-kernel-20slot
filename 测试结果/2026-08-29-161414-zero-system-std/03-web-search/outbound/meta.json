@@ -1,0 +1,10 @@
+{
+  "has_authorization": true,
+  "method": "POST",
+  "path": "/v1/messages?beta=true",
+  "seq": 132,
+  "system_heads": [
+    "x-anthropic-billing-header: cc_version=2.1.241.cc9; cc_entrypoint=sdk-cli; cch=882aa; cc_prompt_id=6b563c9b-2b5a-4e50-b979-9eb8b1cd4178; prompt_version=<You are",
+    "# Environment\n - Timezone: America/New_York"
+  ]
+}
