@@ -1,6 +1,5 @@
 use std::{
     env, fs,
-    os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     process::Stdio,
 };
@@ -9,6 +8,7 @@ use serde_json::json;
 use tokio::process::{Child, Command};
 
 use crate::error::KernelError;
+use crate::provider::cli_auth;
 
 pub struct Supervised {
     pub child: Child,
@@ -26,39 +26,10 @@ pub struct SpawnSpec {
     pub anthropic_base_url: Option<String>,
 }
 
+#[allow(dead_code)]
 pub fn write_oauth_file(dir: &Path) -> Result<(), KernelError> {
-    fs::create_dir_all(dir).map_err(|err| KernelError::Provider(err.to_string()))?;
-    let raw = env::var("KIN_CLAUDE_AI_OAUTH_JSON").unwrap_or_else(|_| {
-        json!({
-            "accessToken": "sk-ant-oat01-demo-local-only",
-            "refreshToken": "sk-ant-ort01-demo-local-only",
-            "expiresAt": 1_893_456_000_000u64,
-            "scopes": [
-                "user:profile",
-                "user:inference",
-                "user:sessions:claude_code",
-                "user:mcp_servers",
-                "user:file_upload"
-            ],
-            "subscriptionType": "max",
-            "rateLimitTier": "default"
-        })
-        .to_string()
-    });
-    let oauth: serde_json::Value =
-        serde_json::from_str(&raw).map_err(|err| KernelError::Provider(err.to_string()))?;
-    let path = dir.join(".credentials.json");
-    fs::write(
-        &path,
-        serde_json::to_vec(&json!({ "claudeAiOauth": oauth })).unwrap(),
-    )
-    .map_err(|err| KernelError::Provider(err.to_string()))?;
-    let mut perms = fs::metadata(&path)
-        .map_err(|err| KernelError::Provider(err.to_string()))?
-        .permissions();
-    perms.set_mode(0o600);
-    fs::set_permissions(&path, perms).map_err(|err| KernelError::Provider(err.to_string()))?;
-    Ok(())
+    let auth = cli_auth::resolve()?;
+    cli_auth::write_credentials(dir, &auth)
 }
 
 pub fn write_mcp_config(dir: &Path, url: &str) -> Result<PathBuf, KernelError> {
@@ -106,7 +77,8 @@ pub fn bootstrap_prompt(n: usize) -> String {
 }
 
 pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
-    write_oauth_file(&spec.session_dir)?;
+    let auth = cli_auth::resolve()?;
+    cli_auth::write_credentials(&spec.session_dir, &auth)?;
     let mcp_path = write_mcp_config(&spec.session_dir, &spec.mcp_url)?;
     let agents = kin_slot_agents();
     let n = spec.slot_count.to_string();
@@ -128,6 +100,7 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
         "--verbose",
         "--include-partial-messages",
         "--forward-subagent-text",
+        "--forward-subagent-partials",
         "--replay-user-messages",
         "--no-session-persistence",
         "--permission-mode",
@@ -150,9 +123,9 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
     .env("CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY", &n)
     .env("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH", "1")
     .env("CLAUDE_CODE_FORWARD_SUBAGENT_TEXT", "1")
-    .env_remove("CLAUDE_CODE_OAUTH_TOKEN")
-    .env_remove("ANTHROPIC_API_KEY")
-    .stdin(Stdio::piped())
+    .env("CLAUDE_CODE_FORWARD_SUBAGENT_PARTIALS", "1");
+    auth.apply_tokio(&mut cmd);
+    cmd.stdin(Stdio::piped())
     .stdout(Stdio::piped())
     .stderr(Stdio::piped())
     .kill_on_drop(true);

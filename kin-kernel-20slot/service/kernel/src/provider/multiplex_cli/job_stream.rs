@@ -1,9 +1,8 @@
 //! Convert CLI NDJSON frames into Anthropic SSE events.
 //!
-//! CLI 2.1.241 does not set `parent_tool_use_id` on `stream_event` (token
-//! stream is root-only). Subagent output arrives as complete `assistant` /
-//! `user` frames. We forward those as stage-level SSE blocks — never by
-//! slicing a finished string into fake tokens.
+//! Native subagent `stream_event` frames (with `parent_tool_use_id`) are
+//! forwarded as-is. Complete `assistant` text blocks are fallback only when
+//! this job never received a CLI text partial — never both.
 
 use std::{
     collections::HashSet,
@@ -23,6 +22,7 @@ pub struct JobStream {
     pub streamed_text: bool,
     pub text: String,
     pub started: bool,
+    saw_cli_partial_text: bool,
 }
 
 impl JobStream {
@@ -39,6 +39,7 @@ impl JobStream {
             streamed_text: false,
             text: String::new(),
             started: false,
+            saw_cli_partial_text: false,
         }
     }
 
@@ -80,6 +81,7 @@ impl JobStream {
                     && !text.is_empty()
                 {
                     self.text.push_str(text);
+                    self.saw_cli_partial_text = true;
                 }
                 vec![event.clone()]
             }
@@ -162,9 +164,11 @@ impl JobStream {
                 if text.is_empty() {
                     return Vec::new();
                 }
-                // streamed_text is set by the runtime once these events are
-                // actually delivered; marking here counted suppressed/deferred
-                // frames as sent and muted the kin_done fallback (empty 200s).
+                // Native CLI partials already went out as stream_event; do not
+                // re-emit the completed assistant frame as one fat text_delta.
+                if self.saw_cli_partial_text || self.streamed_text {
+                    return Vec::new();
+                }
                 self.text.push_str(text);
                 self.emit_text_block(text, block.get("citations"))
             }
@@ -417,6 +421,36 @@ mod tests {
         }));
         assert_eq!(deltas.len(), 1);
         assert_eq!(stream.text, "tok");
+    }
+
+    #[test]
+    fn complete_assistant_text_skipped_after_cli_partials() {
+        let mut stream = JobStream::new();
+        stream.ingest(&json!({
+            "type": "stream_event",
+            "parent_tool_use_id": "toolu_slot",
+            "event": {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": { "type": "text_delta", "text": "hel" }
+            }
+        }));
+        stream.ingest(&json!({
+            "type": "stream_event",
+            "parent_tool_use_id": "toolu_slot",
+            "event": {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": { "type": "text_delta", "text": "lo" }
+            }
+        }));
+        assert_eq!(stream.text, "hello");
+        let complete = stream.ingest(&json!({
+            "type": "assistant",
+            "parent_tool_use_id": "toolu_slot",
+            "message": {"content": [{"type":"text","text":"hello"}]}
+        }));
+        assert!(complete.is_empty(), "must not re-emit whole block after partials");
     }
 
     #[test]

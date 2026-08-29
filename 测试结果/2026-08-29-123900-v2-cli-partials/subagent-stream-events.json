@@ -1,0 +1,356 @@
+[
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "message_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "thinking_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "signature_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_stop",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_stop",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "message_delta",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "message_stop",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01JLRjCSFHhsVUMTwrjEBnyy",
+    "event_type": "message_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01JLRjCSFHhsVUMTwrjEBnyy",
+    "event_type": "content_block_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01JLRjCSFHhsVUMTwrjEBnyy",
+    "event_type": "content_block_delta",
+    "delta_type": "thinking_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01JLRjCSFHhsVUMTwrjEBnyy",
+    "event_type": "content_block_delta",
+    "delta_type": "signature_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01JLRjCSFHhsVUMTwrjEBnyy",
+    "event_type": "content_block_stop",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01JLRjCSFHhsVUMTwrjEBnyy",
+    "event_type": "content_block_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01JLRjCSFHhsVUMTwrjEBnyy",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01JLRjCSFHhsVUMTwrjEBnyy",
+    "event_type": "content_block_stop",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01JLRjCSFHhsVUMTwrjEBnyy",
+    "event_type": "message_delta",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01JLRjCSFHhsVUMTwrjEBnyy",
+    "event_type": "message_stop",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "message_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "thinking_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "signature_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_stop",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_stop",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "message_delta",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "message_stop",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "message_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_start",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_delta",
+    "delta_type": "input_json_delta",
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "content_block_stop",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "message_delta",
+    "delta_type": null,
+    "text_len": 0
+  },
+  {
+    "parent_tool_use_id": "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+    "event_type": "message_stop",
+    "delta_type": null,
+    "text_len": 0
+  }
+]

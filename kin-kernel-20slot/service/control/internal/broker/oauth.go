@@ -307,15 +307,45 @@ func (r *Refresher) Refresh(ctx context.Context, refreshToken, scope, socks5 str
 }
 
 func SpawnEnv(configDir, socks5 string) map[string]string {
+	return SpawnEnvOpts(SpawnOpts{ConfigDir: configDir, Socks5: socks5})
+}
+
+// SpawnOpts builds CLI env. Subscriber oauth leaves CLAUDE_CODE_OAUTH_TOKEN unset.
+// Setup-token (claude setup-token / inference-only) sets it.
+type SpawnOpts struct {
+	ConfigDir  string
+	Socks5     string
+	SetupToken string
+}
+
+func SanitizeSetupToken(raw string) string {
+	s := strings.TrimSpace(raw)
+	idx := strings.Index(s, "sk-ant-oat01-")
+	if idx < 0 {
+		return s
+	}
+	body := s[idx:]
+	end := strings.LastIndex(body, "AA")
+	if end < 0 {
+		return body
+	}
+	return body[:end+2]
+}
+
+func SpawnEnvOpts(opts SpawnOpts) map[string]string {
 	env := map[string]string{
-		"CLAUDE_CONFIG_DIR":      configDir,
+		"CLAUDE_CONFIG_DIR":      opts.ConfigDir,
 		"CLAUDE_CODE_ENTRYPOINT": "cli",
 	}
-	if socks5 != "" {
-		env["ALL_PROXY"] = socks5
-		env["HTTPS_PROXY"] = socks5
-		env["HTTP_PROXY"] = socks5
+	if opts.Socks5 != "" {
+		env["ALL_PROXY"] = opts.Socks5
+		env["HTTPS_PROXY"] = opts.Socks5
+		env["HTTP_PROXY"] = opts.Socks5
 		env["NO_PROXY"] = "127.0.0.1,localhost"
+	}
+	if token := SanitizeSetupToken(opts.SetupToken); token != "" {
+		env["CLAUDE_CODE_OAUTH_TOKEN"] = token
+		env["KIN_CLAUDE_CODE_OAUTH_TOKEN"] = token
 	}
 	return env
 }

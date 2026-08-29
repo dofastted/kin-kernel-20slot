@@ -1,0 +1,115 @@
+{
+  "runtime": "node",
+  "cli": "claude-code-best 2.8.4 dist/cli-node.js",
+  "wrapper": "/tmp/kin-live/cli-node.sh",
+  "node_flag": "--use-env-proxy",
+  "socks_exit": "72.1.181.43",
+  "https_proxy": "http://127.0.0.1:18080",
+  "commit": "3a0091f2c1b65d2b8dab94d81cdccbfcbf51c588",
+  "ready": false,
+  "boot_ready": {
+    "st": 503,
+    "body": {
+      "reason": "boot_failed",
+      "status": "not_ready"
+    },
+    "relay": {
+      "correlate_ambiguous": 0,
+      "correlate_hit": 0,
+      "correlate_miss": 0,
+      "digest_mismatch": 0,
+      "relay_healthy": false,
+      "relay_mode": "authoritative",
+      "tap_dropped": 0,
+      "tap_response_started": 0
+    }
+  },
+  "boot_tee": {
+    "n_frames": 164,
+    "n_stream_event": 152,
+    "n_with_parent": 12,
+    "n_empty_parent": 140,
+    "types": [
+      "assistant",
+      "rate_limit_event",
+      "stream_event",
+      "system",
+      "user"
+    ],
+    "sample_parents": [
+      "toolu_0151j4NGtjGZyrRxArj6h95C",
+      "toolu_01CEASXA6XMtQvYdMkAatTcN"
+    ],
+    "sample_parent_events": [
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop",
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop"
+    ],
+    "runtimes": []
+  },
+  "after_tee": {
+    "n_frames": 164,
+    "n_stream_event": 152,
+    "n_with_parent": 12,
+    "n_empty_parent": 140,
+    "types": [
+      "assistant",
+      "rate_limit_event",
+      "stream_event",
+      "system",
+      "user"
+    ],
+    "sample_parents": [
+      "toolu_0151j4NGtjGZyrRxArj6h95C",
+      "toolu_01CEASXA6XMtQvYdMkAatTcN"
+    ],
+    "sample_parent_events": [
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop",
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop"
+    ],
+    "runtimes": []
+  },
+  "scenes": {},
+  "final_relay": {
+    "correlate_ambiguous": 0,
+    "correlate_hit": 0,
+    "correlate_miss": 0,
+    "digest_mismatch": 0,
+    "relay_healthy": false,
+    "relay_mode": "authoritative",
+    "tap_dropped": 0,
+    "tap_response_started": 0
+  },
+  "stderr_tail": "[ripgrep] no ripgrep available on linux; install ripgrep via apt/pkg/brew\n",
+  "checks": {
+    "boot": false,
+    "runtime_is_node": false,
+    "no_bun_cli": true,
+    "v2_stream_event": true,
+    "v2_parented": true,
+    "fail1_hello": false,
+    "fail1_stream": false,
+    "fail1_para": false,
+    "hello_semantic": false
+  },
+  "ok": false
+}

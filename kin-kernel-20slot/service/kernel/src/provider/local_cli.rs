@@ -11,7 +11,6 @@ use std::{
     collections::{HashMap, HashSet},
     env, fs,
     io::{BufRead, BufReader, Write},
-    os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     process::{Child, ChildStdin, ChildStdout, Command, Stdio},
     sync::{Arc, Mutex},
@@ -31,7 +30,8 @@ use crate::{
         ContentBlock, Message, MessageContent, MessageRequest, MessageResponse, StopReason, Usage,
     },
     provider::{
-        ExecutionContext, Provider, ProviderCapabilities, StreamRx, StreamTx, stream_channel,
+        ExecutionContext, Provider, ProviderCapabilities, StreamRx, StreamTx, cli_auth,
+        stream_channel,
     },
     stream::{StreamAssembler, StreamItem},
 };
@@ -167,7 +167,8 @@ fn run_turn(
         .join(&context.tenant_id)
         .join(&cli_session);
     fs::create_dir_all(&session_dir).map_err(|err| KernelError::Provider(err.to_string()))?;
-    write_oauth_file(&session_dir)?;
+    let auth = cli_auth::resolve()?;
+    cli_auth::write_credentials(&session_dir, &auth)?;
 
     let keep_alive = isolation != IsolationMode::ProcessPerTurn;
     let mut parked = take_session(
@@ -186,6 +187,7 @@ fn run_turn(
                 &cli_session,
                 &request.model,
                 context.worker_generation,
+                &auth,
             )
         },
     )?;
@@ -368,6 +370,7 @@ fn spawn_parked(
     session_id: &str,
     model: &str,
     generation: u64,
+    auth: &cli_auth::ResolvedCliAuth,
 ) -> Result<Parked, KernelError> {
     let mut cmd = if mock {
         let mut cmd = Command::new("node");
@@ -398,14 +401,13 @@ fn spawn_parked(
     if isolation == IsolationMode::Multiplexed {
         args.extend(["--agents", agents]);
     }
+    auth.apply_std(&mut cmd);
     let mut child = cmd
         .args(args)
         .current_dir(session_dir)
         .env("CLAUDE_CONFIG_DIR", session_dir)
         .env("CLAUDE_CODE_ENTRYPOINT", "cli")
         .env("CLAUDE_CODE_DISABLE_TELEMETRY", "1")
-        .env_remove("CLAUDE_CODE_OAUTH_TOKEN")
-        .env_remove("ANTHROPIC_API_KEY")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -489,40 +491,6 @@ fn read_until_boundary(
         }
     }
     Ok(assembler.parts())
-}
-
-fn write_oauth_file(dir: &Path) -> Result<(), KernelError> {
-    let raw = env::var("KIN_CLAUDE_AI_OAUTH_JSON").unwrap_or_else(|_| {
-        json!({
-            "accessToken": "sk-ant-oat01-demo-local-only",
-            "refreshToken": "sk-ant-ort01-demo-local-only",
-            "expiresAt": 1_893_456_000_000u64,
-            "scopes": [
-                "user:profile",
-                "user:inference",
-                "user:sessions:claude_code",
-                "user:mcp_servers",
-                "user:file_upload"
-            ],
-            "subscriptionType": "max",
-            "rateLimitTier": "default"
-        })
-        .to_string()
-    });
-    let oauth: Value =
-        serde_json::from_str(&raw).map_err(|err| KernelError::Provider(err.to_string()))?;
-    let path = dir.join(".credentials.json");
-    fs::write(
-        &path,
-        serde_json::to_vec(&json!({ "claudeAiOauth": oauth })).unwrap(),
-    )
-    .map_err(|err| KernelError::Provider(err.to_string()))?;
-    let mut perms = fs::metadata(&path)
-        .map_err(|err| KernelError::Provider(err.to_string()))?
-        .permissions();
-    perms.set_mode(0o600);
-    fs::set_permissions(&path, perms).map_err(|err| KernelError::Provider(err.to_string()))?;
-    Ok(())
 }
 
 fn read_line(stdout: &mut BufReader<ChildStdout>) -> Result<Option<Value>, KernelError> {

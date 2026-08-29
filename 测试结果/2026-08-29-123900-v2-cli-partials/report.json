@@ -1,0 +1,118 @@
+{
+  "ready": true,
+  "boot_tee": {
+    "n_frames": 209,
+    "n_stream_event": 199,
+    "n_with_parent": 10,
+    "n_empty_parent": 189,
+    "types": [
+      "assistant",
+      "rate_limit_event",
+      "stream_event",
+      "system",
+      "user"
+    ],
+    "sample_parents": [
+      "toolu_01R6bw9bfkK2FRo9qKr8P9Ui"
+    ],
+    "sample_events": [
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_stop",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop"
+    ]
+  },
+  "after_tee": {
+    "n_frames": 258,
+    "n_stream_event": 245,
+    "n_with_parent": 48,
+    "n_empty_parent": 197,
+    "types": [
+      "assistant",
+      "rate_limit_event",
+      "stream_event",
+      "system",
+      "user"
+    ],
+    "sample_parents": [
+      "toolu_01R6bw9bfkK2FRo9qKr8P9Ui",
+      "toolu_01JLRjCSFHhsVUMTwrjEBnyy"
+    ],
+    "sample_events": [
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_stop",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop",
+      "message_start",
+      "content_block_start"
+    ]
+  },
+  "s1": {
+    "status": 200,
+    "n_text_delta": 9,
+    "max_delta": 11,
+    "first_token_ms": 5729,
+    "types": [
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_stop",
+      "content_block_delta",
+      "content_block_stop",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta"
+    ],
+    "text": "你好！欢迎来到高速公路收费站，请出示您的通行卡或者告诉我您的车牌号，准备好通行费就可以了。请问您是从哪个入口上高速的呀？",
+    "error": null
+  },
+  "stderr_tail": "[ripgrep] no ripgrep available on linux; install ripgrep via apt/pkg/brew\n",
+  "first_acceptance": {
+    "multiple_stream_event": true,
+    "parent_nonempty": false
+  },
+  "ok": false
+}

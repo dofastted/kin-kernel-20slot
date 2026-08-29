@@ -15,7 +15,7 @@ Rust 数据面 + Go 控制面。对照现网：`portunex-server` 的粘性/P2C �
 | `scripts/` | smoke、静态校验、HTTP CONNECT → SOCKS5 桥 |
 | `docs/` | 架构与运维 |
 
-默认 `KIN_PROVIDER=mock`，不碰真实凭据。`local_cli` 写隔离 `CLAUDE_CONFIG_DIR/.credentials.json`（`claudeAiOauth`），不设 `CLAUDE_CODE_OAUTH_TOKEN`。Go 对 sessionKey 换票固定 410。
+默认 `KIN_PROVIDER=mock`，不碰真实凭据。`local_cli` 订阅票写隔离 `.credentials.json`（`claudeAiOauth`）；setup-token 另走 `CLAUDE_CODE_OAUTH_TOKEN`。Go 对 sessionKey 换票固定 410。
 
 ```mermaid
 flowchart TB
@@ -54,6 +54,8 @@ export KIN_CLAUDE_BIN=/path/to/claude
 export KIN_SOCKS5='socks5h://user:pass@host:port'
 export KIN_HTTPS_PROXY=http://127.0.0.1:18080
 export KIN_CLAUDE_AI_OAUTH_JSON="$(cat oauth.json)"  # claudeAiOauth blob
+# 或者 setup-token（inference-only，不能 refresh）：
+# export KIN_CLAUDE_CODE_OAUTH_TOKEN='sk-ant-oat01-...AA'
 python3 scripts/http_to_socks.py &
 cargo run --manifest-path kernel/Cargo.toml
 ```

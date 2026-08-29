@@ -18,8 +18,10 @@
 
 本地 Claude Code 转发把换票拆成两段，都不碰 cookie：
 
-1. **凭据面**：操作员跑官方 `claude auth login` / `/login`。secret manager 存的是 `claudeAiOauth` 整包（accessToken + refreshToken + expiresAt + scopes），不是 `claude setup-token`。setup-token / `CLAUDE_CODE_OAUTH_TOKEN` 在源码里被做成 inference-only：`refreshToken=null`、`scopes=['user:inference']`，不能当订阅 CLI 用。
-   Kernel 领取 lease 后写入隔离目录 `CLAUDE_CONFIG_DIR/.credentials.json`（0600），**不**设置 `CLAUDE_CODE_OAUTH_TOKEN`，**不**加 `--bare`。子进程自己 refresh。换票（`refresh_token`）和用票（CLI 出站）绑同一条 SOCKS5。`POST /api/v1/credentials/exchange` 带 `session_key` 固定 410：官方 authorize 是浏览器打开 `claude.com/cai/oauth/authorize`，不是 Cookie POST。
+1. **凭据面**：两条官方 CLI 票都可以交给 kernel，**不要混用**。
+   - **订阅 OAuth**（`claude auth login` / `/login`）：secret 是 `claudeAiOauth` 整包（accessToken + refreshToken + expiresAt + 全 scope）。Kernel 写隔离 `CLAUDE_CONFIG_DIR/.credentials.json`（0600），**不**设 `CLAUDE_CODE_OAUTH_TOKEN`，子进程自己 refresh。
+   - **setup-token**（`claude setup-token`）：inference-only，`refreshToken` 为空，`scopes=['user:inference']`。Kernel 注入 `CLAUDE_CODE_OAUTH_TOKEN`（CLI 官方用法）。可经 `KIN_CLAUDE_CODE_OAUTH_TOKEN`，或 `KIN_CLAUDE_AI_OAUTH_JSON` 里 `kind=setup-token` / 空 refresh / sub2api `type=setup-token` 导出。导出串若粘了 “Store this token securely” UI 文案，kernel 会裁到 `…AA`。setup-token **不能 refresh**、没有 `user:sessions:claude_code` / `user:mcp_servers` / `user:file_upload`；本地 `--mcp-config` HTTP MCP 仍可用，Remote Control 不可用。
+   - **不**加 `--bare`（那是 API key）。换票（仅订阅票的 `refresh_token`）和用票绑同一条 SOCKS5。`POST /api/v1/credentials/exchange` 带 `session_key` 固定 410。
 2. **请求面**：`x-kin-continuation` 把下一跳 HTTP 绑到同一 pid 的 stdin（mock）或 MCP `result.json`（真 CLI）。进程 SIGTERM 后 generation +1，continuation 失效为 `continuation_lost`。
 
 `--bare` 是官方脚本路径，只吃 API key。订阅 OAuth 只允许本机/单操作员的 setup-token，不把一个 Pro 座卖成多租户 API。

@@ -16,5 +16,5 @@
 ## 使用方式变更
 
 1. 导出 type=`setup-token` 时走 env `CLAUDE_CODE_OAUTH_TOKEN`，不是 `.credentials.json` + refresh。
-2. Kin supervisor：setup-token 注入 `CLAUDE_CODE_OAUTH_TOKEN`；订阅票只写 credentials 并 env_remove。
-3. 本地 `--mcp-config` HTTP MCP 仍可用；2-slot multiplex 已在 `*-142605-v2-cli-node` 跑通。
+2. Kin supervisor 改为：若 `KIN_CLAUDE_CODE_OAUTH_TOKEN` 非空则注入该 env，否则继续 `env_remove`（完整订阅票）。
+3. `cli-node.sh` 同步注入。MCP / `user:sessions:claude_code` 此票没有，不能当 20-slot multiplex 用。

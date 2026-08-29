@@ -473,7 +473,7 @@ impl Runtime {
             }
         });
         tracing::info!(pid = supervised.pid, "claude supervisor alive");
-        let wait = Duration::from_secs((45 + 8 * self.cfg.slot_count as u64).min(240));
+        let wait = Duration::from_secs((120 + 8 * self.cfg.slot_count as u64).min(240));
         bootstrap::wait_ready(self, self.cfg.slot_count, wait).await
     }
 
