@@ -1,29 +1,16 @@
-export const KIN_PROTOCOL_VERSION = 1
+export const KIN_PROTOCOL_VERSION = 2
 export const KIN_CAPABILITIES = [
   'multi_slot',
-  'tool_parking',
   'native_sse',
+  'stateless',
 ] as const
 
 export type KinStdin =
-  | {
-      type: 'kin_hello'
-      slots: number
-      system_layout: string
-      timezone: string
-    }
   | {
       type: 'kin_job_start'
       job_id: string
       slot_id: string
       request: Record<string, unknown>
-    }
-  | {
-      type: 'kin_tool_result'
-      job_id: string
-      slot_id: string
-      tool_use_id: string
-      content: unknown
     }
   | { type: 'kin_cancel'; job_id: string; slot_id?: string }
 
@@ -35,6 +22,7 @@ export type KinStdout =
       system_layout: string
       timezone: string
       capabilities: string[]
+      config_hash?: string
     }
   | { type: 'kin_slot_ready'; slot_id: string }
   | {
@@ -42,12 +30,6 @@ export type KinStdout =
       job_id: string
       slot_id: string
       event: unknown
-    }
-  | {
-      type: 'kin_job_parked'
-      job_id: string
-      slot_id: string
-      tool_use_ids: string[]
     }
   | {
       type: 'kin_job_done'
@@ -76,7 +58,10 @@ let writeChain: Promise<void> = Promise.resolve()
 
 export function writeStdout(frame: KinStdout): Promise<void> {
   const line = JSON.stringify(frame) + '\n'
-  const next = writeChain.then(() => writeLine(line), () => writeLine(line))
+  const next = writeChain.then(
+    () => writeLine(line),
+    () => writeLine(line),
+  )
   writeChain = next.then(
     () => undefined,
     () => undefined,

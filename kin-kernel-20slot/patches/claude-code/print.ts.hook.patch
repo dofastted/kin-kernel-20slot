@@ -1,23 +1,20 @@
+diff --git a/src/cli/print.ts b/src/cli/print.ts
+index 84b62787..6e943772 100644
 --- a/src/cli/print.ts
 +++ b/src/cli/print.ts
-@@ -496,6 +496,26 @@ export async function runHeadless(
+@@ -494,6 +494,18 @@ export async function runHeadless(
+     setSDKStatus?: (status: SDKStatus) => void
    },
  ): Promise<void> {
-+  // Native slot host: exclusive stdin/stdout kin_* protocol. Enter before Grove
-+  // / structuredIO so a live kernel pipe is never treated as a -p prompt.
++  // Native messages slot host: exclusive stdin/stdout kin_* protocol. Enter
++  // before Grove / structuredIO so a live kernel pipe is never treated as a
++  // -p prompt. CLI holds no tools/agents/canUseTool — the caller executes
++  // every tool_use itself (see .trellis/tasks/08-30-native-slot-stateless).
 +  if (process.env.CLAUDE_CODE_KIN_NATIVE_SLOTS) {
-+    const { runNativeSlotLoop } = await import('../kin/nativeSlotRunner.js')
-+    const { getCwd } = await import('../utils/cwd.js')
-+    await runNativeSlotLoop({
-+      getAppState,
-+      setAppState,
-+      commands,
-+      tools,
-+      agents,
-+      cwd: getCwd,
-+      canUseTool: async () => ({ behavior: 'allow' }),
-+      options,
-+    })
++    const { runNativeMessagesLoop } = await import(
++      '../kin/nativeMessagesRunner.js'
++    )
++    await runNativeMessagesLoop({ options })
 +    return
 +  }
 +

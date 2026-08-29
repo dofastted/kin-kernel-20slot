@@ -64,7 +64,9 @@ export function layoutSystemBlocks(opts: {
   return blocks
 }
 
-export function leftoverFromSystemPrompt(systemPrompt: readonly string[]): string | undefined {
+export function leftoverFromSystemPrompt(
+  systemPrompt: readonly string[],
+): string | undefined {
   const parts: string[] = []
   for (const block of systemPrompt) {
     const text = (block || '').trim()
@@ -72,7 +74,8 @@ export function leftoverFromSystemPrompt(systemPrompt: readonly string[]): strin
     if (text.startsWith('x-anthropic-billing-header')) continue
     if (text === IDENTITY) continue
     if (text.startsWith('# Environment')) continue
-    if (text.includes('mcp__kin_runtime__') || text.includes('persistent Kin')) continue
+    if (text.includes('mcp__kin_runtime__') || text.includes('persistent Kin'))
+      continue
     parts.push(text)
   }
   return parts.length ? parts.join('\n\n') : undefined

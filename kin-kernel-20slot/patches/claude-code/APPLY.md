@@ -1,4 +1,4 @@
-# Native 0-inject construction (P0–P3)
+# Native native_messages construction (protocol v2, stateless)
 
 Baseline: `claude-code-best/claude-code` `77a7934`.
 
@@ -7,7 +7,7 @@ Baseline: `claude-code-best/claude-code` `77a7934`.
 ```
 src/kin/systemLayout.ts
 src/kin/stdioProtocol.ts
-src/kin/nativeSlotRunner.ts
+src/kin/nativeMessagesRunner.ts
 ```
 
 into the CLI tree. Apply:
@@ -26,7 +26,7 @@ Do **not** use the old `kinEnvelope.ts` billing forge (`cch` / `2.1.241.fp`). No
 ```
 CLAUDE_CODE_SYSTEM_LAYOUT=zero|identity
 CLAUDE_CODE_TIMEZONE=America/New_York
-CLAUDE_CODE_KIN_NATIVE_SLOTS=1    # P3 host loop; skip structuredIO
+CLAUDE_CODE_KIN_NATIVE_SLOTS=<n>    # 1-20; enables native_messages host loop, skips structuredIO + MCP connect
 ```
 
 ## Kernel
@@ -39,15 +39,70 @@ KIN_SLOT_TZ=America/New_York
 KIN_SOCKS5=...
 ```
 
-Native spawn must **not** write `mcp.json` and must **not** send `kin_hello` on boot.
+Native spawn must **not** write `mcp.json` and must **not** send `kin_hello` on boot —
+protocol v2 has no `kin_hello` handshake at all (see below).
+
 Official `-p` peeks stdin and, after the first byte, waits for EOF forever —
-a live job pipe would hang before `runHeadless` / `kin_slot_ready`.
+a live job pipe would hang before `runHeadless` / `kin_slot_ready`. This is why
+`getInputPrompt()` short-circuits under `CLAUDE_CODE_KIN_NATIVE_SLOTS`.
 
-The stdin reader must **not** `await` a job. Each slot is an independent
-state machine (`idle|running|parked`) with its own QueryEngine and cache.
-`kin_host_ready` is the capability handshake (`multi_slot`, `tool_parking`,
-`native_sse`). Recycle a slot only on `kin_job_done` / `kin_job_error` /
-`kin_cancel_ack` — never on `kin_job_parked`.
+## Architecture: stateless native_messages
 
-Default `KIN_EXECUTION_MODE` remains `mcp_slot` until 2-slot overlap,
-tool continuation, and 测试标准 01–07 pass on native.
+The CLI holds **no tools, no agents, no canUseTool, no cross-job state**. Each
+slot is a plain `{ id, phase, jobId?, abort?, task? }` record. A job is exactly
+one `queryKinMessagesWithStreaming()` call: the caller (Rust) supplies the full
+`messages` / `system` / `tools` / `tool_choice` / `thinking` / sampling params
+per request, and the CLI routes them through the real `queryModel` pipeline
+with `tools: []` + `extraToolSchemas` so it never executes a tool itself. Tool
+execution, continuation across turns, and cancellation bookkeeping all live in
+Rust (`.trellis/tasks/08-30-native-slot-stateless`).
+
+Slot state machine is **three states**, not the old four:
+
+```
+idle → running → cancelling → idle
+```
+
+There is no `parked` state — nothing in native_messages waits on tool results
+inside the CLI, because the CLI never runs tools. Cancel follows a strict
+7-step protocol: receive `kin_cancel` → validate `job_id`+`slot_id` →
+`AbortController.abort()` → await generator exit → release HTTP body → set
+slot idle → send `kin_cancel_ack`. Rust may only re-enqueue that slot after
+step 7 (i.e. after observing `kin_cancel_ack`).
+
+The stdin reader must **not** `await` a job — `startJob` fires the job as a
+detached task per slot so multiple slots overlap concurrently.
+
+## Protocol v2 (`stdioProtocol.ts`)
+
+`KIN_PROTOCOL_VERSION = 2`. No `kin_hello`, no `kin_tool_result`, no
+`kin_job_parked` — those are protocol v1 relics from the old `mcp_slot` /
+`nativeSlotRunner.ts` design and do not exist in v2.
+
+```
+KinStdin  = kin_job_start | kin_cancel
+KinStdout = kin_host_ready | kin_slot_ready | kin_stream_event
+          | kin_job_done | kin_job_error | kin_cancel_ack
+```
+
+`kin_host_ready` is the boot capability handshake:
+`capabilities: ['multi_slot', 'native_sse', 'stateless']`, plus an optional
+`config_hash` field (Go console computes and compares this against
+`RuntimeProfile` to detect drift; see design.md §6 — not yet implemented on
+the Go side as of this writing).
+
+Recycle a slot only on `kin_job_done` / `kin_job_error` / `kin_cancel_ack` —
+there is no `kin_job_parked` to special-case anymore.
+
+## Status
+
+CLI-side (this directory) is implemented and verified: `bun run typecheck`
+clean, `bun run check` (biome) clean, `bun test` shows only pre-existing
+unrelated failures (MACRO bundling macro, WorkflowsPanel test key warning,
+deep-link protocol test — none touch native_messages code).
+
+Rust-side (`execution_mode.rs`, `native_protocol.rs`, `mod.rs`,
+resume/continuation redesign) and Go console (`config_hash` /
+`RuntimeProfile`) are **not started**. Default `KIN_EXECUTION_MODE` remains
+`mcp_slot` until Rust S2, Go S4, and functional acceptance (AC1–AC15, S3)
+all pass on native.
