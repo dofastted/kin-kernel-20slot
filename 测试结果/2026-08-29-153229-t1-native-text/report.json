@@ -1,0 +1,154 @@
+{
+  "stamp": "2026-08-29-153229",
+  "goal": "T1 native parented text_delta after prompt change",
+  "cli": "claude-code-best dist/cli-node.js node24",
+  "socks_exit": "72.1.181.43",
+  "slots": 2,
+  "auth": "setup-token",
+  "ready": true,
+  "boot_ready": {
+    "st": 200,
+    "body": {
+      "status": "ready"
+    },
+    "relay": {
+      "correlate_ambiguous": 0,
+      "correlate_hit": 0,
+      "correlate_miss": 11,
+      "digest_mismatch": 0,
+      "relay_healthy": true,
+      "relay_mode": "authoritative",
+      "tap_dropped": 0,
+      "tap_response_started": 0
+    }
+  },
+  "boot": {
+    "n_frames": 136,
+    "n_stream_event": 126,
+    "n_parented": 7,
+    "n_root": 119,
+    "n_parents": 2,
+    "parents": [
+      "toolu_019ygzjbsZQ1DonCWKgawwho",
+      "toolu_01JBsX8B7iBKEciQdQA8khAo"
+    ],
+    "parented_text_delta": 0,
+    "parented_text_concat": "",
+    "parented_text_lens": [],
+    "parented_input_json_delta": 1,
+    "kin_done_starts": 0,
+    "slot_wait_starts": 1,
+    "kin_done_input_has_text_field": false,
+    "kin_done_text_preview": "",
+    "slot_reentered_wait": false,
+    "internal_tool_order": [
+      "mcp__kin_runtime__slot_wait"
+    ],
+    "parented_start_names": [
+      "mcp__kin_runtime__slot_wait"
+    ],
+    "root_text_delta": 0,
+    "root_text_concat": "",
+    "progress_message": 0
+  },
+  "after": {
+    "n_frames": 200,
+    "n_stream_event": 186,
+    "n_parented": 59,
+    "n_root": 127,
+    "n_parents": 2,
+    "parents": [
+      "toolu_019ygzjbsZQ1DonCWKgawwho",
+      "toolu_01JBsX8B7iBKEciQdQA8khAo"
+    ],
+    "parented_text_delta": 4,
+    "parented_text_concat": "observe-helloThe quick brown fox jumps over the lazy dog while counting one two three four five six seven eight nine ten.",
+    "parented_text_lens": [
+      6,
+      7,
+      3,
+      105
+    ],
+    "parented_input_json_delta": 30,
+    "kin_done_starts": 2,
+    "slot_wait_starts": 2,
+    "kin_done_input_has_text_field": false,
+    "kin_done_text_preview": "",
+    "slot_reentered_wait": false,
+    "internal_tool_order": [
+      "mcp__kin_runtime__slot_wait",
+      "mcp__kin_runtime__slot_wait",
+      "mcp__kin_runtime__kin_done",
+      "mcp__kin_runtime__kin_done"
+    ],
+    "parented_start_names": [
+      "mcp__kin_runtime__slot_wait",
+      "thinking",
+      "mcp__kin_runtime__slot_wait",
+      "text",
+      "mcp__kin_runtime__kin_done",
+      "text",
+      "mcp__kin_runtime__kin_done"
+    ],
+    "root_text_delta": 3,
+    "root_text_concat": "Two kin-slot agents (slot-1, slot-2) are now running in the background. I'll spawn a replacement for either one as soon as it returns, keeping 2 slots alive at all times.",
+    "progress_message": 0
+  },
+  "scenes": {
+    "hello": {
+      "status": 200,
+      "elapsed": 8.745,
+      "n_text_delta": 2,
+      "max_delta": 7,
+      "delta_lens": [
+        6,
+        7
+      ],
+      "first_token_ms": 8004,
+      "text": "observe-hello",
+      "error": null,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ]
+    },
+    "fox": {
+      "status": 200,
+      "elapsed": 2.321,
+      "n_text_delta": 2,
+      "max_delta": 105,
+      "delta_lens": [
+        3,
+        105
+      ],
+      "first_token_ms": 1342,
+      "text": "The quick brown fox jumps over the lazy dog while counting one two three four five six seven eight nine ten.",
+      "error": null,
+      "types": [
+        "message_start",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_delta",
+        "content_block_stop",
+        "message_delta",
+        "message_stop",
+        "kin.done"
+      ]
+    }
+  },
+  "checks": {
+    "boot": true,
+    "parented_text_delta_ge3": true,
+    "kin_done_called": true,
+    "slot_reentered_wait": false,
+    "input_json_still_present": true,
+    "kin_done_text_not_answer": true
+  },
+  "t1_ok": false
+}

@@ -1,0 +1,16 @@
+{
+  "parented_text_delta": 4,
+  "parented_text_lens": [6, 7, 3, 105],
+  "parented_text_concat": "observe-helloThe quick brown fox jumps over the lazy dog while counting one two three four five six seven eight nine ten.",
+  "kin_done_starts": 2,
+  "kin_done_input_has_text_field": false,
+  "parented_input_json_delta": 30,
+  "slot_wait_starts": 2,
+  "n_parents": 2,
+  "progress_message": 0,
+  "stdout_bytes": 65536,
+  "stdout_truncated": true,
+  "shape": [
+    "text_delta then kin_done(job_id, stop_reason) on same parent"
+  ]
+}

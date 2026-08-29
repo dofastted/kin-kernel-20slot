@@ -2,6 +2,15 @@
 
 按日期时间分目录。
 
+## `*-153229-t1-native-text` — prompt 修复后首次原生 parented `text_delta`
+
+`b9efab7` kin-slot prompt：先普通 assistant text，再 metadata-only `kin_done`。Node 24 + setup-token + 2-slot。
+
+- parented `text_delta` **4**（hello 2 + fox 2），正文完整
+- 同 response 内 `kin_done` 只有 `job_id` / `stop_reason`，**无 `text` 字段**
+- stdout tee 整 64KiB 截断，slot 再入 `slot_wait` 未采到
+- `verdict.md` / `report.json` / `stream-analysis.json` / `cli-node.stdout.ndjson` / `kernel.log`
+
 ## `*-142605-v2-cli-node` — Node + setup-token，V2 parented 流 × Kin（2026-08-29）
 
 patched `cli-node.js`（Node 24.20，非 bun）+ setup-token + 2-slot authoritative。
