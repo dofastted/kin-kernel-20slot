@@ -1,8 +1,10 @@
 //! Convert CLI NDJSON frames into Anthropic SSE events.
 //!
-//! Native subagent `stream_event` frames (with `parent_tool_use_id`) are
-//! forwarded as-is. Complete `assistant` text blocks are fallback only when
-//! this job never received a CLI text partial — never both.
+//! Native subagent `stream_event` frames (with `parent_tool_use_id`) go
+//! through `EventFilter` (CLI policy: swallow internal MCP, remap indexes,
+//! no kin_done text synthesis). Complete `assistant` text blocks are
+//! fallback only after this job actually delivered a text partial to the
+//! client (`streamed_text`) — ingesting a CLI event is not delivery.
 
 use std::{
     collections::HashSet,
@@ -14,15 +16,17 @@ use std::{
 
 use serde_json::{Value, json};
 
+use super::relay::sse_tap::{EventFilter, FilterPolicy, KIN_SYNTH_MARKER};
+
 pub struct JobStream {
     index_allocator: Arc<AtomicUsize>,
+    filter: EventFilter,
     seen: HashSet<String>,
     internal_ids: HashSet<String>,
     web_search_ids: HashSet<String>,
     pub streamed_text: bool,
     pub text: String,
     pub started: bool,
-    saw_cli_partial_text: bool,
 }
 
 impl JobStream {
@@ -32,6 +36,7 @@ impl JobStream {
 
     pub fn with_index_allocator(index_allocator: Arc<AtomicUsize>) -> Self {
         Self {
+            filter: EventFilter::with_policy(Arc::clone(&index_allocator), FilterPolicy::CLI),
             index_allocator,
             seen: HashSet::new(),
             internal_ids: HashSet::new(),
@@ -39,7 +44,6 @@ impl JobStream {
             streamed_text: false,
             text: String::new(),
             started: false,
-            saw_cli_partial_text: false,
         }
     }
 
@@ -72,21 +76,19 @@ impl JobStream {
         let Some(event) = event else {
             return Vec::new();
         };
-        // Outer message envelope is owned by HTTP (we already sent message_start).
-        match event.get("type").and_then(Value::as_str) {
-            Some("message_start" | "message_stop" | "message_delta" | "ping") => Vec::new(),
-            Some("content_block_delta") => {
-                if event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta")
-                    && let Some(text) = event.pointer("/delta/text").and_then(Value::as_str)
-                    && !text.is_empty()
-                {
-                    self.text.push_str(text);
-                    self.saw_cli_partial_text = true;
-                }
-                vec![event.clone()]
+        let out = self.filter.apply(event.clone());
+        for item in &out {
+            if item.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta")
+                && let Some(text) = item.pointer("/delta/text").and_then(Value::as_str)
+                && !text.is_empty()
+            {
+                self.text.push_str(text);
             }
-            _ => vec![event.clone()],
+            if let Some(block) = item.get("content_block") {
+                let _ = self.seen.insert(fingerprint(block));
+            }
         }
+        out
     }
 
     fn ingest_blocks(&mut self, content: Option<&Value>) -> Vec<Value> {
@@ -164,12 +166,15 @@ impl JobStream {
                 if text.is_empty() {
                     return Vec::new();
                 }
-                // Native CLI partials already went out as stream_event; do not
-                // re-emit the completed assistant frame as one fat text_delta.
-                if self.saw_cli_partial_text || self.streamed_text {
+                // Native CLI partials that actually reached the client already
+                // set streamed_text (via mark_delivered_text). Ingesting a
+                // stdout partial is not delivery — do not skip on that.
+                if self.streamed_text {
                     return Vec::new();
                 }
-                self.text.push_str(text);
+                if self.text.is_empty() {
+                    self.text.push_str(text);
+                }
                 self.emit_text_block(text, block.get("citations"))
             }
             "thinking" => {
@@ -271,7 +276,7 @@ impl JobStream {
         let mut event = event;
         // Internal marker for kin_done-synthesized events; never client-visible.
         if let Value::Object(map) = &mut event {
-            map.remove(super::relay::sse_tap::KIN_SYNTH_MARKER);
+            map.remove(KIN_SYNTH_MARKER);
         }
         if let Some(block) = event.get("content_block") {
             let _ = self.seen.insert(fingerprint(block));
@@ -420,12 +425,22 @@ mod tests {
             }
         }));
         assert_eq!(deltas.len(), 1);
+        assert!(!stream.streamed_text, "ingest is not delivery");
         assert_eq!(stream.text, "tok");
     }
 
     #[test]
-    fn complete_assistant_text_skipped_after_cli_partials() {
+    fn complete_assistant_text_skipped_only_after_delivery() {
         let mut stream = JobStream::new();
+        stream.ingest(&json!({
+            "type": "stream_event",
+            "parent_tool_use_id": "toolu_slot",
+            "event": {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": { "type": "text", "text": "" }
+            }
+        }));
         stream.ingest(&json!({
             "type": "stream_event",
             "parent_tool_use_id": "toolu_slot",
@@ -445,12 +460,97 @@ mod tests {
             }
         }));
         assert_eq!(stream.text, "hello");
-        let complete = stream.ingest(&json!({
+        let before_delivery = stream.ingest(&json!({
             "type": "assistant",
             "parent_tool_use_id": "toolu_slot",
             "message": {"content": [{"type":"text","text":"hello"}]}
         }));
-        assert!(complete.is_empty(), "must not re-emit whole block after partials");
+        assert!(
+            !before_delivery.is_empty(),
+            "ingested partials that were not delivered must not suppress the complete frame"
+        );
+        stream.streamed_text = true;
+        let after_delivery = stream.ingest(&json!({
+            "type": "assistant",
+            "parent_tool_use_id": "toolu_slot",
+            "message": {"content": [{"type":"text","text":"hello"}]}
+        }));
+        assert!(
+            after_delivery.is_empty(),
+            "must not re-emit whole block after delivered partials"
+        );
+    }
+
+    #[test]
+    fn stream_event_swallows_internal_mcp_partials() {
+        let mut stream = JobStream::new();
+        let start = stream.ingest(&json!({
+            "type": "stream_event",
+            "parent_tool_use_id": "toolu_slot",
+            "event": {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                    "type": "tool_use",
+                    "id": "toolu_done",
+                    "name": "mcp__kin_runtime__kin_done",
+                    "input": {}
+                }
+            }
+        }));
+        assert!(start.is_empty());
+        let delta = stream.ingest(&json!({
+            "type": "stream_event",
+            "parent_tool_use_id": "toolu_slot",
+            "event": {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": { "type": "input_json_delta", "partial_json": "{\"text\":\"secret\"}" }
+            }
+        }));
+        assert!(delta.is_empty(), "kin_done input_json must not leak");
+        assert!(stream.text.is_empty());
+        let stop = stream.ingest(&json!({
+            "type": "stream_event",
+            "parent_tool_use_id": "toolu_slot",
+            "event": { "type": "content_block_stop", "index": 0 }
+        }));
+        assert!(stop.is_empty());
+    }
+
+    #[test]
+    fn stream_event_remaps_indexes_across_internal_responses() {
+        let mut stream = JobStream::new();
+        stream.ingest(&json!({
+            "type": "stream_event",
+            "event": { "type": "message_start", "message": { "id": "r1" } }
+        }));
+        let first = stream.ingest(&json!({
+            "type": "stream_event",
+            "event": {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": { "type": "text", "text": "" }
+            }
+        }));
+        assert_eq!(first[0]["index"], 0);
+        stream.ingest(&json!({
+            "type": "stream_event",
+            "event": { "type": "message_stop" }
+        }));
+        stream.ingest(&json!({
+            "type": "stream_event",
+            "event": { "type": "message_start", "message": { "id": "r2" } }
+        }));
+        let second = stream.ingest(&json!({
+            "type": "stream_event",
+            "event": {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": { "type": "thinking", "thinking": "" }
+            }
+        }));
+        assert_eq!(second[0]["index"], 1, "second response index 0 must continue the job allocator");
     }
 
     #[test]

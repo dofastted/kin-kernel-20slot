@@ -370,6 +370,29 @@ impl SseDecoder {
 /// that argument's `text` field as synthesized text_delta events.
 const KIN_DONE_TOOL: &str = "mcp__kin_runtime__kin_done";
 
+/// Per-source policy for `EventFilter`. Relay keeps kin_done text synthesis
+/// as a legacy fallback; CLI stdout partials must never invent a body from
+/// internal tool arguments.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FilterPolicy {
+    pub synthesize_kin_done_text: bool,
+}
+
+impl FilterPolicy {
+    pub const RELAY: Self = Self {
+        synthesize_kin_done_text: true,
+    };
+    pub const CLI: Self = Self {
+        synthesize_kin_done_text: false,
+    };
+}
+
+impl Default for FilterPolicy {
+    fn default() -> Self {
+        Self::RELAY
+    }
+}
+
 /// Top-level key marking events synthesized from kin_done arguments. The
 /// arbiter uses it to drop a synthesized duplicate when real upstream text
 /// already streamed this turn; JobStream strips it before the client.
@@ -377,6 +400,7 @@ pub(crate) const KIN_SYNTH_MARKER: &str = "kin_synth";
 
 #[derive(Default)]
 pub struct EventFilter {
+    policy: FilterPolicy,
     index_allocator: Arc<AtomicUsize>,
     index_map: HashMap<u64, u64>,
     swallowed: Vec<u64>,
@@ -384,11 +408,8 @@ pub struct EventFilter {
     response_usage: Map<String, Value>,
     emitted_response_usage: Map<String, Value>,
     pending_usage_delta: Option<Value>,
-    /// kin-slot agents deliver the answer as the kin_done tool call's `text`
-    /// argument (streamed via input_json_delta), not as text_delta — the
-    /// prompt tells them "do not send the full answer as text". Synthesize
-    /// real text_delta events from that argument stream so authoritative
-    /// mode still gets per-token output.
+    /// Legacy: turn kin_done.input_json_delta `text` into synthesized
+    /// text_delta. Off for CLI partials — native assistant text is the body.
     kin_done: Option<KinDoneSynth>,
     saw_real_text: bool,
 }
@@ -401,7 +422,12 @@ struct KinDoneSynth {
 
 impl EventFilter {
     pub fn new(index_allocator: Arc<AtomicUsize>) -> Self {
+        Self::with_policy(index_allocator, FilterPolicy::RELAY)
+    }
+
+    pub fn with_policy(index_allocator: Arc<AtomicUsize>, policy: FilterPolicy) -> Self {
         Self {
+            policy,
             index_allocator,
             index_map: HashMap::new(),
             swallowed: Vec::new(),
@@ -421,6 +447,12 @@ impl EventFilter {
     pub fn apply(&mut self, mut event: Value) -> Vec<Value> {
         match event.get("type").and_then(Value::as_str) {
             Some("message_start") => {
+                // Each internal Messages response restarts content indexes at 0.
+                // Keep the job-level allocator; drop the response-local map.
+                self.index_map.clear();
+                self.swallowed.clear();
+                self.kin_done = None;
+                self.saw_real_text = false;
                 if let Some(usage) = event.pointer("/message/usage").and_then(Value::as_object) {
                     self.set_response_usage(usage);
                 }
@@ -470,7 +502,10 @@ impl EventFilter {
         let block = event.get("content_block").cloned().unwrap_or(Value::Null);
         if is_internal_tool(&block) {
             self.swallowed.push(old_index);
-            if is_kin_done_tool(&block) && !self.saw_real_text {
+            if is_kin_done_tool(&block)
+                && self.policy.synthesize_kin_done_text
+                && !self.saw_real_text
+            {
                 self.kin_done = Some(KinDoneSynth {
                     source_index: old_index,
                     emit_index: None,
@@ -1056,6 +1091,61 @@ mod tests {
                 .apply(json!({"type":"content_block_stop","index":2}))
                 .is_empty()
         );
+    }
+
+    #[test]
+    fn cli_policy_swallows_kin_done_without_synthesis() {
+        let mut filter = EventFilter::with_policy(
+            Arc::new(AtomicUsize::new(0)),
+            FilterPolicy::CLI,
+        );
+        assert!(
+            filter
+                .apply(json!({
+                    "type":"content_block_start",
+                    "index":0,
+                    "content_block":{"type":"tool_use","id":"toolu_kd","name":"mcp__kin_runtime__kin_done","input":{}}
+                }))
+                .is_empty()
+        );
+        assert!(
+            filter
+                .apply(json!({
+                    "type":"content_block_delta",
+                    "index":0,
+                    "delta":{"type":"input_json_delta","partial_json":"{\"text\":\"secret\"}"}
+                }))
+                .is_empty()
+        );
+        assert!(
+            filter
+                .apply(json!({"type":"content_block_stop","index":0}))
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn message_start_resets_response_local_index_map() {
+        let mut filter = EventFilter::with_start_index(0);
+        let first = filter.apply(json!({
+            "type":"content_block_start",
+            "index":0,
+            "content_block":{"type":"text","text":""}
+        }));
+        assert_eq!(first[0]["index"], 0);
+        filter.apply(json!({"type":"message_start","message":{"id":"r2"}}));
+        let second = filter.apply(json!({
+            "type":"content_block_start",
+            "index":0,
+            "content_block":{"type":"thinking","thinking":""}
+        }));
+        assert_eq!(second[0]["index"], 1);
+        let delta = filter.apply(json!({
+            "type":"content_block_delta",
+            "index":0,
+            "delta":{"type":"thinking_delta","thinking":"hmm"}
+        }));
+        assert_eq!(delta[0]["index"], 1, "deltas follow the new response map");
     }
 
     #[test]

@@ -207,7 +207,7 @@ fn tools() -> Vec<Value> {
         ),
         tool(
             "kin_done",
-            "Finish the job. Put the complete final answer in `text`; it is the client-visible body when nothing streamed.",
+            "Finish a job after its client-visible answer has already been emitted as ordinary assistant text. Do not repeat the answer in tool arguments. text and fallback_content are legacy fallback fields only.",
             json!({
                 "type": "object",
                 "properties": {
@@ -267,6 +267,19 @@ fn json_err(id: Option<Value>, message: String) -> Response {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn kin_done_description_does_not_ask_for_answer_text() {
+        let kin_done = tools()
+            .into_iter()
+            .find(|tool| tool["name"] == "kin_done")
+            .expect("kin_done tool");
+        let desc = kin_done["description"].as_str().unwrap();
+        assert!(desc.contains("ordinary assistant text"));
+        assert!(!desc.contains("Put the complete final answer in `text`"));
+        assert_eq!(kin_done["inputSchema"]["required"], json!(["job_id"]));
+        assert!(kin_done["inputSchema"]["properties"].get("text").is_some());
+    }
 
     #[test]
     fn progress_includes_token() {

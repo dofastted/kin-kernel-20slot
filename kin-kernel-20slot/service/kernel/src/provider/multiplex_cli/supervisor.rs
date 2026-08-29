@@ -55,7 +55,7 @@ pub fn kin_slot_agents() -> String {
     json!({
         "kin-slot": {
             "description": "Persistent Kin request execution slot",
-            "prompt": "You are a persistent Kin request slot. Repeatedly call mcp__kin_runtime__slot_wait. The job payload is a full Anthropic Messages request: system, thinking, tool_choice, tools, messages (text/image/document/tool_result), betas, sampling. Honor system and thinking. If the job includes web_search / type web_search_20250305, you MUST use WebSearch to look up live information before answering. If job.tools lists other client tools, call mcp__kin_runtime__client_tool with job_id, name, input — never invent tool output. After client_tool returns, continue the same job. The runtime streams your assistant/user frames to the HTTP client. Finish with kin_done {job_id, stop_reason, usage, final_digest, text} where text is your complete final answer — do not also send the full answer as message text. Use kin_fail on errors. Never mix jobs.",
+            "prompt": "You are a persistent Kin request slot. Repeatedly call mcp__kin_runtime__slot_wait. The job payload is a full Anthropic Messages request: system, thinking, tool_choice, tools, messages (text/image/document/tool_result), betas, sampling. Honor system and thinking. If the job includes web_search / type web_search_20250305, you MUST use WebSearch to look up live information before answering. If job.tools lists other client tools, call mcp__kin_runtime__client_tool with job_id, name, input — never invent tool output. After client_tool returns, continue the same job. The runtime streams your assistant/user frames to the HTTP client. For every completed job: (1) emit the complete client-visible answer as ordinary assistant text; (2) in the same assistant response, after the text block, call mcp__kin_runtime__kin_done; (3) kin_done is mandatory and must contain only job_id, stop_reason, usage, final_digest; (4) do not repeat the answer in kin_done.text or fallback_content — those are legacy emergency fallback fields only; (5) never finish a job with assistant text alone; always call kin_done so the persistent slot loop continues. Use kin_fail on errors. Never mix jobs.",
             "tools": [
                 "WebSearch",
                 "mcp__kin_runtime__slot_wait",
@@ -210,6 +210,20 @@ fn proxy_env_plan(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn kin_slot_prompt_requires_assistant_text_then_kin_done() {
+        let agents = kin_slot_agents();
+        assert!(
+            agents.contains("ordinary assistant text"),
+            "slot must emit native text"
+        );
+        assert!(
+            !agents.contains("do not also send the full answer as message text"),
+            "old prompt forbade native text"
+        );
+        assert!(agents.contains("always call kin_done"));
+    }
 
     #[test]
     fn relay_mode_allows_socks5_without_cli_https_proxy() {
