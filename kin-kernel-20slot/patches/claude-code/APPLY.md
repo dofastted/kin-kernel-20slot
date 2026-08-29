@@ -101,8 +101,27 @@ clean, `bun run check` (biome) clean, `bun test` shows only pre-existing
 unrelated failures (MACRO bundling macro, WorkflowsPanel test key warning,
 deep-link protocol test — none touch native_messages code).
 
-Rust-side (`execution_mode.rs`, `native_protocol.rs`, `mod.rs`,
-resume/continuation redesign) and Go console (`config_hash` /
-`RuntimeProfile`) are **not started**. Default `KIN_EXECUTION_MODE` remains
-`mcp_slot` until Rust S2, Go S4, and functional acceptance (AC1–AC15, S3)
-all pass on native.
+Rust-side (`execution_mode.rs`, `native_protocol.rs`, `mod.rs`) is
+implemented and verified: `ExecutionMode::NativeMessages` added alongside
+`McpSlot`/`NativeAgent`; protocol v2 wire types match `stdioProtocol.ts`
+exactly (no `Hello`/`ToolResult`/`JobParked`); `StreamAssembler` wired into
+`complete_job()` so `stream:false` responses and job-done frames carry real
+assembled `content` instead of `vec![]`; `park_native_job()` deleted;
+`resume()` under native modes delegates to a new shared `submit_fresh()`
+(treats continuation as a brand-new job, since tenant/tool_use_id/message-
+merge validation already happened in `api.rs`/`session.rs`); `kin_host_ready`
+is now validated (`validate_host_ready()`) against expected
+`protocol_version`/`slot_count`/`system_layout`/`timezone`/`capabilities`
+before slots are registered; `MAX_JOB_BYTES` metering now falls back to a
+frame's own `job_id` when no `parent` field is present (needed for
+native_messages frames); `x-kin-native-slot` diagnostic response header
+added via new `Provider::session_slot()`. `cargo build` clean, `cargo test
+--bin kin-kernel provider::multiplex_cli` 108/108 passing (no `McpSlot`
+regression). `config_hash` is round-tripped and logged but only checked for
+*presence*, not compared against a desired value — that comparison needs the
+Go `RuntimeProfile` below.
+
+Go console (`config_hash` / `RuntimeProfile`, design.md §6) is **not
+started**. S3 functional acceptance (AC1–AC15) has not been run. Default
+`KIN_EXECUTION_MODE` remains `mcp_slot` until Go S4 and S3 acceptance pass on
+native.
