@@ -8,6 +8,36 @@ authoritative 模式、tap 非阻塞、5xx 直通不 tap、digest 比对、慢�
 krc_ 跨 chunk、HMAC 签名 token、mock 上游端到端。历史本地结果为 62/64
 `cargo test`，2 个失败是既有 `local_cli` PID 断言，与 relay 无关。
 
+## 五轮修复摘要（f28de67 S1 FAIL：tap 收到的是压缩字节流）
+
+S1 采证（hit=1/started=1 但客户端 SSE 形态 = stdout 暂存释放路径：2 块、
+各 1 delta、70 字整段）证明 tap 附着成功却**端到端零事件产出**。根因：
+
+- CLI 请求带 `accept-encoding: gzip, deflate, br, zstd`，relay 的
+  `filtered_headers` 原样转发（不在 hop-by-hop 表），Anthropic 边缘对此
+  会压缩响应体；CLI 自己透明解压所以功能正常，但 tap 分到的是**压缩字节**，
+  `SseDecoder` 解不出任何帧且**静默**（帧缓冲不超 1 MiB 就不 poison）——
+  这同时解释了三、四轮以来 n_delta 恒 1、`tap_dropped` 恒 0、
+  `digest_mismatch` 恒 0 的全部症状。历史抓包没暴露它是因为抓包代理
+  （python dump proxy）自己解压后落盘，响应头被规范化、
+  content-encoding 被抹掉。
+- 修复 1：relay 转发请求头时**剥除 `accept-encoding`**（不提供压缩报价
+  → 上游只能回 identity；reqwest 构建时未启用任何解压 feature，正好
+  透传明文）。
+- 修复 2：`SseDecoder` 增加垃圾流守卫——累计消费 64 KiB 仍未解出任何
+  事件即 poison（计 `tap_dropped`），此类失败今后不再静默。
+
+注意：剥除 accept-encoding 属网络指纹变化之一（原 CLI 直连时会带此头），
+与 handover「未验证假设 4」同类，账号侧影响继续观察。
+
+### 五轮复测
+
+复测步骤不变（见「四轮复测步骤（最小化验证）」S1→S4），预期变化：
+- S1 应出现多个 4~8 字符的合成 `text_delta`（n_delta 与 kin_done 参数
+  流片数同量级）。
+- 若上游因不可抗因素仍回压缩体，现在会表现为 `tap_dropped` 增长 +
+  stdout 兜底整块（可观测的降级，而非无声失败）。
+
 ## 四轮修复摘要（adc1450 复测三 FAIL，真根因来自 b1a4f9d 实机抓包）
 
 四轮复测证明三轮的根因假设有两处错误。本轮依据测试员提交的真实 SSE 抓包

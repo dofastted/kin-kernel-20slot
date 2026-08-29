@@ -159,6 +159,14 @@ fn filtered_headers(headers: &HeaderMap) -> HeaderMap {
         if is_hop_by_hop(name) {
             continue;
         }
+        // The CLI offers gzip/br/zstd and decompresses transparently, but the
+        // tap cannot: a compressed upstream body reaches SseDecoder as opaque
+        // bytes that parse to zero events (silently — no poison under the
+        // 1 MiB frame cap). Force identity by never forwarding the offer.
+        // Harmless on the response path (responses don't carry this header).
+        if name == "accept-encoding" {
+            continue;
+        }
         out.append(name.clone(), value.clone());
     }
     out
@@ -193,9 +201,16 @@ mod tests {
         headers.insert(AUTHORIZATION, "Bearer secret".parse().unwrap());
         headers.insert(USER_AGENT, "claude-cli".parse().unwrap());
         headers.insert("anthropic-beta", "beta".parse().unwrap());
+        headers.insert(
+            "accept-encoding",
+            "gzip, deflate, br, zstd".parse().unwrap(),
+        );
         let out = filtered_headers(&headers);
         assert!(!out.contains_key(HOST));
         assert!(!out.contains_key(CONTENT_LENGTH));
+        // A forwarded compression offer would make the upstream body opaque
+        // to the tap decoder — identity only.
+        assert!(!out.contains_key("accept-encoding"));
         assert_eq!(out[AUTHORIZATION], "Bearer secret");
         assert_eq!(out[USER_AGENT], "claude-cli");
         assert_eq!(out["anthropic-beta"], "beta");

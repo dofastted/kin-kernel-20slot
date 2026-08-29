@@ -15,6 +15,11 @@ use super::metrics::RelayMetrics;
 const TAP_QUEUE_ITEMS: usize = 256;
 const TAP_QUEUE_BYTES: usize = 2 * 1024 * 1024;
 const MAX_FRAME_BYTES: usize = 1024 * 1024;
+/// Poison threshold for a stream that yields no parseable SSE event. Real SSE
+/// produces an event well within the first few KiB; consuming this much with
+/// zero events means the bytes are not SSE at all (e.g. a compressed body),
+/// and the failure must surface as tap_dropped instead of a silent no-op.
+const GARBAGE_BYTES: usize = 64 * 1024;
 pub(crate) const TAP_POISONED: &str = "kin_tap_poisoned";
 pub(crate) const TAP_DRAINED: &str = "kin_tap_drained";
 pub(crate) const TAP_USAGE: &str = "kin_tap_usage";
@@ -318,6 +323,8 @@ impl TapBudget {
 pub struct SseDecoder {
     buf: Vec<u8>,
     poisoned: bool,
+    consumed_without_event: usize,
+    saw_event: bool,
 }
 
 impl SseDecoder {
@@ -337,6 +344,18 @@ impl SseDecoder {
             if let Some(value) = parse_frame(&frame) {
                 out.push(value);
             }
+        }
+        if out.is_empty() && !self.saw_event {
+            // Garbage guard: bytes that never produce an event are not SSE
+            // (a compressed body, for example). Fail loudly instead of
+            // discarding the stream in silence.
+            self.consumed_without_event += bytes.len();
+            if self.consumed_without_event > GARBAGE_BYTES {
+                self.poisoned = true;
+                return Err(());
+            }
+        } else if !out.is_empty() {
+            self.saw_event = true;
         }
         Ok(out)
     }
@@ -861,6 +880,42 @@ mod tests {
         let mut decoder = SseDecoder::default();
         assert!(decoder.push(&vec![b'a'; MAX_FRAME_BYTES + 1]).is_err());
         assert!(decoder.poisoned());
+    }
+
+    #[test]
+    fn decoder_poisons_on_non_sse_garbage_stream() {
+        // A compressed (or otherwise non-SSE) body used to be discarded in
+        // silence: frames containing "\n\n" parsed to nothing, the buffer
+        // stayed small, and the tap produced zero events with zero metrics.
+        let mut decoder = SseDecoder::default();
+        // Pseudo-compressed bytes with newlines so frame_boundary keeps
+        // draining the buffer below MAX_FRAME_BYTES.
+        let junk: Vec<u8> = (0..4096u32)
+            .flat_map(|i| [(i % 251) as u8, b'\n', b'\n'])
+            .collect();
+        let mut poisoned = false;
+        for _ in 0..8 {
+            if decoder.push(&junk).is_err() {
+                poisoned = true;
+                break;
+            }
+        }
+        assert!(poisoned, "garbage stream must poison, not silently no-op");
+        assert!(decoder.poisoned());
+    }
+
+    #[test]
+    fn decoder_tolerates_late_first_event_within_budget() {
+        let mut decoder = SseDecoder::default();
+        // Comment/heartbeat padding before the first event is legal SSE.
+        assert!(decoder.push(&vec![b'\n'; 16 * 1024]).unwrap().is_empty());
+        let out = decoder.push(&event(json!({"type":"ping"}))).unwrap();
+        assert_eq!(out, vec![json!({"type":"ping"})]);
+        // Once a real event arrived, event-free stretches well past the
+        // garbage budget are fine (pushed in chunks like a real stream).
+        for _ in 0..40 {
+            assert!(decoder.push(&vec![b'\n'; 4 * 1024]).is_ok());
+        }
     }
 
     #[test]
