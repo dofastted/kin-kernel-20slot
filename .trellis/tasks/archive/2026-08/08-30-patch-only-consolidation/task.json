@@ -3,7 +3,7 @@
   "name": "patch-only-consolidation",
   "title": "移除 relay/mcp_slot 旧路线，收敛为 patch 单一路线",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "ted",
   "assignee": "ted",
   "createdAt": "2026-08-30",
-  "completedAt": null,
+  "completedAt": "2026-08-30",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "已完成：AC1–AC11 全绿（AC10 以真实 API 复跑：逐 token + tool_use 续接）。代码经 PR #2 合并进 main；实机暴露的 slot 泄漏已在同批修复。",
   "meta": {}
 }
