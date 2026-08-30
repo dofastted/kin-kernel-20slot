@@ -79,7 +79,6 @@ async fn health(State(state): State<AppState>) -> Json<serde_json::Value> {
         "workers": state.config.worker_count,
         "slots_per_worker": state.config.slots_per_worker,
         "memory": state.provider.memory_snapshot(),
-        "relay": state.provider.relay_snapshot(),
         "execution_mode": reported_execution_mode(),
         "config_hash": state.config.desired_config_hash,
         "envelope": crate::provider::multiplex_cli::envelope::load(),

@@ -85,10 +85,6 @@ pub trait Provider: Send + Sync {
         None
     }
 
-    fn relay_snapshot(&self) -> Option<serde_json::Value> {
-        None
-    }
-
     /// True if the native host's config_hash handshake was rejected
     /// (design.md §6, AC14). Default: no such check exists for this provider.
     fn config_hash_mismatch(&self) -> bool {

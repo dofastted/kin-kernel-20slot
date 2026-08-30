@@ -4,7 +4,6 @@ use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
 pub const KCT_DOMAIN: &str = "kin/kct/v1";
-pub const KRC_DOMAIN: &str = "kin/krc/v1";
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -37,6 +36,10 @@ pub fn sign(domain: &str, payload: &[u8], secret: &[u8]) -> Result<[u8; 32], Sig
     Ok(out)
 }
 
+/// Counterpart of `sign`, exercised by `ContinuationToken::decode`; the
+/// kernel authenticates continuations by server-side lookup, so verification
+/// has no production caller.
+#[cfg(test)]
 pub fn verify(domain: &str, payload: &[u8], signature: &[u8], secret: &[u8]) -> bool {
     if secret.is_empty() {
         return false;
@@ -54,6 +57,8 @@ pub fn verify(domain: &str, payload: &[u8], signature: &[u8], secret: &[u8]) -> 
 mod tests {
     use super::*;
 
+    const OTHER_DOMAIN: &str = "kin/other/v1";
+
     #[test]
     fn domains_are_isolated() {
         let secret = b"kin-test-secret-32-bytes-pad!!!!";
@@ -61,7 +66,7 @@ mod tests {
         let sig = sign(KCT_DOMAIN, payload, secret).unwrap();
 
         assert!(verify(KCT_DOMAIN, payload, &sig, secret));
-        assert!(!verify(KRC_DOMAIN, payload, &sig, secret));
+        assert!(!verify(OTHER_DOMAIN, payload, &sig, secret));
     }
 
     #[test]
@@ -79,12 +84,12 @@ mod tests {
     fn tampering_is_detected() {
         let secret = b"kin-test-secret-32-bytes-pad!!!!";
         let payload = b"payload";
-        let sig = sign(KRC_DOMAIN, payload, secret).unwrap();
+        let sig = sign(OTHER_DOMAIN, payload, secret).unwrap();
 
-        assert!(!verify(KRC_DOMAIN, b"tampered", &sig, secret));
+        assert!(!verify(OTHER_DOMAIN, b"tampered", &sig, secret));
 
         let mut bad_sig = sig;
         bad_sig[0] ^= 0x01;
-        assert!(!verify(KRC_DOMAIN, payload, &bad_sig, secret));
+        assert!(!verify(OTHER_DOMAIN, payload, &bad_sig, secret));
     }
 }

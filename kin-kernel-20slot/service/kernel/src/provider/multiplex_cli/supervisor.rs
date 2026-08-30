@@ -22,7 +22,6 @@ pub struct SpawnSpec {
     pub slot_count: usize,
     pub mcp_url: String,
     pub session_dir: PathBuf,
-    pub anthropic_base_url: Option<String>,
     pub native_slots: Option<usize>,
     pub desired_config_hash: Option<String>,
 }
@@ -101,7 +100,7 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
     } else {
         Command::new(&spec.bin)
     };
-    apply_proxy_env(&mut cmd, spec.anthropic_base_url.is_some())?;
+    apply_proxy_env(&mut cmd)?;
     if spec.native_slots.is_some() {
         cmd.args(native_cli_args(&spec.model));
         let layout = crate::provider::multiplex_cli::envelope::load();
@@ -149,9 +148,6 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
             cmd.arg("--forward-subagent-partials")
                 .env("CLAUDE_CODE_FORWARD_SUBAGENT_PARTIALS", "1");
         }
-        if let Some(url) = &spec.anthropic_base_url {
-            cmd.env("ANTHROPIC_BASE_URL", url);
-        }
     }
     cmd.current_dir(&spec.session_dir)
         .env("CLAUDE_CONFIG_DIR", &spec.session_dir)
@@ -183,11 +179,10 @@ fn apply_envelope_env(cmd: &mut Command) {
         .env("CLAUDE_CODE_KIN_ENVELOPE", cfg.mode.as_str());
 }
 
-fn apply_proxy_env(cmd: &mut Command, relay_enabled: bool) -> Result<(), KernelError> {
+fn apply_proxy_env(cmd: &mut Command) -> Result<(), KernelError> {
     match proxy_env_plan(
         env::var("KIN_HTTPS_PROXY").ok().as_deref(),
         env::var("KIN_SOCKS5").ok().as_deref(),
-        relay_enabled,
     )? {
         ProxyEnvPlan::Http(http) => {
             cmd.env("HTTPS_PROXY", &http)
@@ -195,16 +190,6 @@ fn apply_proxy_env(cmd: &mut Command, relay_enabled: bool) -> Result<(), KernelE
                 .env("https_proxy", &http)
                 .env("http_proxy", &http)
                 .env("ALL_PROXY", &http)
-                .env("NO_PROXY", "127.0.0.1,localhost")
-                .env("no_proxy", "127.0.0.1,localhost");
-        }
-        ProxyEnvPlan::RelayLoopbackOnly => {
-            cmd.env_remove("HTTPS_PROXY")
-                .env_remove("HTTP_PROXY")
-                .env_remove("https_proxy")
-                .env_remove("http_proxy")
-                .env_remove("ALL_PROXY")
-                .env_remove("all_proxy")
                 .env("NO_PROXY", "127.0.0.1,localhost")
                 .env("no_proxy", "127.0.0.1,localhost");
         }
@@ -216,14 +201,12 @@ fn apply_proxy_env(cmd: &mut Command, relay_enabled: bool) -> Result<(), KernelE
 #[derive(Debug, PartialEq, Eq)]
 enum ProxyEnvPlan {
     Http(String),
-    RelayLoopbackOnly,
     None,
 }
 
 fn proxy_env_plan(
     https_proxy: Option<&str>,
     socks5: Option<&str>,
-    relay_enabled: bool,
 ) -> Result<ProxyEnvPlan, KernelError> {
     if let Some(http) = https_proxy
         && !http.trim().is_empty()
@@ -233,9 +216,6 @@ fn proxy_env_plan(
     if let Some(socks5) = socks5
         && socks5.trim().starts_with("socks")
     {
-        if relay_enabled {
-            return Ok(ProxyEnvPlan::RelayLoopbackOnly);
-        }
         return Err(KernelError::Provider(
             "Claude CLI cannot use SOCKS5 as HTTPS_PROXY; set KIN_HTTPS_PROXY to an HTTP CONNECT bridge".into(),
         ));
@@ -271,16 +251,8 @@ mod tests {
     }
 
     #[test]
-    fn relay_mode_allows_socks5_without_cli_https_proxy() {
-        assert_eq!(
-            proxy_env_plan(None, Some("socks5h://127.0.0.1:10808"), true).unwrap(),
-            ProxyEnvPlan::RelayLoopbackOnly
-        );
-    }
-
-    #[test]
-    fn relay_off_rejects_socks5_without_http_bridge() {
-        let err = proxy_env_plan(None, Some("socks5h://127.0.0.1:10808"), false).unwrap_err();
+    fn socks5_without_http_bridge_is_rejected() {
+        let err = proxy_env_plan(None, Some("socks5h://127.0.0.1:10808")).unwrap_err();
         assert!(err.to_string().contains("cannot use SOCKS5"));
     }
 
@@ -289,8 +261,7 @@ mod tests {
         assert_eq!(
             proxy_env_plan(
                 Some("http://127.0.0.1:7890"),
-                Some("socks5h://127.0.0.1:10808"),
-                true
+                Some("socks5h://127.0.0.1:10808")
             )
             .unwrap(),
             ProxyEnvPlan::Http("http://127.0.0.1:7890".into())

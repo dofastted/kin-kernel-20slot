@@ -1,59 +1,6 @@
 use std::{env, fmt, net::SocketAddr, str::FromStr, time::Duration};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum RelayMode {
-    Off,
-    Observe,
-    Authoritative,
-}
-
-impl RelayMode {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Off => "off",
-            Self::Observe => "observe",
-            Self::Authoritative => "authoritative",
-        }
-    }
-
-    pub fn from_env_value(value: Option<&str>) -> Result<Self, String> {
-        match value {
-            None => Ok(Self::Off),
-            Some(value) => value.parse(),
-        }
-    }
-
-    pub fn from_env() -> Result<Self, String> {
-        match env::var("KIN_RELAY_MODE") {
-            Ok(value) => Self::from_env_value(Some(&value)),
-            Err(env::VarError::NotPresent) => Ok(Self::Off),
-            Err(env::VarError::NotUnicode(_)) => Err("KIN_RELAY_MODE must be valid unicode".into()),
-        }
-    }
-}
-
-impl fmt::Display for RelayMode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_str())
-    }
-}
-
-impl FromStr for RelayMode {
-    type Err = String;
-
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        match value.trim().to_ascii_lowercase().as_str() {
-            "off" => Ok(Self::Off),
-            "observe" => Ok(Self::Observe),
-            "authoritative" => Ok(Self::Authoritative),
-            other => Err(format!(
-                "KIN_RELAY_MODE must be off, observe, or authoritative (got {other})"
-            )),
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum IsolationMode {
     /// `--one-shot --one-shot-strategy process`: one Claude child per turn.
     ProcessPerTurn,
@@ -222,36 +169,4 @@ pub fn client_stall_timeout_from_env() -> Result<Duration, Box<dyn std::error::E
         return Err("KIN_CLIENT_STALL_SECS must be positive".into());
     }
     Ok(Duration::from_secs(seconds))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn relay_mode_parses_valid_values_and_default() {
-        assert_eq!(RelayMode::from_env_value(None).unwrap(), RelayMode::Off);
-        assert_eq!(
-            RelayMode::from_env_value(Some("off")).unwrap(),
-            RelayMode::Off
-        );
-        assert_eq!(
-            RelayMode::from_env_value(Some("observe")).unwrap(),
-            RelayMode::Observe
-        );
-        assert_eq!(
-            RelayMode::from_env_value(Some("authoritative")).unwrap(),
-            RelayMode::Authoritative
-        );
-        assert_eq!(
-            RelayMode::from_env_value(Some(" OBSERVE ")).unwrap(),
-            RelayMode::Observe
-        );
-    }
-
-    #[test]
-    fn relay_mode_rejects_invalid_values() {
-        let err = RelayMode::from_env_value(Some("bogus")).unwrap_err();
-        assert!(err.contains("KIN_RELAY_MODE"));
-    }
 }

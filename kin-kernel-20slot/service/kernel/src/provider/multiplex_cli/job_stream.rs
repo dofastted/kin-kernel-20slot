@@ -1,8 +1,8 @@
 //! Convert CLI NDJSON frames into Anthropic SSE events.
 //!
 //! Native subagent `stream_event` frames (with `parent_tool_use_id`) go
-//! through `EventFilter` (CLI policy: swallow internal MCP, remap indexes,
-//! no kin_done text synthesis). Complete `assistant` text blocks are
+//! through `EventFilter` (swallow internal MCP tools, remap block
+//! indexes). Complete `assistant` text blocks are
 //! fallback only after this job actually delivered a text partial to the
 //! client (`streamed_text`) — ingesting a CLI event is not delivery.
 
@@ -16,7 +16,7 @@ use std::{
 
 use serde_json::{Value, json};
 
-use super::event_filter::{EventFilter, FilterPolicy, KIN_SYNTH_MARKER};
+use super::event_filter::EventFilter;
 
 pub struct JobStream {
     index_allocator: Arc<AtomicUsize>,
@@ -34,9 +34,15 @@ impl JobStream {
         Self::with_index_allocator(Arc::new(AtomicUsize::new(0)))
     }
 
+    /// The job-level block-index allocator, so a resumed turn can keep
+    /// numbering content blocks where the previous turn stopped.
+    pub fn index_allocator(&self) -> Arc<AtomicUsize> {
+        Arc::clone(&self.index_allocator)
+    }
+
     pub fn with_index_allocator(index_allocator: Arc<AtomicUsize>) -> Self {
         Self {
-            filter: EventFilter::with_policy(Arc::clone(&index_allocator), FilterPolicy::CLI),
+            filter: EventFilter::new(Arc::clone(&index_allocator)),
             index_allocator,
             seen: HashSet::new(),
             internal_ids: HashSet::new(),
@@ -270,21 +276,6 @@ impl JobStream {
 
     fn next(&mut self) -> u64 {
         self.index_allocator.fetch_add(1, Ordering::AcqRel) as u64
-    }
-
-    pub fn adopt_tap_event(&mut self, event: Value) -> Value {
-        let mut event = event;
-        // Internal marker for kin_done-synthesized events; never client-visible.
-        if let Value::Object(map) = &mut event {
-            map.remove(KIN_SYNTH_MARKER);
-        }
-        if let Some(block) = event.get("content_block") {
-            let _ = self.seen.insert(fingerprint(block));
-        }
-        if event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta") {
-            self.streamed_text = true;
-        }
-        event
     }
 }
 
