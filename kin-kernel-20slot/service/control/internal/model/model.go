@@ -46,4 +46,3 @@ type Snapshot struct {
 	Policies  []RoutePolicy `json:"policies"`
 	Demo      bool          `json:"demo_unsigned"`
 }
-

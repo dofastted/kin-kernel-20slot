@@ -74,4 +74,3 @@ func envDurationSeconds(name string, fallback time.Duration) time.Duration {
 	}
 	return time.Duration(seconds) * time.Second
 }
-

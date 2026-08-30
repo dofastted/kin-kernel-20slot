@@ -154,4 +154,3 @@ func (m *Memory) GetRuntimeProfile() (model.RuntimeProfile, bool) {
 	}
 	return *m.profile, true
 }
-

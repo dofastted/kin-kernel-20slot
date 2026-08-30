@@ -27,4 +27,3 @@ func TestMarkStale(t *testing.T) {
 		t.Fatalf("expected unhealthy, got %q", kernels[0].Status)
 	}
 }
-
