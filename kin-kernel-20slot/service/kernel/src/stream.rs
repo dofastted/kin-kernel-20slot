@@ -201,44 +201,6 @@ impl StreamAssembler {
         }
     }
 
-    pub fn apply_assistant(&mut self, frame: &Value) {
-        let mapped = map_assistant(frame);
-        if !mapped.is_empty() {
-            self.content = mapped;
-        }
-        if self
-            .content
-            .iter()
-            .any(|block| matches!(block, ContentBlock::ToolUse { .. }))
-        {
-            self.stop = StopReason::ToolUse;
-        }
-    }
-
-    pub fn apply_result(&mut self, frame: &Value) {
-        if let Some(tokens) = frame.get("usage") {
-            self.apply_usage(tokens);
-        }
-        if self.content.is_empty()
-            && let Some(text) = frame.get("result").and_then(Value::as_str)
-        {
-            self.content.push(ContentBlock::Text {
-                text: text.to_string(),
-                cache_control: None,
-            });
-        }
-        if !matches!(self.stop, StopReason::ToolUse) {
-            self.stop = StopReason::EndTurn;
-        }
-    }
-
-    pub fn has_tool_use(&self) -> bool {
-        self.content
-            .iter()
-            .any(|block| matches!(block, ContentBlock::ToolUse { .. }))
-            || matches!(self.stop, StopReason::ToolUse)
-    }
-
     pub fn finish(self, request: &MessageRequest) -> MessageResponse {
         MessageResponse {
             id: self.id,
@@ -294,78 +256,6 @@ pub fn parse_sse_block(block: &str) -> Option<Value> {
         return None;
     }
     serde_json::from_str(&data).ok()
-}
-
-pub fn map_assistant(frame: &Value) -> Vec<ContentBlock> {
-    let Some(content) = frame
-        .pointer("/message/content")
-        .or_else(|| frame.get("content"))
-        .and_then(Value::as_array)
-    else {
-        return Vec::new();
-    };
-    content
-        .iter()
-        .filter_map(|block| match block.get("type").and_then(Value::as_str) {
-            Some("text") => Some(ContentBlock::Text {
-                text: block
-                    .get("text")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .to_string(),
-                cache_control: None,
-            }),
-            Some("thinking") => Some(ContentBlock::Thinking {
-                thinking: block
-                    .get("thinking")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .to_string(),
-                signature: block
-                    .get("signature")
-                    .and_then(Value::as_str)
-                    .map(ToOwned::to_owned),
-            }),
-            Some("image") => Some(ContentBlock::Image {
-                source: block.get("source").cloned().unwrap_or(json!({})),
-            }),
-            Some("tool_use") => Some(ContentBlock::ToolUse {
-                id: block
-                    .get("id")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .to_string(),
-                name: block
-                    .get("name")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .to_string(),
-                input: block.get("input").cloned().unwrap_or(json!({})),
-            }),
-            Some("server_tool_use") => Some(ContentBlock::ServerToolUse {
-                id: block
-                    .get("id")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .to_string(),
-                name: block
-                    .get("name")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .to_string(),
-                input: block.get("input").cloned().unwrap_or(json!({})),
-            }),
-            Some("web_search_tool_result") => Some(ContentBlock::WebSearchToolResult {
-                tool_use_id: block
-                    .get("tool_use_id")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .to_string(),
-                content: block.get("content").cloned().unwrap_or(Value::Null),
-            }),
-            _ => None,
-        })
-        .collect()
 }
 
 pub fn map_stop_reason(value: &str) -> StopReason {

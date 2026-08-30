@@ -50,7 +50,6 @@ pub struct MultiplexConfig {
     pub bin: PathBuf,
     pub mock_bin: bool,
     pub model: String,
-    pub retire_after_turn: bool,
     pub max_jobs_per_slot: u32,
     pub slot_max_lifetime: Duration,
     pub session_idle_ttl: Duration,
@@ -88,9 +87,6 @@ impl MultiplexConfig {
             mock_bin,
             bin,
             model: env::var("KIN_CLI_MODEL").unwrap_or_else(|_| "claude-sonnet-5".into()),
-            retire_after_turn: env::var("KIN_ISOLATION")
-                .map(|value| value == "session-reset")
-                .unwrap_or(false),
             max_jobs_per_slot: env::var("KIN_SLOT_MAX_JOBS")
                 .ok()
                 .and_then(|value| value.parse().ok())
@@ -545,12 +541,11 @@ impl Runtime {
             let mut slots = self.slots.lock().await;
             if let Some(slot) = slots.iter_mut().find(|slot| slot.id == job.slot_id) {
                 slot.jobs_completed = slot.jobs_completed.saturating_add(1);
-                self.cfg.retire_after_turn
-                    || slot.should_retire(
-                        self.cfg.max_jobs_per_slot,
-                        self.cfg.slot_max_lifetime,
-                        self.cfg.session_idle_ttl,
-                    )
+                slot.should_retire(
+                    self.cfg.max_jobs_per_slot,
+                    self.cfg.slot_max_lifetime,
+                    self.cfg.session_idle_ttl,
+                )
             } else {
                 false
             }
@@ -1487,7 +1482,6 @@ impl MultiplexCliProvider {
                 bin: PathBuf::from("simulated"),
                 mock_bin: true,
                 model: "claude-sonnet-5".into(),
-                retire_after_turn: false,
                 max_jobs_per_slot: 32,
                 slot_max_lifetime: Duration::from_secs(1800),
                 session_idle_ttl: Duration::from_secs(600),
@@ -1510,7 +1504,6 @@ impl MultiplexCliProvider {
                     bin: self.cfg.bin.clone(),
                     mock_bin: self.cfg.mock_bin,
                     model: self.cfg.model.clone(),
-                    retire_after_turn: self.cfg.retire_after_turn,
                     max_jobs_per_slot: self.cfg.max_jobs_per_slot,
                     slot_max_lifetime: self.cfg.slot_max_lifetime,
                     session_idle_ttl: self.cfg.session_idle_ttl,
@@ -1641,7 +1634,6 @@ mod tests {
             bin: PathBuf::from("simulated"),
             mock_bin: true,
             model: "claude-sonnet-5".into(),
-            retire_after_turn: false,
             max_jobs_per_slot: 32,
             slot_max_lifetime: Duration::from_secs(1800),
             session_idle_ttl: Duration::from_secs(600),

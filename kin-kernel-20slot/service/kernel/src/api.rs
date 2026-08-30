@@ -43,6 +43,10 @@ use crate::{
 /// check compares this exact string across kernel, console, and CLI.
 const EXECUTION_MODE: &str = "native_messages";
 
+/// One Claude CLI process hosting N stateless slots; the per-turn-process and
+/// session-reset isolations were deleted with the local_cli provider.
+const ISOLATION: &str = "subagent-pool";
+
 pub fn router(state: AppState) -> Router {
     let max_body_bytes = state.config.max_body_bytes;
     let request_id = HeaderName::from_static("x-request-id");
@@ -66,7 +70,7 @@ async fn health(State(state): State<AppState>) -> Json<serde_json::Value> {
     Json(json!({
         "status": "ok",
         "provider": state.provider.name(),
-        "isolation": state.config.isolation.as_str(),
+        "isolation": ISOLATION,
         "workers": state.config.worker_count,
         "slots_per_worker": state.config.slots_per_worker,
         "memory": state.provider.memory_snapshot(),
@@ -786,9 +790,7 @@ mod tests {
 
     use super::*;
     use crate::{
-        config::{Config, IsolationMode},
-        provider::mock::MockProvider,
-        scheduler::Scheduler,
+        config::Config, provider::mock::MockProvider, scheduler::Scheduler,
         session::SessionDirectory,
     };
 
@@ -797,7 +799,6 @@ mod tests {
             listen_addr: "127.0.0.1:0".parse().unwrap(),
             worker_count: 1,
             slots_per_worker: 1,
-            isolation: IsolationMode::Multiplexed,
             max_body_bytes: 1024 * 1024,
             max_tool_result_bytes: crate::config::MAX_TOOL_RESULT_BYTES,
             max_session_bytes: 1024 * 1024,
