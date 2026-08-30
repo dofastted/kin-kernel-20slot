@@ -10,7 +10,8 @@ use sha2::{Digest, Sha256};
 
 use crate::config::RelayMode;
 
-use super::sse_tap::{KIN_SYNTH_MARKER, TAP_POISONED, TAP_USAGE};
+use super::super::event_filter::KIN_SYNTH_MARKER;
+use super::sse_tap::{TAP_POISONED, TAP_USAGE};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BodyState {

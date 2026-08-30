@@ -9,6 +9,7 @@
 pub mod bootstrap;
 pub mod continuation;
 pub mod envelope;
+pub mod event_filter;
 pub mod execution_mode;
 pub mod job_stream;
 pub mod mcp_server;

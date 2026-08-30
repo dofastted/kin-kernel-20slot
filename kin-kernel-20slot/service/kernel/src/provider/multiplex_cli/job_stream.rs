@@ -16,7 +16,7 @@ use std::{
 
 use serde_json::{Value, json};
 
-use super::relay::sse_tap::{EventFilter, FilterPolicy, KIN_SYNTH_MARKER};
+use super::event_filter::{EventFilter, FilterPolicy, KIN_SYNTH_MARKER};
 
 pub struct JobStream {
     index_allocator: Arc<AtomicUsize>,
