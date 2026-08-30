@@ -57,8 +57,8 @@ impl Default for MessageRequest {
 impl MessageRequest {
     pub fn normalize_openai_tools(&mut self) {
         for message in &mut self.messages {
-            if message.role == "tool" {
-                if let Some(id) = message.tool_call_id.clone() {
+            if message.role == "tool"
+                && let Some(id) = message.tool_call_id.clone() {
                     let content = match &message.content {
                         MessageContent::Text(text) => Value::String(text.clone()),
                         MessageContent::Blocks(blocks) => {
@@ -73,17 +73,15 @@ impl MessageRequest {
                     }]);
                     message.tool_call_id = None;
                 }
-            }
             if !message.tool_calls.is_empty() {
                 let mut blocks = Vec::new();
-                if let MessageContent::Text(text) = &message.content {
-                    if !text.is_empty() {
+                if let MessageContent::Text(text) = &message.content
+                    && !text.is_empty() {
                         blocks.push(ContentBlock::Text {
                             text: text.clone(),
                             cache_control: None,
                         });
                     }
-                }
                 if let MessageContent::Blocks(existing) = &message.content {
                     blocks.extend(existing.clone());
                 }

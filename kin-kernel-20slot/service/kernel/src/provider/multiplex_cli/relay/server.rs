@@ -208,8 +208,7 @@ fn capture_outbound(method: &Method, uri: &Uri, headers: &HeaderMap, body: &[u8]
     let path_label = uri
         .path()
         .trim_start_matches('/')
-        .replace('/', "-")
-        .replace('?', "-");
+        .replace(['/', '?'], "-");
     let folder = format!(
         "{dir}/{seq:03}-{method}-{path_label}",
         method = method.as_str()

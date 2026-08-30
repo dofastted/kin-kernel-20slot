@@ -433,11 +433,10 @@ fn spawn_parked(
                 .filter(|n| *n > 0)
                 .is_some()
             {
-                if let Ok(mut slot) = buf.lock() {
-                    if slot.len() < 8_192 {
+                if let Ok(mut slot) = buf.lock()
+                    && slot.len() < 8_192 {
                         slot.push_str(&line);
                     }
-                }
                 line.clear();
             }
         });

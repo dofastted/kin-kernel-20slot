@@ -96,7 +96,7 @@ fn hex(data: &[u8]) -> String {
 }
 
 fn unhex(text: &str) -> Result<Vec<u8>, ()> {
-    if text.len() % 2 != 0 {
+    if !text.len().is_multiple_of(2) {
         return Err(());
     }
     let bytes = text.as_bytes();
@@ -107,7 +107,7 @@ fn unhex(text: &str) -> Result<Vec<u8>, ()> {
         b'A'..=b'F' => Ok(c - b'A' + 10),
         _ => Err(()),
     };
-    for chunk in bytes.chunks_exact(2) {
+    for chunk in bytes.as_chunks::<2>().0 {
         out.push((nibble(chunk[0])? << 4) | nibble(chunk[1])?);
     }
     Ok(out)

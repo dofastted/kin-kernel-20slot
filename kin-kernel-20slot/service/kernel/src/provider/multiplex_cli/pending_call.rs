@@ -55,7 +55,7 @@ impl PendingCalls {
     ) -> Result<(), KernelError> {
         self.slot_wait
             .remove(slot_id)
-            .ok_or_else(|| KernelError::NoCapacity)?
+            .ok_or(KernelError::NoCapacity)?
             .send(payload)
             .map_err(|_| KernelError::Provider("slot waiter dropped".into()))
     }

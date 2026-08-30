@@ -411,11 +411,10 @@ impl ActiveTurn {
                                 openai_event(&message_id, &model, &event, &mut role_sent)
                             }
                         };
-                        if let Some(encoded) = encoded {
-                            if out_tx.send(Ok(encoded)).await.is_err() {
+                        if let Some(encoded) = encoded
+                            && out_tx.send(Ok(encoded)).await.is_err() {
                                 continue;
                             }
-                        }
                     }
                     Ok(StreamItem::Finished(response)) => finished = Some(response),
                     Err(err) => {

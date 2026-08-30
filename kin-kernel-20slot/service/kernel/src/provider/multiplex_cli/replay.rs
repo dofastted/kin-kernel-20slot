@@ -142,7 +142,7 @@ pub fn client_kind(index: usize) -> ClientKind {
     match index {
         0 => ClientKind::Disconnected,
         1 => ClientKind::Stalled,
-        2 | 3 | 4 => ClientKind::Slow,
+        2..=4 => ClientKind::Slow,
         _ => ClientKind::Normal,
     }
 }

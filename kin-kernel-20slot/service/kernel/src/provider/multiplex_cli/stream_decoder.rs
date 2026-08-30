@@ -60,11 +60,9 @@ fn agent_spawn_id(frame: &Value) -> Option<String> {
         let kind = block.get("type").and_then(Value::as_str);
         if kind == Some("tool_use")
             && (name == "Agent" || name == "kin-slot" || name.ends_with("Agent"))
-        {
-            if let Some(id) = block.get("id").and_then(Value::as_str) {
+            && let Some(id) = block.get("id").and_then(Value::as_str) {
                 return Some(id.to_string());
             }
-        }
     }
     None
 }
