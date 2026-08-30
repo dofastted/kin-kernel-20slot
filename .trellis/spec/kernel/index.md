@@ -1,8 +1,9 @@
 # Kernel (Rust Data Plane) Guidelines
 
 > Coding guidance for `kin-kernel-20slot/service/kernel/` — the Rust `axum` process that
-> terminates client HTTP/SSE traffic, runs P2C scheduling, and drives one of four
-> `Provider` implementations (`mock`, `anthropic_api`, `local_cli`, `multiplex_cli`).
+> terminates client HTTP/SSE traffic, runs P2C scheduling, and drives one of three
+> `Provider` implementations (`mock`, `anthropic_api`, and `local_cli` =
+> `MultiplexCliProvider`).
 
 This directory documents the kernel **as it is implemented today**. For the
 as-built vs. aspirational split, see

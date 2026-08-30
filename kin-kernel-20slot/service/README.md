@@ -47,7 +47,6 @@ cd control && go run ./cmd/kin-control
 
 ```bash
 export KIN_PROVIDER=local_cli
-export KIN_ISOLATION=subagent-pool
 export KIN_WORKER_COUNT=1
 export KIN_SLOTS_PER_WORKER=20
 export KIN_CLAUDE_BIN=/path/to/claude
@@ -60,18 +59,17 @@ python3 scripts/http_to_socks.py &
 cargo run --manifest-path kernel/Cargo.toml
 ```
 
-Native path (patched Node CLI, **no relay**):
+唯一执行路径（patched Node CLI，patch 模式）：
 
 ```
 cli-node.js → HTTPS_PROXY (http_to_socks) → SOCKS5 → api.anthropic.com
-       ↑ stdout stream_event (parent_tool_use_id)
+       ↑ stdout kin_stream_event (job_id / slot_id)
 ```
 
 ```bash
-export KIN_RELAY_MODE=off          # default
-# KIN_EXECUTION_MODE defaults to native_messages (stateless v2, AC19).
-# export KIN_EXECUTION_MODE=mcp_slot   # supported rollback path
-# native_slot/native_agent additionally requires KIN_ALLOW_NATIVE_AGENT (AC18).
+# 执行模式固定为 native_messages（stateless v2）。mcp_slot / native_slot /
+# Messages relay 已删除，KIN_EXECUTION_MODE、KIN_ALLOW_NATIVE_AGENT、
+# KIN_ISOLATION、KIN_RELAY_* 均不再存在。
 export KIN_SYSTEM_MODE=zero        # billing.prompt_version=official sentence
 # export KIN_SYSTEM_MODE=identity  # official sentence as its own system block
 export KIN_SLOT_TZ=America/New_York  # must match SOCKS egress

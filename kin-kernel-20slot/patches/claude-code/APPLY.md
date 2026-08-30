@@ -32,12 +32,17 @@ CLAUDE_CODE_KIN_NATIVE_SLOTS=<n>    # 1-20; enables native_messages host loop, s
 ## Kernel
 
 ```
-KIN_EXECUTION_MODE=native_slot
-KIN_RELAY_MODE=off
+KIN_PROVIDER=local_cli
 KIN_SYSTEM_MODE=zero
 KIN_SLOT_TZ=America/New_York
 KIN_SOCKS5=...
+KIN_HTTPS_PROXY=http://127.0.0.1:18080
+KIN_DESIRED_CONFIG_HASH=<sha256 from GET /api/v1/runtime-profile>   # optional
 ```
+
+`KIN_EXECUTION_MODE` / `KIN_RELAY_MODE` / `KIN_ISOLATION` /
+`KIN_ALLOW_NATIVE_AGENT` no longer exist — native_messages is the only path
+(see "Consolidation" below).
 
 Native spawn must **not** write `mcp.json` and must **not** send `kin_hello` on boot —
 protocol v2 has no `kin_hello` handshake at all (see below).
@@ -804,13 +809,80 @@ Both now route through one `reported_execution_mode()` helper keyed on
 `ExecutionMode::default()`. It echoes a set-but-invalid value back
 verbatim instead of masking it as the default, so a typo stays visible.
 
-`mcp_slot` remains fully supported as the rollback path (PRD Non-Goals:
-不改 mcp_slot 路径, 保持回退可用) and `native_slot` keeps its AC18 gate.
-Two new tests pin the contract: `default_is_native_messages` (asserts
-the enum default, its `as_str()`, and that the default never requires an
-opt-in) and `mcp_slot_remains_reachable_as_fallback` (all three aliases
-still resolve). Verified against the real built binary, not tests alone:
-with `KIN_EXECUTION_MODE` unset `/healthz` reports
-`execution_mode = native_messages`; with `mcp_slot` it reports
-`mcp_slot`; with `native_slot` and no opt-in the process still refuses
-to start.
+~~`mcp_slot` remains fully supported as the rollback path~~ — **superseded
+2026-08-30 by `08-30-patch-only-consolidation`** (see "Consolidation"
+below): `mcp_slot`, `native_slot`, the relay and `local_cli` were deleted,
+so `KIN_EXECUTION_MODE` and its tests (`default_is_native_messages`,
+`mcp_slot_remains_reachable_as_fallback`) no longer exist. What was
+verified against the real binary at the time still holds for the surviving
+mode: `/healthz` reports `execution_mode = native_messages`, now from the
+`api.rs::EXECUTION_MODE` constant.
+
+## Consolidation (2026-08-30, `08-30-patch-only-consolidation`)
+
+native_messages is now the **only** path. The four legacy routes were deleted
+in five bisectable commits, each independently green
+(`cargo test --all-targets` + `clippy -D warnings` + `fmt --check`, plus
+`go test`/`go vet` for S4):
+
+| Batch | Deleted | Commit |
+|---|---|---|
+| S1 | (prep) split `EventFilter` out of `relay::sse_tap` | `fb1abfc` |
+| S2 | `relay/` (8 files), tap/arbiter/correlate chain, `RelayMode`, `KIN_RELAY_*`, `/healthz.relay`, `ANTHROPIC_BASE_URL` injection | `c22aa00` |
+| S3 | `mcp_server.rs`, `stream_decoder.rs`, `pending_call.rs`, `continuation.rs`, `signing.rs`, `job_stream.rs`, `event_filter.rs`, `replay.rs`, MCP argv, `SlotPhase::WaitingTool` | `c158a99` |
+| S4 | `execution_mode.rs` (`ExecutionMode`, `KIN_EXECUTION_MODE`, `KIN_ALLOW_NATIVE_AGENT`), Go native_agent gate | `bf38031` |
+| S5 | `provider/local_cli.rs`, `IsolationMode`, `KIN_ISOLATION`, `retire_after_turn` | `923ce5d` |
+
+**AC11 measurement** (`kernel/src/`, `*.rs` including tests):
+
+| | files | lines |
+|---|---|---|
+| before (46e2d04) | 38 | 15886 |
+| after (S5) | 22 | 7342 |
+| delta | −16 | **−8544** |
+
+`git diff --shortstat 46e2d04..HEAD -- service` → 32 files changed, 431
+insertions, 9015 deletions.
+
+Test count moved 144 → 51. Every removal was a test whose object no longer
+exists (relay 38, mcp/MCP-era modules 30, `ExecutionMode` 6, `local_cli` 4,
+plus 15 accounted for per batch in the commit messages); two tests were added:
+`api.rs::healthz_reports_the_only_execution_mode` (keeps AC19 pinned now that
+the enum is gone) and Go's `TestValidateExecutionModeAcceptsOnlyNativeMessages`.
+
+The MCP-era simulated worker was **ported, not deleted**: `simulated_cli()`
+now speaks the real `kin_*` protocol over an in-memory duplex pipe, so the
+5-/20-slot concurrency, tool_use resume, web_search forwarding, stall and
+metering tests still run — through `write_cli_stdin()` + `decode_stdout()`
+instead of a bespoke MCP fake.
+
+`config_hash` stays a three-way contract and `execution_mode` stays inside it:
+the Go `RuntimeProfile` keeps the field (dropping it would rotate every hash
+for no gain), the kernel reports the constant `native_messages`
+(`api.rs::EXECUTION_MODE`), and the console validates exactly that value
+(`server.go::executionMode`). Verified live: console PUT
+`/api/v1/runtime-profile` → `config_hash 623aedaf…da39`; kernel booted with
+that `KIN_DESIRED_CONFIG_HASH` → `/readyz 200`, `/healthz` echoing the same
+hash under `native_host.config_hash`, `/v1/messages` answering in both
+streaming and non-streaming mode; `mcp_slot`/`native_slot` profiles now 400.
+
+Rollback is `git revert` of a batch commit — no environment variable can
+restore the deleted paths, which is the intended outcome.
+
+### Real-CLI verification status after the consolidation
+
+The patched CLI was started **by the post-consolidation kernel** and completed
+the protocol v2 handshake: `kin_host_ready` with `protocol_version=2`,
+`slots=2`, `capabilities=[multi_slot, native_sse, stateless]`, after which
+`/readyz` returned 200 and `/internal/v1/slots` reported `capacity=2`. So the
+surviving code path drives the real CLI, not just the in-memory simulator.
+
+The per-token / tool_use rerun against the **live API** (task AC10) is still
+open on this machine for a credential reason only: `/v1/messages` came back
+`provider error: Not logged in · Please run /login` because
+`~/.claude/.credentials.json` here holds MCP OAuth entries only — no
+`claudeAiOauth` subscription blob — and neither `ANTHROPIC_API_KEY` nor
+`CLAUDE_CODE_OAUTH_TOKEN` is set. Supply `KIN_CLAUDE_AI_OAUTH_JSON` (or
+`KIN_CLAUDE_CODE_OAUTH_TOKEN`) and rerun one single-slot hello plus one
+tool_use continuation to close it.
+

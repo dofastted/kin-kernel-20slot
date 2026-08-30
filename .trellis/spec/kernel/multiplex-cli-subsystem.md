@@ -1,52 +1,67 @@
 # Multiplex CLI Subsystem
 
-`provider/multiplex_cli/` implements `KIN_ISOLATION=subagent-pool`: **one** Claude
-Code OS process hosts up to 20 concurrent logical request "slots" via MCP-blocked
-background subagents, instead of spawning one process per request. This is the only
-isolation mode that lets a single kernel serve real concurrency against a stock
-Claude CLI (see `docs/DELIVERY_STATUS.md` "已知限制": the stock CLI is one process /
-one stdin turn — 5 truly concurrent CLI processes cost ~210MB each, so multiplexing
-inside one process is the only way to approach 20-way concurrency without a
-proportional memory bill).
+`provider/multiplex_cli/` is the only execution path: **one** patched Claude Code
+process hosts up to 20 concurrent stateless request "slots", instead of spawning one
+process per request. That is the only way a single kernel serves real concurrency
+against the CLI (see `docs/DELIVERY_STATUS.md` "已知限制": the stock CLI is one
+process / one stdin turn — 5 truly concurrent CLI processes cost ~210MB each, so
+multiplexing inside one process is the only way to approach 20-way concurrency
+without a proportional memory bill).
 
-## Execution Modes (`execution_mode.rs`)
+The kernel never originates an upstream request. The CLI keeps its own TLS, its own
+request fingerprint, and its own SSE decoding; Rust writes jobs to its stdin and
+reads frames from its stdout. Everything that used to compensate for Rust *not*
+being on the wire — the Messages relay, the SSE tap, the source arbiter, the
+request↔job correlator, the MCP slot loop, per-turn process isolation — was deleted
+in `08-30-patch-only-consolidation`. Do not reintroduce a second data plane: if a
+feature seems to need one, it belongs in the CLI patch (`patches/claude-code/`).
 
-`KIN_EXECUTION_MODE` selects how a worker drives the CLI. Three modes:
+`execution_mode` is a fixed string (`native_messages`) reported by `/healthz`,
+`/readyz` and `/internal/v1/envelope`, and it is a field of the Go control plane's
+`RuntimeProfile`, hence an input to `config_hash`. There is no `KIN_EXECUTION_MODE`,
+`KIN_ALLOW_NATIVE_AGENT`, `KIN_ISOLATION` or `KIN_RELAY_*` env var any more; the
+constant lives in `api.rs::EXECUTION_MODE` and the console's
+`server.go::executionMode`, and the two must stay byte-identical or the three-way
+`config_hash` check fails.
 
-| Mode | Status |
-|---|---|
-| `native_messages` | **Default.** Stateless v2: the CLI holds no tools/agents/cross-job state; Rust drives every turn as a fresh job. |
-| `mcp_slot` | Supported rollback path. The model-visible `slot_wait`/`kin_done` MCP loop described below. |
-| `native_slot` / `native_agent` | Frozen v1. **Not exposed by default** — see gate below. |
+## Native Protocol (`native_protocol.rs`)
 
-The default lives in exactly one place: `#[default]` on
-`ExecutionMode::NativeMessages`. `from_env()`'s not-present arm returns
-`Self::default()` rather than naming a variant, and `api.rs` reports the mode
-to `/healthz` + `/readyz` through `reported_execution_mode()`, which is keyed
-on the same default. This matters because the Go control plane compares its
-desired `config_hash` against what the kernel reports (R7/AC14): a hardcoded
-fallback drifting from the enum would surface as a spurious three-way mismatch
-rather than an obvious bug.
+stdin (`KinStdin`): `kin_job_start{job_id, slot_id, request}`,
+`kin_cancel{job_id, slot_id?}`.
+stdout (`KinStdout`): `kin_host_ready{protocol_version, slots, system_layout,
+timezone, capabilities, config_hash?}`, `kin_slot_ready{slot_id}`,
+`kin_stream_event{job_id, slot_id, event}`, `kin_job_done{job_id, slot_id,
+stop_reason, usage}`, `kin_job_error{job_id, slot_id?, error}`,
+`kin_cancel_ack{job_id, slot_id}`.
 
-`NativeAgent` runs host tools with permissions unconditionally allowed (P0-5),
-so naming the mode is not sufficient to select it. Both the kernel
-(`ExecutionMode::check_opt_in()`) and the Go console
-(`server.go::validateExecutionMode()`) additionally require
-`KIN_ALLOW_NATIVE_AGENT=i-understand-host-tools-are-exposed`. Deliberately not
-a boolean — `1`/`true`/`yes` are rejected — so the gate cannot be tripped by a
-reflexive truthy value. Both layers key on the same literal so a profile the
-console accepts is one the kernel will boot.
+Invariants:
+
+- **Every frame carries its own ids.** No `parent_tool_use_id` heuristics, no
+  correlation tokens. A `kin_stream_event`/`kin_job_done` whose `slot_id` disagrees
+  with the job's bound slot is dropped with a warning, never routed on guess.
+- **Do not write `kin_hello` at boot.** Official `-p` peeks stdin and then waits for
+  EOF; a boot handshake hangs the CLI before `kin_slot_ready` is ever emitted.
+- **`validate_host_ready()` is a gate, not a log line.** Protocol version, slot
+  count, envelope mode/timezone, required capabilities and (when
+  `KIN_DESIRED_CONFIG_HASH` is set) the echoed `config_hash` must all match before
+  any slot is registered. A `config_hash` mismatch sets the flag `/readyz` turns
+  into a 503 — never downgrade it to a warning.
+- **`MAX_LINE_BYTES` / `MAX_JOB_BYTES` are per-job.** Metering keys on `job_id` so a
+  runaway job stops being decoded without starving the other slots sharing the CLI
+  process.
 
 ## Slot State Machine (`slot.rs`)
 
 ```
-Booting -> ReadyBlocked -> Running -> WaitingTool -> Running -> ... -> Draining -> Dead
+Booting -> ReadyBlocked -> Running -> ReadyBlocked -> ... -> Dead
 ```
 
-`Slot{id, parent_tool_use_id, phase, tenant_id, session_id, job_id, jobs_completed,
-bytes_used, created_at, last_change}`. `cas(from, to)` is the only way to transition
-phase — a compare-and-swap, not a plain assignment, so two racing callers can't both
-believe they own the same slot.
+`Slot{id, phase, tenant_id, session_id, job_id, jobs_completed, created_at,
+last_change}`. `ReadyBlocked` means idle-and-registered with the scheduler (the name
+predates the MCP loop it was blocking in). There is no in-CLI tool parking: a
+`tool_use` turn ends the job and its continuation arrives as a **new** job, so
+`SlotPhase::WaitingTool` no longer exists. HTTP-level tool waiting still exists one
+layer up, in `session.rs`/`scheduler.rs`.
 
 `bind_job()` only succeeds from `ReadyBlocked`, and **enforces same-tenant
 stickiness** if the slot is already bound to a tenant/session. `unbind_ready()`
@@ -54,12 +69,11 @@ deliberately does **not** clear `tenant_id`/`session_id` — read its doc-commen
 "Keep tenant+session sticky. Clearing them would let another tenant inherit leftover
 subagent context." This is a security-relevant invariant, not an oversight: a slot
 that goes idle between turns for the same session must not be handed to a different
-tenant while any conversational context could still be resident in the CLI
-subagent's memory.
+tenant while any conversational context could still be resident in the CLI's memory.
 
 `should_retire()` checks `max_jobs`/`max_lifetime`/idle-while-tenant-bound — slots are
 recycled rather than kept forever, bounding both memory growth and the blast radius
-of any single subagent's accumulated state.
+of any single slot's accumulated state.
 
 ## Memory Admission Control (`memory_guard.rs`)
 
@@ -95,174 +109,59 @@ exclusively to this kernel + CLI pair.
 would silently break this isolation guarantee for any deployment where the cgroup is
 shared — always gate cgroup-based RSS reads behind the same opt-in env var.
 
-## Signed Tokens (`signing.rs` + `continuation.rs` + `relay/correlate.rs`)
-
-All token signing goes through one module — `signing.rs`: HMAC-SHA256
-(`hmac`/`sha2`, constant-time `verify_slice`) keyed by the runtime secret, with
-**domain separation** as the first HMAC input:
-
-| Domain | Wire prefix | Consumer |
-|---|---|---|
-| `kin/kct/v1` | `kct_<hex_payload>.<hex_mac>` | continuation tokens (`continuation.rs`) |
-| `kin/krc/v1` | `krc_<hex_payload>.<hex_mac>` | relay request↔job correlation (`relay/correlate.rs`) |
-
-A signature made under one domain must never verify under the other — there is a
-unit test for exactly that. Rules when touching this code:
-
-- **Empty secret is a hard failure**: `sign()` returns an error and `verify()`
-  returns false. The historical hand-rolled `mac()` returned an all-zero MAC on
-  empty secret; that class of bug is why `issue()`/`encode()` now return `Result`.
-  Never reintroduce a path that silently signs with a missing secret.
-- Do NOT add a third signing scheme or a per-module MAC helper — extend
-  `signing.rs` with a new domain constant instead.
-- `ContinuationToken{process_generation, slot_id, job_id, logical_session_id,
-  tool_call_id, expires_at, nonce}`; `matches_runtime()` checks
-  `process_generation` equality and returns `KernelError::ContinuationLost` on
-  mismatch — a token from a previous CLI process generation (e.g. after a
-  restart) is rejected rather than silently resumed against a different process.
-- Runtime restart rotates the secret, so there is no cross-process token
-  compatibility to preserve; wire-format stability (`kct_`/`krc_` prefixes) is
-  still required within a process lifetime.
-
-History note: before 2026-08 `continuation.rs` used a hand-rolled XOR/rotate
-"mac()" — it was replaced by HMAC-SHA256 during the relay refactor because
-`krc_` tokens are scanned out of externally-influenced request bodies and needed
-a real, constant-time MAC as the authentication boundary.
-
-## MCP JSON-RPC Server (`mcp_server.rs`)
-
-`spawn(runtime, bind)` starts an axum router serving `/mcp` (POST for JSON-RPC calls,
-GET for the SSE upgrade path) and `/healthz`. This is a **second, independent** HTTP
-server inside the kernel process — separate from the main client-facing router in
-`api.rs` — used only for the kernel <-> CLI-subagent MCP protocol.
-
-`tools/list` exposes exactly 4 tools: `slot_wait`, `client_tool`, `kin_done`,
-`kin_fail`. `tools/call` dispatches to `runtime.mcp_slot_wait` /
-`runtime.mcp_client_tool` / `runtime.mcp_kin_done` / `runtime.mcp_kin_fail`, branching
-to `tool_sse()` (SSE response) if the client's `Accept` header includes
-`text/event-stream`, otherwise a synchronous JSON-RPC response.
-
-**Critical, easy-to-break invariant** (from the doc-comment on
-`progress_notification()`): Claude Code 2.1.x Zod-validates
-`notifications/progress.params.progressToken` as `string | number`. A **missing**
-token throws inside the CLI's notification handler and **drops the MCP HTTP
-connection** — meaning an idle `slot_wait` call would never receive its job. This is
-why `tool_sse()` sends periodic progress-notification-or-comment keepalives (every
-15s) while a dispatched future is pending, and why the keepalive conditionally
-echoes back a `progressToken` only if the client supplied one — **never send a
-`notifications/progress` frame with a null/absent `progressToken` if the original
-call included one**, and never assume the CLI tolerates a malformed progress
-notification; a regression here silently kills long-idle slots rather than
-returning a visible error.
-
 ## Job Flow Summary
 
-1. `bootstrap.rs` writes the root prompt instructing the CLI to spawn exactly N
-   `kin-slot` background agents (`supervisor.rs::kin_slot_agents()` defines the agent
-   prompt/tools), then `wait_ready()` polls `runtime.ready_slots()` until N slots
-   report ready or a timeout elapses.
-2. `supervisor.rs::spawn()` launches the actual CLI child process: writes
-   `.credentials.json` (via `write_oauth_file()`) and `mcp.json` pointing at the
-   in-process MCP server, sets `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`/
-   `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` to the slot count, and applies proxy env via
-   `apply_proxy_env()` (SOCKS5-only enforcement — see `provider-adapters.md`).
-3. Each ready slot repeatedly calls the MCP `slot_wait` tool; `scheduler.rs::SlotScheduler::pick()`
-   assigns a `Job` to a `ReadyBlocked` slot — sticky-first by
-   `"{tenant}\u{1f}{session}"` key, else first-available filtered by tenant match
-   (a `ReadyBlocked` slot already bound to a different tenant is skipped, not stolen).
-4. `stream_decoder.rs::decode()` routes incoming CLI NDJSON frames by
-   `parent_tool_use_id`: frames with no parent are root-supervisor traffic
-   (`Decoded::Root`); an `AgentSpawn` frame identifies a new subagent's tool_use id;
-   everything else with a matching parent is `Decoded::Routed` to that slot's stream.
-5. `job_stream.rs::JobStream::ingest()` translates routed frames into Anthropic SSE
-   events — **read the module doc-comment**: CLI 2.1.241 does not set
-   `parent_tool_use_id` on `stream_event` token-stream frames (only root-level), so
-   subagent text arrives as complete `assistant`/`user` frames, not incremental
-   deltas. `JobStream` forwards those as whole stage-level SSE blocks. **Never
-   re-chunk a complete string into fake incremental deltas** to simulate streaming —
-   one of the 8 inline tests in `mod.rs` exists specifically to guarantee this
-   ("no fake chunking guarantee").
-6. `pending_call.rs::PendingCalls` holds the `oneshot` channel registries
-   (`slot_wait`/`client_tool`/`done`) that connect the async MCP handlers to the
-   synchronous-looking job dispatch logic in `mod.rs`.
-7. On `kin_done`/`kin_fail`, the slot's `Job` completes, its continuation token
-   (if any) is finalized, and the slot returns to `ReadyBlocked` (or `Draining`/`Dead`
-   per `should_retire()`).
-
-## Messages Relay (`relay/`)
-
-`KIN_RELAY_MODE` gates an in-process loopback reverse proxy that the CLI is
-pointed at via `ANTHROPIC_BASE_URL`, so the user stream can take per-token body
-from the Anthropic upstream SSE instead of the CLI's whole-block subagent text.
-
-| Mode | Boot behavior | User body source |
-|---|---|---|
-| unset / `off` | relay never spawns, no env injected — identical to pre-relay behavior | stdout |
-| `observe` | relay is REQUIRED: spawn → `/healthz` probe → only then start the CLI; probe failure aborts boot | stdout (tap feeds SHA-256 digest comparison only) |
-| `authoritative` | same strict boot | upstream tap (stdout suppressed, fallback only) |
-| invalid value | `Config::from_env` errors, process exits | — |
-
-**Never let an explicit `observe`/`authoritative` silently degrade to `off`** —
-that produces "tests pass but the relay was never in the path" false positives.
-Rollback is config-change + restart; an already-running CLI cannot have its
-injected base URL revoked.
-
-Invariants to preserve when touching `relay/`:
-
-- **The CLI branch must never block on the tap.** Upstream bytes stream back to
-  the CLI driven by network backpressure; the tap is try_send into a bounded
-  per-job queue (256 items / 2 MiB) that poisons on overflow (`tap_dropped`
-  metric + explicit job failure if the turn was already `UpstreamActive`).
-- **Non-2xx upstream responses pass through to the CLI untouched and are never
-  tapped** (`upstream_5xx_passes_through_to_cli_and_never_taps` test).
-- **Correlation is streaming**: request bodies are scanned incrementally for
-  `krc_` tokens while being forwarded (cross-chunk tail carry, 2 KiB candidate
-  cap) — never buffer the whole body. A match requires all five checks: HMAC,
-  current generation, job exists, slot_id matches, slot still owns the job.
-  Uncorrelated requests (root supervisor, slot bootstrap) are forwarded but not
-  tapped.
-- **`SourceArbiter` transitions are one-way**: NoBody → UpstreamActive |
-  StdoutFallback → Completed. A turn that upgraded to UpstreamActive must never
-  fall back to stdout mid-turn (duplicate/truncated body); tap poison there
-  fails the job explicitly via the JobSink terminal instead. The
-  `upstream_authoritative` flag (not `upstream_text` emptiness) decides the
-  final body source — observe mode accumulates upstream text for digests while
-  the user body stays stdout. Only a **non-empty** text/thinking delta upgrades
-  to UpstreamActive: every real CLI response opens with an empty thinking block
-  that must not claim the body (it discarded the deferred stdout frames and
-  produced empty 200s).
-- **kin-slot answers stream as kin_done arguments, not text_delta.** The slot
-  prompt tells the model to put the full answer in `kin_done{text}`; the real
-  upstream SSE therefore carries it as `input_json_delta` fragments on an
-  internal tool block. `EventFilter` incrementally extracts the top-level
-  `text` string from that argument stream and synthesizes per-token
-  `text_delta` events (internal `kin_synth` marker, stripped by JobStream
-  before the client; the arbiter suppresses the synthesized stream when real
-  upstream text already streamed this turn).
-- **stdout demux binding is learned, not assumed.** The spawn-order pairing of
-  `parent_tool_use_id` → slot is only a bootstrap heuristic; the replayed
-  slot_wait tool_result on stdout (`{"type":"job",job_id,slot_id}`) is the
-  authoritative binding and rebinds the parent before any frame is routed
-  (mispairing under concurrent boot caused cross-session streams).
-- **`JobStream.streamed_text` means delivered, not ingested.** The runtime
-  sets it only for events that survived arbitration and were emitted; marking
-  at ingest muted the kin_done fallback after suppression (empty 200s).
-- **No token/body/authorization logging** anywhere in `relay/` — debug with
-  job_id/slot_id/generation/digests only.
-
-`/healthz`'s `relay` field exposes `{relay_mode, relay_healthy, tap_dropped,
-digest_mismatch}`. Ops guidance: `docs/RUNBOOK.md` §4.1; architecture rationale:
-`docs/SOURCE_AND_PRINCIPLES.md` §3.3.1.
+1. `supervisor.rs::spawn()` launches the CLI child: writes `.credentials.json` (via
+   `cli_auth`), applies proxy env through `apply_proxy_env()` (HTTP CONNECT only —
+   SOCKS5 without a bridge is a hard error, see `provider-adapters.md`), passes
+   `native_cli_args()` plus `CLAUDE_CODE_KIN_NATIVE_SLOTS`,
+   `CLAUDE_CODE_SYSTEM_LAYOUT`, `CLAUDE_CODE_TIMEZONE` and, when configured,
+   `CLAUDE_CODE_KIN_CONFIG_HASH`. There is no `--agents`, no `--mcp-config` and no
+   `ANTHROPIC_BASE_URL` redirect.
+2. The CLI emits `kin_host_ready`; after `validate_host_ready()` passes, the runtime
+   registers `slots` slots and `bootstrap::wait_ready()` returns once
+   `runtime.ready_slots()` reaches the configured count.
+3. `submit_fresh()` admits the request against `MemoryGuard`, picks a slot via
+   `scheduler.rs::SlotScheduler::pick()` — sticky-first by `"{tenant}\u{1f}{session}"`,
+   else first-available filtered by tenant match (a `ReadyBlocked` slot bound to
+   another tenant is skipped, never stolen) — retries within `KIN_SUBMIT_WAIT_MS`
+   instead of 503-ing on the slot re-entry gap, then writes `kin_job_start`.
+4. `handle_cli_frame()` decodes stdout frames: `kin_stream_event.event` is forwarded
+   to the client verbatim **and** fed to `StreamAssembler` so a `stream:false` client
+   and `complete_job()` get real `{id,name,input}` content blocks.
+5. `kin_job_done` / `kin_job_error` finish the job: `complete_job()` builds the
+   `MessageResponse` from the assembler (CLI-sent empty `stop_reason`/`usage` fall
+   back to the assembled values), `finish_sent_job()` frees the slot after the
+   terminal frame is actually delivered, and `register_native_ready()` returns it to
+   `ReadyBlocked` unless `should_retire()` says otherwise.
+6. `resume()` is a thin wrapper: continuation/tenant/tool_use_id validation and the
+   history merge already happened in `api.rs` → `session.rs`, so a resume is
+   structurally a fresh job (`submit_fresh` with `resumed: false`).
+7. Client disconnect / overflow / stall sets a `JobSink` terminal;
+   `abort_terminal_job()` sends `kin_cancel` and only re-registers the slot locally
+   if that write fails (the CLI's `kin_cancel_ack` is the normal path).
 
 ## Testing Without a Live CLI
 
-`replay.rs` supports fully offline load/soak testing by replaying a recorded CLI
-NDJSON trace (`Trace::from_ndjson()` or `Trace::synthetic()`) against N virtual
-sessions, in `PayloadMode::Shared` (sessions share the same underlying bytes — bounds
-gateway memory) or `PayloadMode::Independent` (each session independently parses its
-own copy). This never talks to a real Claude process or spends tokens — use it for
-soak/regression testing multiplex behavior at scale instead of spinning up 20 real
-CLI slots.
+`MultiplexCliProvider::simulated(slot_count)` / `Runtime::start_simulated()` wire an
+in-memory `tokio::io::duplex` pipe and run `simulated_cli()` on the far end. The
+simulator speaks the real `kin_*` protocol, so tests exercise `write_cli_stdin()`,
+`decode_stdout()` and `handle_native_frame()` rather than a bespoke fake. Request
+text selects the reply shape: `[use_tool:NAME]` ends the turn on `tool_use`,
+`[web_search]` emits `server_tool_use` + `web_search_tool_result` + text, anything
+else answers with one text block (`slot {slot_id} :: {text}`).
 
-`MultiplexCliProvider::simulated(slot_count)` (in `mod.rs`) is the synchronous unit-test
-constructor — see `quality-guidelines.md` for the testing pattern this establishes.
+Rules when extending it:
+
+- `message_start` is emitted **before** `simulate_latency` — a client must see the
+  turn open without waiting for the answer (there is a test for that).
+- Each job runs in its own task, so N submissions really overlap; the 20-slot test
+  asserts both wall time and `peak_running`.
+- The simulator echoes the `config_hash` it was handed, exactly like the real CLI.
+  It therefore cannot fake a stale-CLI mismatch — that path is covered by
+  `validate_host_ready_rejects_config_hash_mismatch` and
+  `readyz_returns_503_on_config_hash_mismatch`, not by the simulator.
+- Do not fake-chunk a complete string into synthetic `text_delta`s to imitate
+  streaming; emit the frames the CLI would emit.
+
+See `quality-guidelines.md` for the broader testing pattern.

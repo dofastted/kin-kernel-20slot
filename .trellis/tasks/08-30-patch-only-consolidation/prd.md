@@ -65,25 +65,60 @@
 
 ### 删除完成度
 
-- [ ] AC1 `provider/multiplex_cli/relay/` 目录不存在；全仓无 `relay::` 引用
-- [ ] AC2 `mcp_server.rs` 不存在；无 `mcp_slot_wait` / `slot_wait` MCP 工具残留
-- [ ] AC3 `ExecutionMode::{McpSlot, NativeAgent}` 及 `KIN_ALLOW_NATIVE_AGENT` 门禁不存在
-- [ ] AC4 `provider/local_cli.rs` 不存在；`main.rs` 无 `local_cli` 分支
-- [ ] AC5 `KIN_RELAY_MODE` / `KIN_EXECUTION_MODE` / `KIN_ISOLATION` 等已废配置项从代码与 env example 中移除
+- [x] AC1 `provider/multiplex_cli/relay/` 目录不存在；全仓无 `relay::` 引用
+- [x] AC2 `mcp_server.rs` 不存在；无 `mcp_slot_wait` / `slot_wait` MCP 工具残留
+- [x] AC3 `ExecutionMode::{McpSlot, NativeAgent}` 及 `KIN_ALLOW_NATIVE_AGENT` 门禁不存在
+- [x] AC4 `provider/local_cli.rs` 不存在；`main.rs` 无 `local_cli` 分支
+- [x] AC5 `KIN_RELAY_MODE` / `KIN_EXECUTION_MODE` / `KIN_ISOLATION` 等已废配置项从代码与 env example 中移除
 
 ### 不回退
 
-- [ ] AC6 `cargo test --all-targets` 全绿，且**保留了所有仍适用的测试**（不得靠删测试达成绿）
-- [ ] AC7 `cargo clippy --all-targets -- -D warnings` 零诊断，且不新增 `allow(dead_code)`
-- [ ] AC8 `cargo fmt --check` 干净
-- [ ] AC9 二进制实机可启动，`/healthz` 正常响应
-- [ ] AC10 native_messages 真流式行为不变：以真实 API 复跑一次单槽 hello + 一次 tool_use 续接，逐 token 输出与工具参数正确
+- [x] AC6 `cargo test --all-targets` 全绿，且**保留了所有仍适用的测试**（不得靠删测试达成绿）
+- [x] AC7 `cargo clippy --all-targets -- -D warnings` 零诊断，且不新增 `allow(dead_code)`
+- [x] AC8 `cargo fmt --check` 干净
+- [x] AC9 二进制实机可启动，`/healthz` 正常响应
+- [!] AC10 **阻塞（缺凭证，非代码问题）**：真实 patched CLI 已用本次改动后的内核拉起并完成
+  `kin_host_ready` 握手（protocol_version=2, slots=2, capabilities=[multi_slot,
+  native_sse, stateless]），`/readyz` 返回 200、`/internal/v1/slots` 显示 capacity=2，
+  证明 S1–S5 后的代码能驱动真 CLI。但 `/v1/messages` 返回
+  `provider error: Not logged in · Please run /login`：本机
+  `~/.claude/.credentials.json` 只有 MCP OAuth 条目，没有 Claude 订阅
+  `claudeAiOauth` blob，`ANTHROPIC_API_KEY` / `CLAUDE_CODE_OAUTH_TOKEN` 均未设置。
+  需要 `KIN_CLAUDE_AI_OAUTH_JSON`（订阅 blob）或 `KIN_CLAUDE_CODE_OAUTH_TOKEN`
+  （setup-token）后重跑一次单槽 hello + 一次 tool_use 续接即可闭合。
+  替代证据：模拟 CLI 走同一条 `write_cli_stdin` / `decode_stdout` /
+  `handle_native_frame` 路径的逐 token 输出与 tool_use 续接均已在测试与实机
+  `/v1/messages`（流式与非流式）验证。
 
 ### 度量
 
-- [ ] AC11 记录删除前后的 `src/` 总行数与文件数，写入 APPLY.md
+- [x] AC11 记录删除前后的 `src/` 总行数与文件数，写入 APPLY.md
 
-## Open Questions
+## Open Questions（已在实施中回答）
 
-- OQ1 删除 `mcp_slot` 后 `SlotPhase::WaitingTool` 与 `session.rs::Phase::WaitingTool` 是否完全无写入方？需在实施时以编译器验证，而非静态推测。
-- OQ2 `IsolationMode` 是否会退化为单变体枚举？若是，应直接删除该枚举而非留一个恒真的类型。
+- **OQ1 → 是（仅 SlotPhase）。** 删除 mcp_slot 后 `SlotPhase::WaitingTool` 只剩一个测试
+  helper 在写，编译器确认无生产写入方，已连同 `Draining` / `Slot::cas` /
+  `parent_tool_use_id` 一起删除。`session.rs` 侧的等待状态**保留**：HTTP 层的
+  tool_use 续接（`scheduler.rs` 的 `waiting_tool` 容量、`session.rs::mark_waiting`）
+  与 CLI 内部 parking 无关，仍然需要。
+- **OQ2 → 是，两个枚举都退化并已删除。** `ExecutionMode` 在删掉 `McpSlot`/`NativeAgent`
+  后只剩一个变体，直接删除枚举与 `KIN_EXECUTION_MODE`；`IsolationMode` 在删掉
+  `local_cli` 后只剩 `Multiplexed`，同样删除枚举与 `KIN_ISOLATION`。两处对外报告的
+  字符串改为常量（`api.rs::EXECUTION_MODE` / `ISOLATION`），因为 `execution_mode` 是
+  `config_hash` 三方契约的一部分，payload 形状不能变。
+
+## 实施偏差（据实记录）
+
+1. **S3 的删除范围比计划大。** 计划只写了 `mcp_server.rs` + MCP 分发；编译器证明
+   `job_stream.rs` / `event_filter.rs` / `stream_decoder.rs` / `pending_call.rs` /
+   `continuation.rs` / `signing.rs` / `replay.rs` 的唯一生产消费者都在 mcp_slot 路径上，
+   保留它们会触发 `dead_code`（AC7 禁止 `allow(dead_code)`），因此一并删除。
+   C1 约束依然被遵守：`event_filter` 在 S1 拆出、S2 保持 native 路径可编译，直到
+   S3 证明它整体无人使用。
+2. **模拟器是移植而非删除。** 旧 `simulate_worker()` 跑的是 MCP 循环，删掉它会带走
+   20 槽并发/续接/web_search/背压等 10 个仍然适用的测试。改为 `simulated_cli()`：
+   in-memory duplex 上跑真 `kin_*` 协议，测试因此覆盖 `write_cli_stdin` +
+   `decode_stdout` + `handle_native_frame`，比原来更接近真实路径。
+3. **Go `RuntimeProfile.execution_mode` 保留。** `config_hash` 是整个 profile 的
+   SHA-256，内核只做字符串比较；删字段会让所有已发的 hash 失效且无收益，因此只收紧
+   取值为 `native_messages`。闸门 B 以实机 `/readyz 200` 验证（详见 APPLY.md）。
