@@ -9,6 +9,34 @@ one stdin turn — 5 truly concurrent CLI processes cost ~210MB each, so multipl
 inside one process is the only way to approach 20-way concurrency without a
 proportional memory bill).
 
+## Execution Modes (`execution_mode.rs`)
+
+`KIN_EXECUTION_MODE` selects how a worker drives the CLI. Three modes:
+
+| Mode | Status |
+|---|---|
+| `native_messages` | **Default.** Stateless v2: the CLI holds no tools/agents/cross-job state; Rust drives every turn as a fresh job. |
+| `mcp_slot` | Supported rollback path. The model-visible `slot_wait`/`kin_done` MCP loop described below. |
+| `native_slot` / `native_agent` | Frozen v1. **Not exposed by default** — see gate below. |
+
+The default lives in exactly one place: `#[default]` on
+`ExecutionMode::NativeMessages`. `from_env()`'s not-present arm returns
+`Self::default()` rather than naming a variant, and `api.rs` reports the mode
+to `/healthz` + `/readyz` through `reported_execution_mode()`, which is keyed
+on the same default. This matters because the Go control plane compares its
+desired `config_hash` against what the kernel reports (R7/AC14): a hardcoded
+fallback drifting from the enum would surface as a spurious three-way mismatch
+rather than an obvious bug.
+
+`NativeAgent` runs host tools with permissions unconditionally allowed (P0-5),
+so naming the mode is not sufficient to select it. Both the kernel
+(`ExecutionMode::check_opt_in()`) and the Go console
+(`server.go::validateExecutionMode()`) additionally require
+`KIN_ALLOW_NATIVE_AGENT=i-understand-host-tools-are-exposed`. Deliberately not
+a boolean — `1`/`true`/`yes` are rejected — so the gate cannot be tripped by a
+reflexive truthy value. Both layers key on the same literal so a profile the
+console accepts is one the kernel will boot.
+
 ## Slot State Machine (`slot.rs`)
 
 ```

@@ -106,3 +106,64 @@ pub async fn collect_stream(mut rx: StreamRx) -> Result<MessageResponse, KernelE
     }
     finished.ok_or_else(|| KernelError::Provider("stream ended without a result".into()))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::{ContentBlock, StopReason};
+    use crate::stream::StreamAssembler;
+    use serde_json::json;
+
+    /// OQ1: the non-streaming path (`stream:false`) returns whatever the
+    /// provider put in `StreamItem::Finished`, discarding the individual
+    /// events. Since that response is built by the same `StreamAssembler`
+    /// the streaming path feeds, a `tool_use` block assembled from
+    /// `input_json_delta` fragments must survive into the aggregated
+    /// response with its input intact — there is no separate accumulation
+    /// path that could drop it.
+    #[tokio::test]
+    async fn collect_stream_preserves_assembled_tool_use_input() {
+        let mut assembler = StreamAssembler::new("claude-sonnet-5");
+        for event in [
+            json!({"type":"content_block_start","index":0,
+                   "content_block":{"type":"tool_use","id":"toolu_1","name":"get_weather","input":{}}}),
+            json!({"type":"content_block_delta","index":0,
+                   "delta":{"type":"input_json_delta","partial_json":"{\"city\":"}}),
+            json!({"type":"content_block_delta","index":0,
+                   "delta":{"type":"input_json_delta","partial_json":"\"Tokyo\"}"}}),
+            json!({"type":"content_block_stop","index":0}),
+            json!({"type":"message_delta","delta":{"stop_reason":"tool_use"}}),
+        ] {
+            assembler.apply_event(&event);
+        }
+
+        let (tx, rx) = job_event_channel();
+        // Events are sent too, to prove collect_stream ignores them rather
+        // than trying to re-derive the response from them.
+        tx.try_send(Ok(StreamItem::Event(json!({"type":"message_stop"}))))
+            .expect("send event");
+        tx.try_send(Ok(StreamItem::Finished(
+            assembler.finish(&MessageRequest::default()),
+        )))
+        .expect("send finished");
+        drop(tx);
+
+        let response = collect_stream(rx).await.expect("aggregate");
+        assert!(matches!(response.stop_reason, StopReason::ToolUse));
+        match response
+            .content
+            .iter()
+            .find(|b| matches!(b, ContentBlock::ToolUse { .. }))
+            .expect("tool_use block must survive aggregation")
+        {
+            ContentBlock::ToolUse {
+                id, name, input, ..
+            } => {
+                assert_eq!(id, "toolu_1");
+                assert_eq!(name, "get_weather");
+                assert_eq!(input, &json!({"city": "Tokyo"}));
+            }
+            other => panic!("expected tool_use, got {other:?}"),
+        }
+    }
+}

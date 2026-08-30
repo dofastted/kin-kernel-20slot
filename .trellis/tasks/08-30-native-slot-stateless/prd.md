@@ -167,7 +167,14 @@ system/env/SOCKS 变更走 drain → 重启 CLI → generation+1，禁止任务�
 - **C5** setup-token 为 inference-only、不可 refresh、无 `user:sessions:claude_code` 等 scope。
 - **C6** 凭证与 SOCKS 口令不得进入日志、产物或提交。
 
-## Open Questions
+## Open Questions（均已在验收中回答）
 
-- OQ1 `stream:false` 聚合：CLI 仍逐事件输出，Rust 沿用 `job_stream.rs`；需确认 `tool_use` block 被正确累积进非流式响应。
-- OQ2 20 并发是否共享单个 Anthropic SDK client；若共享 keep-alive 池需确认连接数上限与 `http_to_socks.py` 承载。
+- ~~OQ1~~ **已解答**：`stream:false` 走 `provider::collect_stream()`，它丢弃逐个 event、直接取
+  `StreamItem::Finished`，而该 response 由与流式路径**同一个** `StreamAssembler` 装配 ——
+  不存在会漏掉 `tool_use` 的第二条累积路径。已加回归测试
+  `provider::tests::collect_stream_preserves_assembled_tool_use_input` 固化：`input_json_delta`
+  分片拼出的 `input` 完整进入聚合响应。
+- ~~OQ2~~ **已解答（AC7/AC15 实测）**：20 并发下真正连上真实 API 的 18 个 job 全部正确完成、
+  参数互不串扰，单 CLI PID 全程不变 —— 共享 SDK client 无正确性问题。2 个失败与 kernel 无关，
+  是测试用 `http_to_socks.py`（一次性 Python 脚手架，非生产组件）在 20 路并发下拒绝新连接
+  返回 502。即测试网桥承载力是瓶颈，不是 SDK 连接池。生产部署换用真实 SOCKS5 代理即不适用。
