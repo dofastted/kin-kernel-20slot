@@ -307,4 +307,52 @@ mod tests {
         assert_eq!(expired[0].worker_index, 2);
         assert_eq!(expired[0].worker_generation, 9);
     }
+
+    /// AC4: dual tool_use calls resolved by two tool_result blocks, but the
+    /// client's tool_result array need not preserve the order the model
+    /// emitted the tool_use blocks in — `resume()` matches by normalized
+    /// (sorted) id set, not by positional order.
+    #[test]
+    fn resume_accepts_out_of_order_dual_tool_result_ids() {
+        let sessions = SessionDirectory::new(
+            Duration::from_secs(60),
+            Duration::from_secs(60),
+            1024 * 1024,
+        );
+        let pending = MessageRequest {
+            model: "mock-agent".to_string(),
+            messages: vec![Message {
+                role: "user".to_string(),
+                content: MessageContent::Text("please call two tools".to_string()),
+                tool_call_id: None,
+                tool_calls: Vec::new(),
+            }],
+            max_tokens: 128,
+            stream: false,
+            ..MessageRequest::default()
+        };
+        let token = sessions
+            .mark_waiting(
+                "t",
+                "s",
+                3,
+                11,
+                vec!["toolu_1".to_string(), "toolu_2".to_string()],
+                pending,
+                true,
+            )
+            .expect("store continuation");
+
+        // Client replies with the tool_result blocks in reverse order.
+        let binding = sessions
+            .resume(
+                "t",
+                "s",
+                &token,
+                &["toolu_2".to_string(), "toolu_1".to_string()],
+            )
+            .expect("out-of-order tool_result ids must still resolve the continuation");
+        assert_eq!(binding.worker_index, 3);
+        assert_eq!(binding.worker_generation, 11);
+    }
 }
