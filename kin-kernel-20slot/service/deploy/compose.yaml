@@ -35,15 +35,24 @@ services:
       KIN_HEARTBEAT_TIMEOUT_SECONDS: "20"
       KIN_RECONCILE_INTERVAL_SECONDS: "5"
       KIN_SNAPSHOT_TTL_SECONDS: "3600"
+      KIN_DATA_DIR: /var/lib/kin
+      KIN_DB_PATH: /var/lib/kin/kin.db
+      KIN_CONTROL_INTERNAL_TOKEN: ${KIN_CONTROL_INTERNAL_TOKEN:?required}
+      KIN_DB_SECRET: ${KIN_DB_SECRET:?required}
     ports:
       - "9090:9090"
     read_only: true
+    volumes:
+      - kin-data:/var/lib/kin
     tmpfs:
       - /tmp:size=16m,mode=1777
     security_opt:
       - no-new-privileges:true
     networks:
       - kin
+
+volumes:
+  kin-data:
 
 networks:
   kin:

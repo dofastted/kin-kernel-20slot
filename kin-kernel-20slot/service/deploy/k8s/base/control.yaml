@@ -27,9 +27,23 @@ spec:
           envFrom:
             - configMapRef:
                 name: kin-control-config
+          env:
+            - name: KIN_CONTROL_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: kin-control-secrets
+                  key: internal-token
+            - name: KIN_DB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kin-control-secrets
+                  key: db-secret
           ports:
             - name: http
               containerPort: 9090
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/kin
           readinessProbe:
             httpGet:
               path: /healthz
@@ -54,7 +68,22 @@ spec:
             capabilities:
               drop: ["ALL"]
             readOnlyRootFilesystem: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: kin-control-data
       terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kin-control-data
+  namespace: kin-system
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
