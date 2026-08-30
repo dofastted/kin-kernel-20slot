@@ -3,9 +3,11 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -255,6 +257,9 @@ func validateRuntimeProfile(profile model.RuntimeProfile) error {
 	if profile.ExecutionMode == "" {
 		return errors.New("execution_mode is required")
 	}
+	if err := validateExecutionMode(profile.ExecutionMode); err != nil {
+		return err
+	}
 	if profile.SystemLayout == "" {
 		return errors.New("system_layout is required")
 	}
@@ -271,6 +276,36 @@ func validateRuntimeProfile(profile model.RuntimeProfile) error {
 		return errors.New("max_output_tokens must be positive")
 	}
 	return nil
+}
+
+// nativeAgentOptIn and nativeAgentOptInValue mirror the Rust kernel's
+// KIN_ALLOW_NATIVE_AGENT gate (execution_mode.rs). Both layers must agree, so
+// a profile the console accepts is one the kernel will also boot.
+const (
+	nativeAgentOptIn      = "KIN_ALLOW_NATIVE_AGENT"
+	nativeAgentOptInValue = "i-understand-host-tools-are-exposed"
+)
+
+// validateExecutionMode rejects modes the kernel cannot parse, and gates
+// native_slot/native_agent behind an explicit opt-in: that mode exposes the
+// full host tool set with permissions unconditionally allowed (P0-5), so
+// naming it must not be enough to select it.
+func validateExecutionMode(mode string) error {
+	switch strings.ToLower(strings.TrimSpace(mode)) {
+	case "mcp", "mcp_slot", "agent", "native_messages":
+		return nil
+	case "native", "native_slot", "native_agent", "host":
+		if strings.TrimSpace(os.Getenv(nativeAgentOptIn)) == nativeAgentOptInValue {
+			return nil
+		}
+		return fmt.Errorf(
+			"execution_mode %q exposes host tools with permissions unconditionally allowed "+
+				"and is not exposed by default; set %s=%s to acknowledge that risk",
+			mode, nativeAgentOptIn, nativeAgentOptInValue,
+		)
+	default:
+		return fmt.Errorf("execution_mode %q must be mcp_slot, native_slot, or native_messages", mode)
+	}
 }
 
 func validName(value string) bool {

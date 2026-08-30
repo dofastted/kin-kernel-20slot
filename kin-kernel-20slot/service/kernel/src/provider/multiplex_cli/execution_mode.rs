@@ -31,18 +31,46 @@ impl ExecutionMode {
     }
 
     /// True only for the stateless v2 protocol (no in-CLI tool parking).
+    #[cfg(test)]
     pub fn is_native_messages(self) -> bool {
         matches!(self, Self::NativeMessages)
     }
 
     pub fn from_env() -> Result<Self, String> {
-        match env::var("KIN_EXECUTION_MODE") {
-            Ok(value) => value.parse(),
-            Err(env::VarError::NotPresent) => Ok(Self::McpSlot),
-            Err(_) => Err("KIN_EXECUTION_MODE must be valid unicode".into()),
+        let mode = match env::var("KIN_EXECUTION_MODE") {
+            Ok(value) => value.parse()?,
+            Err(env::VarError::NotPresent) => Self::McpSlot,
+            Err(_) => return Err("KIN_EXECUTION_MODE must be valid unicode".into()),
+        };
+        mode.check_opt_in(env::var(NATIVE_AGENT_OPT_IN).ok().as_deref())?;
+        Ok(mode)
+    }
+
+    /// `NativeAgent` is the frozen v1 host: it exposes the full host tool set
+    /// and unconditionally allows permissions (P0-5). design.md requires it be
+    /// reachable only behind an explicit opt-in, never by naming the mode
+    /// alone. Returns the same error whether the gate is unset or set to
+    /// anything other than the literal acknowledgement.
+    pub fn check_opt_in(self, opt_in: Option<&str>) -> Result<(), String> {
+        if self != Self::NativeAgent {
+            return Ok(());
         }
+        if opt_in.map(str::trim) == Some(NATIVE_AGENT_OPT_IN_VALUE) {
+            return Ok(());
+        }
+        Err(format!(
+            "execution_mode {} exposes host tools with permissions unconditionally allowed \
+             and is not exposed by default; set {NATIVE_AGENT_OPT_IN}={NATIVE_AGENT_OPT_IN_VALUE} \
+             to acknowledge that risk",
+            Self::NativeAgent.as_str()
+        ))
     }
 }
+
+/// Env var that must carry [`NATIVE_AGENT_OPT_IN_VALUE`] before
+/// [`ExecutionMode::NativeAgent`] may be selected.
+pub const NATIVE_AGENT_OPT_IN: &str = "KIN_ALLOW_NATIVE_AGENT";
+pub const NATIVE_AGENT_OPT_IN_VALUE: &str = "i-understand-host-tools-are-exposed";
 
 impl fmt::Display for ExecutionMode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -103,5 +131,41 @@ mod tests {
     #[test]
     fn rejects_unknown() {
         assert!("bogus".parse::<ExecutionMode>().is_err());
+    }
+
+    #[test]
+    fn native_agent_requires_explicit_opt_in() {
+        // AC18: naming the mode is not enough on its own.
+        let err = ExecutionMode::NativeAgent
+            .check_opt_in(None)
+            .expect_err("NativeAgent must not be reachable without the gate");
+        assert!(err.contains(NATIVE_AGENT_OPT_IN), "{err}");
+
+        assert!(
+            ExecutionMode::NativeAgent.check_opt_in(Some("1")).is_err(),
+            "a truthy-looking value must not satisfy the gate"
+        );
+        assert!(
+            ExecutionMode::NativeAgent.check_opt_in(Some("true")).is_err(),
+            "a truthy-looking value must not satisfy the gate"
+        );
+        assert!(
+            ExecutionMode::NativeAgent
+                .check_opt_in(Some(NATIVE_AGENT_OPT_IN_VALUE))
+                .is_ok()
+        );
+        assert!(
+            ExecutionMode::NativeAgent
+                .check_opt_in(Some(&format!("  {NATIVE_AGENT_OPT_IN_VALUE}  ")))
+                .is_ok(),
+            "surrounding whitespace must be tolerated"
+        );
+    }
+
+    #[test]
+    fn other_modes_are_never_gated() {
+        for mode in [ExecutionMode::McpSlot, ExecutionMode::NativeMessages] {
+            assert!(mode.check_opt_in(None).is_ok(), "{mode} must stay ungated");
+        }
     }
 }
