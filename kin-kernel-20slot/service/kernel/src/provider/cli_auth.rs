@@ -120,18 +120,19 @@ fn unwrap_oauth_json(v: Value) -> Value {
         return v;
     }
     if let Some(accounts) = v.get("accounts").and_then(Value::as_array)
-        && let Some(first) = accounts.first() {
-            let typ = first
-                .get("type")
-                .and_then(Value::as_str)
-                .unwrap_or("")
-                .to_string();
-            let creds = first
-                .get("credentials")
-                .cloned()
-                .unwrap_or_else(|| first.clone());
-            return flatten_credentials(creds, &typ);
-        }
+        && let Some(first) = accounts.first()
+    {
+        let typ = first
+            .get("type")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_string();
+        let creds = first
+            .get("credentials")
+            .cloned()
+            .unwrap_or_else(|| first.clone());
+        return flatten_credentials(creds, &typ);
+    }
     v
 }
 

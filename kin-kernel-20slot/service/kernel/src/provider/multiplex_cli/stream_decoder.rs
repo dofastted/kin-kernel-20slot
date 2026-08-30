@@ -2,12 +2,8 @@ use serde_json::Value;
 
 #[derive(Debug)]
 pub enum Decoded {
-    AgentSpawn {
-        tool_use_id: String,
-    },
-    Routed {
-        parent_tool_use_id: String,
-    },
+    AgentSpawn { tool_use_id: String },
+    Routed { parent_tool_use_id: String },
     Root,
 }
 
@@ -48,9 +44,10 @@ fn agent_spawn_id(frame: &Value) -> Option<String> {
         let kind = block.get("type").and_then(Value::as_str);
         if kind == Some("tool_use")
             && (name == "Agent" || name == "kin-slot" || name.ends_with("Agent"))
-            && let Some(id) = block.get("id").and_then(Value::as_str) {
-                return Some(id.to_string());
-            }
+            && let Some(id) = block.get("id").and_then(Value::as_str)
+        {
+            return Some(id.to_string());
+        }
     }
     None
 }

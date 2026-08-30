@@ -146,7 +146,9 @@ mod tests {
             "a truthy-looking value must not satisfy the gate"
         );
         assert!(
-            ExecutionMode::NativeAgent.check_opt_in(Some("true")).is_err(),
+            ExecutionMode::NativeAgent
+                .check_opt_in(Some("true"))
+                .is_err(),
             "a truthy-looking value must not satisfy the gate"
         );
         assert!(

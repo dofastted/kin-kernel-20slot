@@ -105,9 +105,10 @@ fn latest_job_payload(
             serde_json::Value::Array(blocks) => blocks.clone(),
             serde_json::Value::String(s) => {
                 if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(s)
-                    && parsed.get("type").and_then(serde_json::Value::as_str) == Some("job") {
-                        return Some(parsed);
-                    }
+                    && parsed.get("type").and_then(serde_json::Value::as_str) == Some("job")
+                {
+                    return Some(parsed);
+                }
                 continue;
             }
             _ => continue,

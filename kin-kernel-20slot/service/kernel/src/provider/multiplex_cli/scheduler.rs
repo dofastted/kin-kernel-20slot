@@ -70,7 +70,6 @@ impl SlotScheduler {
         }
         Err(KernelError::NoCapacity)
     }
-
 }
 
 impl Default for SlotScheduler {

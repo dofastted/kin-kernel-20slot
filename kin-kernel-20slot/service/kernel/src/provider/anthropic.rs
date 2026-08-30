@@ -146,10 +146,11 @@ async fn pump_anthropic_sse(
         }
     }
     if !buf.trim().is_empty()
-        && let Some(event) = parse_sse_block(&buf) {
-            assembler.apply_event(&event);
-            let _ = tx.send(Ok(StreamItem::Event(event))).await;
-        }
+        && let Some(event) = parse_sse_block(&buf)
+    {
+        assembler.apply_event(&event);
+        let _ = tx.send(Ok(StreamItem::Event(event))).await;
+    }
     let finished = assembler.finish(request);
     let _ = tx.send(Ok(StreamItem::Finished(finished))).await;
     Ok(())

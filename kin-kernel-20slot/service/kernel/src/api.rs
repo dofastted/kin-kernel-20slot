@@ -412,9 +412,10 @@ impl ActiveTurn {
                             }
                         };
                         if let Some(encoded) = encoded
-                            && out_tx.send(Ok(encoded)).await.is_err() {
-                                continue;
-                            }
+                            && out_tx.send(Ok(encoded)).await.is_err()
+                        {
+                            continue;
+                        }
                     }
                     Ok(StreamItem::Finished(response)) => finished = Some(response),
                     Err(err) => {

@@ -175,13 +175,14 @@ impl StreamAssembler {
                 let index = event.get("index").and_then(Value::as_u64).unwrap_or(0) as usize;
                 if let Some(raw) = self.tool_json.get(index)
                     && !raw.is_empty()
-                        && let Ok(parsed) = serde_json::from_str::<Value>(raw) {
-                            match &mut self.content[index] {
-                                ContentBlock::ToolUse { input, .. } => *input = parsed,
-                                ContentBlock::ServerToolUse { input, .. } => *input = parsed,
-                                _ => {}
-                            }
-                        }
+                    && let Ok(parsed) = serde_json::from_str::<Value>(raw)
+                {
+                    match &mut self.content[index] {
+                        ContentBlock::ToolUse { input, .. } => *input = parsed,
+                        ContentBlock::ServerToolUse { input, .. } => *input = parsed,
+                        _ => {}
+                    }
+                }
             }
             Some("message_delta") => {
                 if let Some(usage) = event.get("usage") {
@@ -219,12 +220,13 @@ impl StreamAssembler {
             self.apply_usage(tokens);
         }
         if self.content.is_empty()
-            && let Some(text) = frame.get("result").and_then(Value::as_str) {
-                self.content.push(ContentBlock::Text {
-                    text: text.to_string(),
-                    cache_control: None,
-                });
-            }
+            && let Some(text) = frame.get("result").and_then(Value::as_str)
+        {
+            self.content.push(ContentBlock::Text {
+                text: text.to_string(),
+                cache_control: None,
+            });
+        }
         if !matches!(self.stop, StopReason::ToolUse) {
             self.stop = StopReason::EndTurn;
         }
@@ -488,7 +490,11 @@ mod tests {
         let (content, _stop, _usage) = assembler.parts();
         match &content[0] {
             ContentBlock::ToolUse { input, .. } => {
-                assert_eq!(input, &json!({"city":"Tokyo","unit":"celsius"}), "input was: {input:?}");
+                assert_eq!(
+                    input,
+                    &json!({"city":"Tokyo","unit":"celsius"}),
+                    "input was: {input:?}"
+                );
             }
             other => panic!("expected tool_use, got {other:?}"),
         }

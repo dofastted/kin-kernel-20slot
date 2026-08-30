@@ -438,9 +438,10 @@ fn spawn_parked(
                 .is_some()
             {
                 if let Ok(mut slot) = buf.lock()
-                    && slot.len() < 8_192 {
-                        slot.push_str(&line);
-                    }
+                    && slot.len() < 8_192
+                {
+                    slot.push_str(&line);
+                }
                 line.clear();
             }
         });

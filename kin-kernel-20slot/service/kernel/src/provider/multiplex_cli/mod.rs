@@ -587,12 +587,12 @@ impl Runtime {
             let mut slots = self.slots.lock().await;
             if let Some(slot) = slots.iter_mut().find(|slot| slot.id == slot_id)
                 && slot.phase != SlotPhase::Dead
-                    && slot.phase != SlotPhase::Draining
-                    && slot.phase != SlotPhase::ReadyBlocked
-                {
-                    slot.phase = SlotPhase::ReadyBlocked;
-                    slot.job_id = None;
-                }
+                && slot.phase != SlotPhase::Draining
+                && slot.phase != SlotPhase::ReadyBlocked
+            {
+                slot.phase = SlotPhase::ReadyBlocked;
+                slot.job_id = None;
+            }
             if self.sched.lock().await.enqueue_ready(slot_id.clone()) {
                 self.ready.fetch_add(1, Ordering::Relaxed);
             }
@@ -771,9 +771,10 @@ impl Runtime {
         {
             let mut slots = self.slots.lock().await;
             if let Some(slot) = slots.iter_mut().find(|slot| slot.id == job.slot_id)
-                && slot.phase != SlotPhase::Dead {
-                    let _ = slot.cas(SlotPhase::WaitingTool, SlotPhase::Running);
-                }
+                && slot.phase != SlotPhase::Dead
+            {
+                let _ = slot.cas(SlotPhase::WaitingTool, SlotPhase::Running);
+            }
         }
         let _ = encoded;
         Ok(result)
@@ -814,10 +815,9 @@ impl Runtime {
         let retire = args.get("retire").and_then(Value::as_bool).unwrap_or(true);
         self.complete_job(job_id, error, true, "refusal", json!({}))
             .await?;
-        if retire
-            && let Some(job) = self.jobs.lock().await.get(job_id).cloned() {
-                self.retire_slot(&job.slot_id).await;
-            }
+        if retire && let Some(job) = self.jobs.lock().await.get(job_id).cloned() {
+            self.retire_slot(&job.slot_id).await;
+        }
         Ok(json!({ "ok": true }))
     }
 
@@ -850,12 +850,14 @@ impl Runtime {
                 .await
                 .remove(job_id)
                 .map(StreamAssembler::parts)
-                .unwrap_or_else(|| (Vec::new(), native_stop_reason(stop_reason), Usage::default()));
-            let usage_value = if usage.is_null() {
-                json!({})
-            } else {
-                usage
-            };
+                .unwrap_or_else(|| {
+                    (
+                        Vec::new(),
+                        native_stop_reason(stop_reason),
+                        Usage::default(),
+                    )
+                });
+            let usage_value = if usage.is_null() { json!({}) } else { usage };
             let usage = if usage_value == json!({}) {
                 assembled_usage
             } else {
@@ -1157,7 +1159,10 @@ impl Runtime {
                     &capabilities,
                     config_hash.as_deref(),
                 ) {
-                    tracing::error!(reason, "native host ready validation failed, refusing to register slots");
+                    tracing::error!(
+                        reason,
+                        "native host ready validation failed, refusing to register slots"
+                    );
                     if reason.starts_with("config_hash mismatch") {
                         self.config_hash_mismatch.store(true, Ordering::Relaxed);
                     }
@@ -2499,9 +2504,7 @@ impl MultiplexCliProvider {
                 session_idle_ttl: Duration::from_secs(600),
                 simulate_latency: Duration::from_millis(60),
                 continuation_ttl_secs: 600,
-                client_stall_timeout: Duration::from_secs(
-                    crate::config::DEFAULT_CLIENT_STALL_SECS,
-                ),
+                client_stall_timeout: Duration::from_secs(crate::config::DEFAULT_CLIENT_STALL_SECS),
                 submit_wait: Duration::from_millis(200),
                 relay_mode: RelayMode::Off,
                 relay_addr: "127.0.0.1:0".parse().unwrap(),
@@ -2568,7 +2571,9 @@ impl Provider for MultiplexCliProvider {
     }
 
     fn session_slot(&self, session_id: &str) -> Option<String> {
-        self.runtime.get().and_then(|runtime| runtime.session_slot(session_id))
+        self.runtime
+            .get()
+            .and_then(|runtime| runtime.session_slot(session_id))
     }
 
     fn config_hash_mismatch(&self) -> bool {
@@ -2587,9 +2592,10 @@ impl Provider for MultiplexCliProvider {
                 obj.insert("running".into(), json!(runtime.running_jobs()));
                 obj.insert("ready_slots".into(), json!(runtime.ready_slots()));
                 if let Ok(host) = runtime.native_host.try_lock()
-                    && let Some(info) = host.as_ref() {
-                        obj.insert("native_host".into(), json!(info));
-                    }
+                    && let Some(info) = host.as_ref()
+                {
+                    obj.insert("native_host".into(), json!(info));
+                }
             }
             value
         })
@@ -4078,7 +4084,9 @@ mod tests {
             "mismatched slot_id must not seed a StreamAssembler"
         );
         assert!(
-            timeout(Duration::from_millis(100), rx.recv()).await.is_err(),
+            timeout(Duration::from_millis(100), rx.recv())
+                .await
+                .is_err(),
             "mismatched slot_id must not emit any StreamItem"
         );
 
@@ -4097,7 +4105,9 @@ mod tests {
             "mismatched slot_id job_done must not complete/remove the job"
         );
         assert!(
-            timeout(Duration::from_millis(100), rx.recv()).await.is_err(),
+            timeout(Duration::from_millis(100), rx.recv())
+                .await
+                .is_err(),
             "mismatched slot_id job_done must not emit a Finished item"
         );
 
