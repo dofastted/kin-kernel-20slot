@@ -16,6 +16,7 @@ use http_body_util::StreamBody;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
 use tracing::info;
 
 use super::config::WorkerConfig;
@@ -32,6 +33,7 @@ pub struct WorkerState {
     pub config: Arc<WorkerConfig>,
     pub hop: Arc<HopClient>,
     pub started: Instant,
+    pub shutdown: CancellationToken,
 }
 
 #[derive(Debug, Deserialize)]
@@ -49,10 +51,12 @@ pub async fn run(config_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let config = WorkerConfig::load(config_path)?;
     let hop = HopClient::new(&config)?;
     let socket = config.socket_path();
+    let shutdown = CancellationToken::new();
     let state = WorkerState {
         config: Arc::new(config),
         hop: Arc::new(hop),
         started: Instant::now(),
+        shutdown: shutdown.clone(),
     };
     info!(
         vm_id = %state.config.vm_id,
@@ -64,7 +68,10 @@ pub async fn run(config_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     chmod_socket(&socket)?;
     let app = router(state.clone());
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(async move {
+            shutdown_signal().await;
+            shutdown.cancel();
+        })
         .await?;
     let _ = std::fs::remove_file(&socket);
     Ok(())
@@ -160,9 +167,13 @@ async fn process_messages(state: WorkerState, body: Bytes) -> Result<Response, W
         return buffer_json(upstream, state.config.max_response_bytes).await;
     }
     if delivery_mode(&envelope.delivery_mode, &state.config.delivery_mode) == "verified" {
-        return verified_stream(upstream, &state.config).await;
+        return verified_stream(upstream, &state.config, state.shutdown.clone()).await;
     }
-    Ok(realtime_stream(upstream, &state.config))
+    Ok(realtime_stream(
+        upstream,
+        &state.config,
+        state.shutdown.clone(),
+    ))
 }
 
 fn load_live_credential(config: &WorkerConfig) -> Result<Credential, WorkerError> {
@@ -220,11 +231,12 @@ async fn buffer_json(
 async fn verified_stream(
     upstream: HopResponse,
     config: &WorkerConfig,
+    shutdown: CancellationToken,
 ) -> Result<Response, WorkerError> {
     let max = usize::try_from(config.max_response_bytes.max(1)).unwrap_or(usize::MAX);
     let outcome = pump(
         upstream.body.bytes_stream(),
-        pump_options(config),
+        pump_options(config, shutdown),
         |_event| async { Ok(()) },
     )
     .await;
@@ -255,9 +267,13 @@ async fn verified_stream(
     Ok((upstream.status, headers, outcome.result.body).into_response())
 }
 
-fn realtime_stream(upstream: HopResponse, config: &WorkerConfig) -> Response {
+fn realtime_stream(
+    upstream: HopResponse,
+    config: &WorkerConfig,
+    shutdown: CancellationToken,
+) -> Response {
     let (tx, rx) = mpsc::channel::<Result<Frame<RawBytes>, std::io::Error>>(16);
-    let options = pump_options(config);
+    let options = pump_options(config, shutdown);
     tokio::spawn(async move {
         pump_realtime(upstream.body, options, tx).await;
     });
@@ -283,12 +299,17 @@ async fn pump_realtime(
     tx: mpsc::Sender<Result<Frame<RawBytes>, std::io::Error>>,
 ) {
     let emit_tx = tx.clone();
+    let emit_shutdown = options.shutdown.clone();
     let outcome = pump(body.bytes_stream(), options, |event| {
         let tx = emit_tx.clone();
+        let shutdown = emit_shutdown.clone();
         async move {
-            tx.send(Ok(Frame::data(RawBytes::from(event.raw))))
-                .await
-                .map_err(|_| super::sse::PumpError::Emit("client gone".into()))
+            tokio::select! {
+                _ = shutdown.cancelled() => Err(super::sse::PumpError::Shutdown),
+                result = tx.send(Ok(Frame::data(RawBytes::from(event.raw)))) => {
+                    result.map_err(|_| super::sse::PumpError::Emit("client gone".into()))
+                }
+            }
         }
     })
     .await;
@@ -349,11 +370,12 @@ fn apply_stream_meta(headers: &mut HeaderMap, result: &PumpResult) {
     }
 }
 
-fn pump_options(config: &WorkerConfig) -> PumpOptions {
+fn pump_options(config: &WorkerConfig, shutdown: CancellationToken) -> PumpOptions {
     PumpOptions {
         max_event_bytes: config.max_event_bytes(),
         first_byte: config.first_byte(),
         idle: config.idle(),
+        shutdown,
     }
 }
 
@@ -706,6 +728,7 @@ mod tests {
                 config: Arc::new(config),
                 hop: Arc::new(hop),
                 started: Instant::now(),
+                shutdown: CancellationToken::new(),
             },
             hits,
             last_headers,
@@ -778,6 +801,7 @@ mod tests {
             config: Arc::new(config),
             hop: env.state.hop.clone(),
             started: Instant::now(),
+            shutdown: env.state.shutdown.clone(),
         };
         let (status, _, body, _) = call(state, Some(TOKEN), Some(envelope(true, "realtime"))).await;
         assert_eq!(status, StatusCode::UNAUTHORIZED);
@@ -916,6 +940,31 @@ mod tests {
             .unwrap();
         let usage: Value = serde_json::from_str(usage).unwrap();
         assert_eq!(usage["output_tokens"], 4);
+    }
+
+    #[tokio::test]
+    async fn realtime_shutdown_finishes_with_incomplete_trailer() {
+        let env = build_env(MockMode::DelayedSse, 4_102_444_800_000).await;
+        let request = HttpRequest::builder()
+            .method("POST")
+            .uri("/internal/v1/messages")
+            .header("X-Kin-Internal-Token", TOKEN)
+            .header("content-type", "application/json")
+            .body(Body::from(
+                serde_json::to_vec(&envelope(true, "realtime")).unwrap(),
+            ))
+            .unwrap();
+        let response = router(env.state.clone()).oneshot(request).await.unwrap();
+        env.state.shutdown.cancel();
+        let collected = response.into_body().collect().await.unwrap();
+        let state = collected
+            .trailers()
+            .and_then(|trailers| trailers.get("x-kin-terminal-state"))
+            .and_then(|value| value.to_str().ok());
+        assert_eq!(state, Some("incomplete"));
+        assert!(
+            String::from_utf8_lossy(&collected.to_bytes()).contains("upstream_stream_incomplete")
+        );
     }
 
     #[tokio::test]
