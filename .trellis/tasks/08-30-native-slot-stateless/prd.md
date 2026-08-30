@@ -153,9 +153,9 @@ system/env/SOCKS 变更走 drain → 重启 CLI → generation+1，禁止任务�
 
 ### 工程
 
-- [ ] AC16 `cargo test --all-targets` + `cargo clippy -- -D warnings` 通过
+- [x] AC16 `cargo test --all-targets` + `cargo clippy -- -D warnings` 通过
 - [x] AC17 槽状态机单测：正常完成 / 取消七步时序 / job-slot 不匹配丢弃 / 并发不串槽（取消七步时序仅单测覆盖 fallback 分支，主分支见 APPLY.md 说明）
-- [ ] AC18 `native_agent` 不对外暴露（配置层拒绝或显式 opt-in 门禁）
+- [x] AC18 `native_agent` 不对外暴露（配置层拒绝或显式 opt-in 门禁）
 - [ ] AC19 默认 `KIN_EXECUTION_MODE` 切到 `native_messages`（AC1–AC18 全绿后）
 
 ## Constraints
