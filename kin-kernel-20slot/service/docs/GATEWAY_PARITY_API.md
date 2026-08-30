@@ -46,12 +46,12 @@
 
 ### P0.3 交付语义与元数据
 
-- `delivery_mode=realtime`：上游首个业务 SSE 事件即 commit（不含首 ping）；此后中断 → trailer `incomplete` + 合成 `event: error`。
+- `delivery_mode=realtime`：Anthropic HTTP 响应头到达即 commit；此后中断 → trailer `incomplete` + 合成 `event: error`。
 - `delivery_mode=verified`：等到 `message_stop` 再重放 SSE；流不完整 → 502 `upstream_terminal_invalid`。
 - 元数据头/trailer（网关记账依赖，缺一不可）：
   - `X-Kin-Usage`：JSON，Sub2API 口径 —— input / output / cache read / cache write（**含 5m 与 1h 分档**）。
   - `X-Kin-Model`（upstream 模型）、`X-Kin-Stop-Reason`、`X-Kin-Event-Count`、`X-Kin-Terminal-State`。
-- 现有 `stream.rs` StreamAssembler 的 usage 聚合需按上表口径扩展并加字段级测试（对拍基准见 §验收）。
+- `stream.rs` StreamAssembler 已扩展 Sub2API usage 聚合；fixture 字段级覆盖 cache write 总量与 5m/1h 分档。
 
 ### P0.4 凭证生命周期（refresh owner 迁移进内核）
 
@@ -70,7 +70,7 @@
 | `POST /internal/credential/ensure?force=` | 返回 `{ok, refreshed, shared, credential}`；fresh 且非 force 不换 |
 | `GET /internal/credential/status` | 脱敏凭证元数据（不含 token 明文） |
 
-`credential_state` 状态机：`missing | refreshable | expired_refreshable | expired | fresh`（+ 失败类 `last_error_class: fatal(invalid_grant/缺 refresh/revoked) | retryable`）。精确枚举以 SSOT §8.6 为准。
+`credential_state` 状态机：`missing | refreshable | expired_refreshable | expired | refresh_window | fresh`（+ 失败类 `last_error_class: fatal(invalid_grant/缺 refresh/revoked) | retryable`）。精确枚举以 SSOT §8.6 为准。
 
 ### P0.5 每槽出站
 
@@ -138,7 +138,7 @@
 
 内核 gateway-worker 模式读取网关下发的 worker.json（§8.1），至少支持：
 
-`vm_id` · `socket_path` · `credential_path` · `proxy_url` · `proxy_required` · `internal_token` · `delivery_mode` · `refresh_skew_seconds` · `first_byte_timeout_seconds` · `idle_timeout_seconds` · `max_request_bytes` · `max_response_bytes` · `max_event_bytes` · `runtime_kind` · `telemetry.enabled`
+`vm_id` · `socket_path` · `credential_path` · `proxy_url` · `proxy_required` · `anthropic_base_url` · `oauth_token_url` · `internal_token` · `delivery_mode` · `refresh_skew_seconds` · `request_timeout_seconds` · `first_byte_timeout_seconds` · `idle_timeout_seconds` · `max_request_bytes` · `max_response_bytes` · `max_event_bytes` · `test_endpoints` · `runtime_kind`。Go 独有的 `telemetry` 在 M1 由 Rust 忽略。
 
 未知字段必须忽略（向前兼容）。配置变更依赖进程 bounce（`reloadSlot`），无热重载要求。
 
