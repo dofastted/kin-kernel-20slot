@@ -1,0 +1,36 @@
+name: kin-native-messages-test
+
+# Paths are relative to this file:
+#   service/docker/native-messages-test/
+# Env file lives outside git: <repo-root>/.local/native.env
+# Override with NATIVE_ENV_FILE if needed.
+
+services:
+  native-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      additional_contexts:
+        bridge: ../../scripts
+    image: kin-native-messages-test:local
+    env_file:
+      - path: ${NATIVE_ENV_FILE:-../../../../.local/native.env}
+        required: true
+    environment:
+      KIN_HTTP_BRIDGE_ADDR: 127.0.0.1:18080
+      KIN_HTTPS_PROXY: http://127.0.0.1:18080
+      HTTPS_PROXY: http://127.0.0.1:18080
+      HTTP_PROXY: http://127.0.0.1:18080
+      https_proxy: http://127.0.0.1:18080
+      http_proxy: http://127.0.0.1:18080
+      NO_PROXY: 127.0.0.1,localhost
+      no_proxy: 127.0.0.1,localhost
+      TZ: America/New_York
+      CLAUDE_CODE_TIMEZONE: America/New_York
+    volumes:
+      # Another agent owns this worktree; mount it, do not COPY into the image.
+      - ${CLAUDE_CODE_KIN:-/mnt/x/project/claude-code-kin}:/opt/claude-code-kin
+    working_dir: /opt/claude-code-kin
+    stdin_open: true
+    tty: true
+    command: ["sleep", "infinity"]
