@@ -4,6 +4,7 @@ use std::time::Duration;
 use futures_util::Stream;
 use futures_util::StreamExt;
 use serde_json::{Map, Value};
+use tokio_util::sync::CancellationToken;
 
 use crate::stream::{event_model, event_stop_reason, event_usage, merge_usage};
 
@@ -12,6 +13,7 @@ pub struct PumpOptions {
     pub max_event_bytes: usize,
     pub first_byte: Duration,
     pub idle: Duration,
+    pub shutdown: CancellationToken,
 }
 
 #[derive(Debug, Clone)]
@@ -47,6 +49,7 @@ pub enum PumpError {
     Idle,
     EventTooLarge,
     Decode(String),
+    Shutdown,
     Observe(String),
     Emit(String),
     Read(String),
@@ -58,6 +61,7 @@ impl std::fmt::Display for PumpError {
             Self::FirstByte => write!(f, "stream first-byte timeout"),
             Self::Idle => write!(f, "stream idle timeout"),
             Self::EventTooLarge => write!(f, "SSE event exceeds limit"),
+            Self::Shutdown => write!(f, "worker shutting down"),
             Self::Decode(msg) | Self::Observe(msg) | Self::Emit(msg) | Self::Read(msg) => {
                 write!(f, "{msg}")
             }
@@ -166,7 +170,13 @@ where
         } else {
             options.idle
         };
-        match tokio::time::timeout(wait, body.next()).await {
+        let next = tokio::select! {
+            _ = options.shutdown.cancelled() => {
+                return fail(tracker.result(), PumpError::Shutdown);
+            }
+            next = tokio::time::timeout(wait, body.next()) => next,
+        };
+        match next {
             Err(_) => {
                 let error = if first {
                     PumpError::FirstByte
@@ -387,6 +397,7 @@ mod tests {
                 max_event_bytes: 32 << 20,
                 first_byte: Duration::from_secs(1),
                 idle: Duration::from_secs(1),
+                shutdown: CancellationToken::new(),
             },
             |_event| async { Ok(()) },
         )
@@ -421,6 +432,7 @@ data: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_d
                 max_event_bytes: 1024,
                 first_byte: Duration::from_secs(1),
                 idle: Duration::from_secs(1),
+                shutdown: CancellationToken::new(),
             },
             |_event| async { Ok(()) },
         )
