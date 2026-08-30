@@ -11,6 +11,9 @@ func TestDefaultRoutingAndMergeValidation(t *testing.T) {
 	if err := ValidateRouting(base); err != nil {
 		t.Fatalf("default routing is invalid: %v", err)
 	}
+	if base.Inference.Engine != "go" || !base.Inference.FallbackToGo {
+		t.Fatalf("default inference must stay on go worker: %#v", base.Inference)
+	}
 
 	merged, err := MergeRouting(base, json.RawMessage(`{"inference":{"engine":"rust"}}`))
 	if err != nil {

@@ -26,8 +26,7 @@ func main() {
 	snapshotTTL := envDurationSeconds("KIN_SNAPSHOT_TTL_SECONDS", time.Hour)
 	internalToken := strings.TrimSpace(os.Getenv("KIN_CONTROL_INTERNAL_TOKEN"))
 	if internalToken == "" {
-		logger.Error("KIN_CONTROL_INTERNAL_TOKEN is required")
-		os.Exit(1)
+		logger.Warn("KIN_CONTROL_INTERNAL_TOKEN is empty; /api/v1 stays unauthenticated for legacy demo stacks")
 	}
 	dbPath := strings.TrimSpace(os.Getenv("KIN_DB_PATH"))
 	if dbPath == "" {

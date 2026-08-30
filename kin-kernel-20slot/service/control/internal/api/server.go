@@ -687,7 +687,7 @@ func writeStoreError(w http.ResponseWriter, err error) {
 
 func internalAuth(expected string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/healthz" {
+		if r.URL.Path == "/healthz" || expected == "" {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -697,7 +697,7 @@ func internalAuth(expected string, next http.Handler) http.Handler {
 		}
 		expectedHash := sha256.Sum256([]byte(expected))
 		providedHash := sha256.Sum256([]byte(provided))
-		if expected == "" || subtle.ConstantTimeCompare(expectedHash[:], providedHash[:]) != 1 {
+		if subtle.ConstantTimeCompare(expectedHash[:], providedHash[:]) != 1 {
 			writeError(w, http.StatusUnauthorized, "internal_auth_failed", "valid internal bearer token required")
 			return
 		}

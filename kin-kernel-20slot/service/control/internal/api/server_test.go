@@ -82,6 +82,33 @@ func TestInternalAuthAndPublicHealth(t *testing.T) {
 	}
 }
 
+func TestInternalAuthEmptyTokenKeepsLegacyOpenAPI(t *testing.T) {
+	t.Parallel()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	controlStore, err := store.OpenSQLite(filepath.Join(t.TempDir(), "kin.db"), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = controlStore.Close() })
+	server := httptest.NewServer(New(
+		controlStore,
+		reconcile.New(controlStore.Observed(), 20*time.Second, logger),
+		time.Hour,
+		logger,
+		Options{InternalToken: ""},
+	).Handler())
+	t.Cleanup(server.Close)
+
+	response, err := http.Get(server.URL + "/api/v1/config/routing")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("legacy empty token status = %d", response.StatusCode)
+	}
+}
+
 func TestRegisterAndListKernel(t *testing.T) {
 	t.Parallel()
 	server, _ := newTestServer(t)
