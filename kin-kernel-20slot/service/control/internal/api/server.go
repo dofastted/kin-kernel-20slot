@@ -1,6 +1,8 @@
 package api
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,35 +13,44 @@ import (
 	"time"
 
 	"kin.local/kin-control/internal/broker"
+	controlconfig "kin.local/kin-control/internal/config"
 	"kin.local/kin-control/internal/model"
 	"kin.local/kin-control/internal/reconcile"
 	"kin.local/kin-control/internal/store"
 )
 
 type Server struct {
-	store       *store.Memory
-	reconciler  *reconcile.Reconciler
-	snapshotTTL time.Duration
-	logger      *slog.Logger
-	mux         *http.ServeMux
-	refresher   *broker.Refresher
+	store         *store.SQLite
+	reconciler    *reconcile.Reconciler
+	snapshotTTL   time.Duration
+	logger        *slog.Logger
+	config        *controlconfig.Service
+	mux           *http.ServeMux
+	refresher     *broker.Refresher
+	internalToken string
 }
 
-func New(memoryStore *store.Memory, reconciler *reconcile.Reconciler, snapshotTTL time.Duration, logger *slog.Logger) *Server {
+type Options struct {
+	InternalToken string
+}
+
+func New(controlStore *store.SQLite, reconciler *reconcile.Reconciler, snapshotTTL time.Duration, logger *slog.Logger, options Options) *Server {
 	server := &Server{
-		store:       memoryStore,
-		reconciler:  reconciler,
-		snapshotTTL: snapshotTTL,
-		logger:      logger,
-		mux:         http.NewServeMux(),
-		refresher:   &broker.Refresher{RequireSOCKS5: true},
+		store:         controlStore,
+		reconciler:    reconciler,
+		snapshotTTL:   snapshotTTL,
+		logger:        logger,
+		mux:           http.NewServeMux(),
+		refresher:     &broker.Refresher{RequireSOCKS5: true},
+		config:        controlconfig.NewService(controlStore),
+		internalToken: options.InternalToken,
 	}
 	server.routes()
 	return server
 }
 
 func (s *Server) Handler() http.Handler {
-	return requestLog(s.logger, s.mux)
+	return requestLog(s.logger, internalAuth(s.internalToken, s.mux))
 }
 
 func (s *Server) routes() {
@@ -56,14 +67,44 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/v1/credentials/refresh", s.refresh)
 	s.mux.HandleFunc("PUT /api/v1/runtime-profile", s.putRuntimeProfile)
 	s.mux.HandleFunc("GET /api/v1/runtime-profile", s.getRuntimeProfile)
+	s.mux.HandleFunc("GET /api/v1/config/routing", s.getRoutingConfig)
+	s.mux.HandleFunc("PUT /api/v1/config/routing", s.putRoutingConfig)
+	s.mux.HandleFunc("GET /api/v1/config/model-policy", s.getModelPolicyConfig)
+	s.mux.HandleFunc("PUT /api/v1/config/model-policy", s.putModelPolicyConfig)
+	s.mux.HandleFunc("GET /api/v1/slots/{id}", s.getSlotConfig)
+	s.mux.HandleFunc("PATCH /api/v1/slots/{id}", s.patchSlotConfig)
+	s.mux.HandleFunc("POST /api/v1/slots/policy", s.putSlotPolicy)
+	s.mux.HandleFunc("GET /api/v1/config/proxy-pool", s.getProxyPoolConfig)
+	s.mux.HandleFunc("PUT /api/v1/config/proxy-pool", s.putProxyPoolConfig)
+	s.mux.HandleFunc("GET /api/v1/proxies", s.listProxies)
+	s.mux.HandleFunc("POST /api/v1/proxies/import", s.importProxies)
+	s.mux.HandleFunc("POST /api/v1/proxies/allocate", s.allocateProxy)
+	s.mux.HandleFunc("POST /api/v1/proxies/probe", s.probeAllProxies)
+	s.mux.HandleFunc("PUT /api/v1/proxies/{id}", s.putProxy)
+	s.mux.HandleFunc("DELETE /api/v1/proxies/{id}", s.deleteProxy)
+	s.mux.HandleFunc("POST /api/v1/proxies/{id}/reveal", s.revealProxy)
+	s.mux.HandleFunc("POST /api/v1/proxies/{id}/bind", s.bindProxy)
+	s.mux.HandleFunc("POST /api/v1/proxies/{id}/unbind", s.unbindProxy)
+	s.mux.HandleFunc("POST /api/v1/proxies/{id}/probe", s.probeProxy)
+	s.mux.HandleFunc("POST /api/v1/proxies/{id}/enable", s.enableProxy)
+	s.mux.HandleFunc("POST /api/v1/proxies/{id}/disable", s.disableProxy)
+	s.mux.HandleFunc("GET /api/v1/config/documents/{domain...}", s.getDocument)
+	s.mux.HandleFunc("PUT /api/v1/config/documents/{domain...}", s.putDocument)
+	s.mux.HandleFunc("GET /api/v1/migration/domains/{domain}", s.getDomainOwner)
+	s.mux.HandleFunc("PUT /api/v1/migration/domains/{domain}", s.putDomainOwner)
+	s.mux.HandleFunc("POST /api/v1/operations", s.enqueueOperation)
+	s.mux.HandleFunc("POST /api/v1/operations/claim", s.claimOperation)
+	s.mux.HandleFunc("GET /api/v1/operations/{id}", s.getOperation)
+	s.mux.HandleFunc("POST /api/v1/operations/{id}/complete", s.completeOperation)
 }
 
-func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+func (s *Server) health(w http.ResponseWriter, r *http.Request) {
+	health := s.store.Health(r.Context())
+	writeJSON(w, http.StatusOK, health)
 }
 
 func (s *Server) listKernels(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]any{"kernels": s.store.ListKernels()})
+	writeJSON(w, http.StatusOK, map[string]any{"kernels": s.store.Observed().ListKernels()})
 }
 
 func (s *Server) registerKernel(w http.ResponseWriter, r *http.Request) {
@@ -76,12 +117,12 @@ func (s *Server) registerKernel(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return
 	}
-	kernel := s.store.UpsertKernel(input, time.Now())
+	kernel := s.store.Observed().UpsertKernel(input, time.Now())
 	writeJSON(w, http.StatusOK, kernel)
 }
 
 func (s *Server) heartbeat(w http.ResponseWriter, r *http.Request) {
-	if err := s.store.Heartbeat(r.PathValue("id"), time.Now()); err != nil {
+	if err := s.store.Observed().Heartbeat(r.PathValue("id"), time.Now()); err != nil {
 		if errors.Is(err, store.ErrNotFound) {
 			writeError(w, http.StatusNotFound, "not_found", "kernel not found")
 			return
@@ -93,7 +134,7 @@ func (s *Server) heartbeat(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) drain(w http.ResponseWriter, r *http.Request) {
-	if err := s.store.SetDraining(r.PathValue("id"), true); err != nil {
+	if err := s.store.Observed().SetDraining(r.PathValue("id"), true); err != nil {
 		if errors.Is(err, store.ErrNotFound) {
 			writeError(w, http.StatusNotFound, "not_found", "kernel not found")
 			return
@@ -107,7 +148,7 @@ func (s *Server) drain(w http.ResponseWriter, r *http.Request) {
 func (s *Server) getPolicy(w http.ResponseWriter, r *http.Request) {
 	policy, err := s.store.GetPolicy(r.PathValue("name"))
 	if err != nil {
-		writeError(w, http.StatusNotFound, "not_found", "route policy not found")
+		writeStoreError(w, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, policy)
@@ -131,18 +172,33 @@ func (s *Server) putPolicy(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, s.store.PutPolicy(policy))
+	saved, err := s.store.PutPolicy(policy)
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, saved)
 }
 
-func (s *Server) snapshot(w http.ResponseWriter, _ *http.Request) {
+func (s *Server) snapshot(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().UTC()
+	revision, err := s.store.CurrentRevision(r.Context())
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	policies, err := s.store.ListPolicies()
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
 	writeJSON(w, http.StatusOK, model.Snapshot{
-		Revision:  s.store.Revision(),
+		Revision:  revision,
 		IssuedAt:  now,
 		ExpiresAt: now.Add(s.snapshotTTL),
-		Kernels:   s.store.ListKernels(),
-		Policies:  s.store.ListPolicies(),
-		Demo:      true,
+		Kernels:   s.store.Observed().ListKernels(),
+		Policies:  policies,
+		Demo:      false,
 	})
 }
 
@@ -196,12 +252,19 @@ func (s *Server) putRuntimeProfile(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "internal_error", "failed to compute config_hash")
 		return
 	}
-	s.store.SetRuntimeProfile(profile)
+	if err := s.store.SetRuntimeProfile(profile); err != nil {
+		writeStoreError(w, err)
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"profile": profile, "config_hash": hash})
 }
 
 func (s *Server) getRuntimeProfile(w http.ResponseWriter, _ *http.Request) {
-	profile, ok := s.store.GetRuntimeProfile()
+	profile, ok, err := s.store.GetRuntimeProfile()
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
 	if !ok {
 		writeError(w, http.StatusNotFound, "not_found", "runtime profile not set")
 		return
@@ -212,6 +275,276 @@ func (s *Server) getRuntimeProfile(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"profile": profile, "config_hash": hash})
+}
+
+type typedConfigPutRequest struct {
+	ExpectedRevision uint64          `json:"expected_revision"`
+	Data             json.RawMessage `json:"data"`
+	Import           bool            `json:"import,omitempty"`
+}
+
+func (s *Server) getRoutingConfig(w http.ResponseWriter, r *http.Request) {
+	value, err := s.config.GetRouting(r.Context())
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, value)
+}
+
+func (s *Server) putRoutingConfig(w http.ResponseWriter, r *http.Request) {
+	var input typedConfigPutRequest
+	if err := decodeJSON(w, r, &input); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	value, err := s.config.PutRouting(r.Context(), controlconfig.PutInput{
+		ExpectedRevision: input.ExpectedRevision, Data: input.Data,
+		UpdatedBy: requestOperator(r), Import: input.Import,
+	})
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, value)
+}
+
+func (s *Server) getModelPolicyConfig(w http.ResponseWriter, r *http.Request) {
+	value, err := s.config.GetModelPolicy(r.Context())
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, value)
+}
+
+func (s *Server) putModelPolicyConfig(w http.ResponseWriter, r *http.Request) {
+	var input typedConfigPutRequest
+	if err := decodeJSON(w, r, &input); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	value, err := s.config.PutModelPolicy(r.Context(), controlconfig.PutInput{
+		ExpectedRevision: input.ExpectedRevision, Data: input.Data,
+		UpdatedBy: requestOperator(r), Import: input.Import,
+	})
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, value)
+}
+
+func (s *Server) getSlotConfig(w http.ResponseWriter, r *http.Request) {
+	value, err := s.config.GetSlot(r.Context(), r.PathValue("id"))
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, value)
+}
+
+func (s *Server) patchSlotConfig(w http.ResponseWriter, r *http.Request) {
+	var input typedConfigPutRequest
+	if err := decodeJSON(w, r, &input); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	value, err := s.config.PutSlot(r.Context(), r.PathValue("id"), controlconfig.PutInput{
+		ExpectedRevision: input.ExpectedRevision, Data: input.Data,
+		UpdatedBy: requestOperator(r), Import: input.Import,
+	})
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, value)
+}
+
+type batchSlotPolicyRequest struct {
+	IDs    []string        `json:"ids"`
+	Data   json.RawMessage `json:"data"`
+	Import bool            `json:"import,omitempty"`
+}
+
+func (s *Server) putSlotPolicy(w http.ResponseWriter, r *http.Request) {
+	var input batchSlotPolicyRequest
+	if err := decodeJSON(w, r, &input); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	value, err := s.config.PutSlots(r.Context(), input.IDs, controlconfig.PutInput{
+		Data: input.Data, UpdatedBy: requestOperator(r), Import: input.Import,
+	})
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, value)
+}
+
+type putDocumentRequest struct {
+	SchemaVersion    int             `json:"schema_version"`
+	ExpectedRevision uint64          `json:"expected_revision"`
+	Data             json.RawMessage `json:"data"`
+	ChangeKind       string          `json:"change_kind,omitempty"`
+}
+
+func (s *Server) getDocument(w http.ResponseWriter, r *http.Request) {
+	document, err := s.store.GetDocument(r.Context(), r.PathValue("domain"))
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, document)
+}
+
+func (s *Server) putDocument(w http.ResponseWriter, r *http.Request) {
+	var input putDocumentRequest
+	if err := decodeJSON(w, r, &input); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	document, err := s.store.PutDocument(r.Context(), store.PutDocumentInput{
+		Domain:           r.PathValue("domain"),
+		SchemaVersion:    input.SchemaVersion,
+		ExpectedRevision: input.ExpectedRevision,
+		Data:             input.Data,
+		UpdatedBy:        requestOperator(r),
+		ChangeKind:       input.ChangeKind,
+	})
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, document)
+}
+
+type putDomainOwnerRequest struct {
+	Owner            string `json:"owner"`
+	State            string `json:"state"`
+	SourceHash       string `json:"source_hash,omitempty"`
+	ExpectedRevision uint64 `json:"expected_revision"`
+}
+
+func (s *Server) getDomainOwner(w http.ResponseWriter, r *http.Request) {
+	owner, err := s.store.GetDomainOwner(r.Context(), r.PathValue("domain"))
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, owner)
+}
+
+func (s *Server) putDomainOwner(w http.ResponseWriter, r *http.Request) {
+	var input putDomainOwnerRequest
+	if err := decodeJSON(w, r, &input); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	owner, err := s.store.PutDomainOwner(r.Context(), store.PutDomainOwnerInput{
+		Domain:           r.PathValue("domain"),
+		Owner:            input.Owner,
+		State:            input.State,
+		SourceHash:       input.SourceHash,
+		ExpectedRevision: input.ExpectedRevision,
+		UpdatedBy:        requestOperator(r),
+	})
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, owner)
+}
+
+type enqueueOperationRequest struct {
+	Kind           string          `json:"kind"`
+	Target         string          `json:"target"`
+	Payload        json.RawMessage `json:"payload"`
+	MaxAttempts    int             `json:"max_attempts"`
+	IdempotencyKey string          `json:"idempotency_key"`
+}
+
+func (s *Server) enqueueOperation(w http.ResponseWriter, r *http.Request) {
+	var input enqueueOperationRequest
+	if err := decodeJSON(w, r, &input); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	operation, err := s.store.EnqueueOperation(r.Context(), store.EnqueueOperationInput{
+		Kind:           input.Kind,
+		Target:         input.Target,
+		Payload:        input.Payload,
+		MaxAttempts:    input.MaxAttempts,
+		IdempotencyKey: input.IdempotencyKey,
+	})
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusAccepted, operation)
+}
+
+type claimOperationRequest struct {
+	Worker       string `json:"worker"`
+	LeaseSeconds int    `json:"lease_seconds"`
+}
+
+func (s *Server) claimOperation(w http.ResponseWriter, r *http.Request) {
+	var input claimOperationRequest
+	if err := decodeJSON(w, r, &input); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	operation, err := s.store.ClaimOperation(r.Context(), input.Worker, time.Duration(input.LeaseSeconds)*time.Second)
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, operation)
+}
+
+func (s *Server) getOperation(w http.ResponseWriter, r *http.Request) {
+	operation, err := s.store.GetOperation(r.Context(), r.PathValue("id"))
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, operation)
+}
+
+type completeOperationRequest struct {
+	Worker    string          `json:"worker"`
+	Status    string          `json:"status"`
+	Result    json.RawMessage `json:"result,omitempty"`
+	LastError string          `json:"last_error,omitempty"`
+}
+
+func (s *Server) completeOperation(w http.ResponseWriter, r *http.Request) {
+	var input completeOperationRequest
+	if err := decodeJSON(w, r, &input); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	operation, err := s.store.CompleteOperation(
+		r.Context(), r.PathValue("id"), input.Worker, input.Status, input.Result, input.LastError,
+	)
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, operation)
+}
+
+func requestOperator(r *http.Request) string {
+	operator := strings.TrimSpace(r.Header.Get("x-kin-operator"))
+	if operator == "" {
+		return "control-api"
+	}
+	if len(operator) > 128 {
+		return operator[:128]
+	}
+	return operator
 }
 
 func decodeJSONAllowUnknown(w http.ResponseWriter, r *http.Request, target any) error {
@@ -332,6 +665,43 @@ func writeError(w http.ResponseWriter, status int, code, message string) {
 			"message":   message,
 			"retryable": status >= 500,
 		},
+	})
+}
+
+func writeStoreError(w http.ResponseWriter, err error) {
+	switch {
+	case errors.Is(err, store.ErrNotFound):
+		writeError(w, http.StatusNotFound, "not_found", "control state not found")
+	case errors.Is(err, store.ErrConflict):
+		writeError(w, http.StatusConflict, "revision_conflict", err.Error())
+	case errors.Is(err, store.ErrInvalid):
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
+	case errors.Is(err, store.ErrSecretUnavailable):
+		writeError(w, http.StatusServiceUnavailable, "secret_unavailable", "database secret is not configured")
+	case errors.Is(err, store.ErrCorrupt):
+		writeError(w, http.StatusInternalServerError, "control_state_corrupt", "control state is corrupt")
+	default:
+		writeError(w, http.StatusInternalServerError, "internal_error", "control state operation failed")
+	}
+}
+
+func internalAuth(expected string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		provided := ""
+		if value := r.Header.Get("authorization"); strings.HasPrefix(value, "Bearer ") {
+			provided = strings.TrimPrefix(value, "Bearer ")
+		}
+		expectedHash := sha256.Sum256([]byte(expected))
+		providedHash := sha256.Sum256([]byte(provided))
+		if expected == "" || subtle.ConstantTimeCompare(expectedHash[:], providedHash[:]) != 1 {
+			writeError(w, http.StatusUnauthorized, "internal_auth_failed", "valid internal bearer token required")
+			return
+		}
+		next.ServeHTTP(w, r)
 	})
 }
 

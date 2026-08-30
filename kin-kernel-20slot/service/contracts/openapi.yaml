@@ -90,10 +90,12 @@ paths:
       - url: http://localhost:9090
     get:
       operationId: listKernels
+      security: [{InternalBearer: []}]
       responses:
         "200": {description: Registered kernels.}
     post:
       operationId: registerKernel
+      security: [{InternalBearer: []}]
       requestBody:
         required: true
         content:
@@ -109,6 +111,7 @@ paths:
       - url: http://localhost:9090
     post:
       operationId: heartbeatKernel
+      security: [{InternalBearer: []}]
       parameters:
         - $ref: "#/components/parameters/KernelID"
       responses:
@@ -120,6 +123,7 @@ paths:
       - url: http://localhost:9090
     post:
       operationId: drainKernel
+      security: [{InternalBearer: []}]
       parameters:
         - $ref: "#/components/parameters/KernelID"
       responses:
@@ -131,6 +135,7 @@ paths:
       - url: http://localhost:9090
     get:
       operationId: getRoutePolicy
+      security: [{InternalBearer: []}]
       parameters:
         - $ref: "#/components/parameters/PolicyName"
       responses:
@@ -144,6 +149,7 @@ paths:
           $ref: "#/components/responses/Error"
     put:
       operationId: putRoutePolicy
+      security: [{InternalBearer: []}]
       parameters:
         - $ref: "#/components/parameters/PolicyName"
       requestBody:
@@ -166,6 +172,7 @@ paths:
       - url: http://localhost:9090
     get:
       operationId: getCurrentSnapshot
+      security: [{InternalBearer: []}]
       responses:
         "200": {description: Current immutable configuration snapshot.}
   /api/v1/reconcile:
@@ -173,9 +180,317 @@ paths:
       - url: http://localhost:9090
     post:
       operationId: reconcileNow
+      security: [{InternalBearer: []}]
       responses:
         "200": {description: Reconcile result.}
+  /api/v1/config/routing:
+    servers: [{url: http://localhost:9090}]
+    get:
+      operationId: getRoutingConfig
+      security: [{InternalBearer: []}]
+      responses:
+        "200":
+          description: Typed routing configuration and apply state.
+          content: {application/json: {schema: {$ref: "#/components/schemas/RoutingEnvelope"}}}
+    put:
+      operationId: putRoutingConfig
+      security: [{InternalBearer: []}]
+      parameters: [{$ref: "#/components/parameters/OperatorHeader"}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: "#/components/schemas/RoutingPut"}}}
+      responses:
+        "200":
+          description: Routing configuration committed.
+          content: {application/json: {schema: {$ref: "#/components/schemas/RoutingEnvelope"}}}
+        "400": {$ref: "#/components/responses/Error"}
+        "409": {$ref: "#/components/responses/Error"}
+  /api/v1/config/model-policy:
+    servers: [{url: http://localhost:9090}]
+    get:
+      operationId: getModelPolicyConfig
+      security: [{InternalBearer: []}]
+      responses:
+        "200":
+          description: Typed model policy and apply state.
+          content: {application/json: {schema: {$ref: "#/components/schemas/ModelPolicyEnvelope"}}}
+        "404": {$ref: "#/components/responses/Error"}
+    put:
+      operationId: putModelPolicyConfig
+      security: [{InternalBearer: []}]
+      parameters: [{$ref: "#/components/parameters/OperatorHeader"}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: "#/components/schemas/ModelPolicyPut"}}}
+      responses:
+        "200":
+          description: Model policy committed and effective.
+          content: {application/json: {schema: {$ref: "#/components/schemas/ModelPolicyEnvelope"}}}
+        "400": {$ref: "#/components/responses/Error"}
+        "409": {$ref: "#/components/responses/Error"}
+  /api/v1/slots/{id}:
+    servers: [{url: http://localhost:9090}]
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: string, maxLength: 128}}
+    get:
+      operationId: getSlotConfig
+      security: [{InternalBearer: []}]
+      responses:
+        "200":
+          description: Slot overrides, effective policy, and apply state.
+          content: {application/json: {schema: {$ref: "#/components/schemas/SlotEnvelope"}}}
+    patch:
+      operationId: patchSlotConfig
+      security: [{InternalBearer: []}]
+      parameters: [{$ref: "#/components/parameters/OperatorHeader"}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: "#/components/schemas/SlotPatch"}}}
+      responses:
+        "200":
+          description: Slot desired policy committed.
+          content: {application/json: {schema: {$ref: "#/components/schemas/SlotEnvelope"}}}
+        "400": {$ref: "#/components/responses/Error"}
+        "409": {$ref: "#/components/responses/Error"}
+  /api/v1/slots/policy:
+    servers: [{url: http://localhost:9090}]
+    post:
+      operationId: patchSlotPolicyBatch
+      security: [{InternalBearer: []}]
+      parameters: [{$ref: "#/components/parameters/OperatorHeader"}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: "#/components/schemas/SlotBatchPatch"}}}
+      responses:
+        "200":
+          description: Per-slot updates; commits are ordered and may be partial on a later failure.
+          content: {application/json: {schema: {$ref: "#/components/schemas/SlotBatchResult"}}}
+        "400": {$ref: "#/components/responses/Error"}
+        "409": {$ref: "#/components/responses/Error"}
+  /api/v1/config/proxy-pool:
+    servers: [{url: http://localhost:9090}]
+    get:
+      operationId: getProxyPoolConfig
+      security: [{InternalBearer: []}]
+      responses:
+        "200":
+          description: Typed proxy pool config. GET never includes credentials.
+          content: {application/json: {schema: {$ref: "#/components/schemas/ProxyPoolEnvelope"}}}
+    put:
+      operationId: putProxyPoolConfig
+      security: [{InternalBearer: []}]
+      parameters: [{$ref: "#/components/parameters/OperatorHeader"}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: "#/components/schemas/ProxyPoolPut"}}}
+      responses:
+        "200": {description: Proxy pool config committed.}
+        "400": {$ref: "#/components/responses/Error"}
+        "409": {$ref: "#/components/responses/Error"}
+        "503": {$ref: "#/components/responses/Error"}
+  /api/v1/proxies:
+    servers: [{url: http://localhost:9090}]
+    get:
+      operationId: listProxies
+      security: [{InternalBearer: []}]
+      responses:
+        "200":
+          description: Desensitized proxy list plus pool config and totals.
+          content: {application/json: {schema: {$ref: "#/components/schemas/ProxyPoolSnapshot"}}}
+  /api/v1/proxies/{id}/reveal:
+    servers: [{url: http://localhost:9090}]
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: string}}
+    post:
+      operationId: revealProxy
+      security: [{InternalBearer: []}]
+      parameters: [{$ref: "#/components/parameters/OperatorHeader"}]
+      responses:
+        "200":
+          description: The only plaintext credential response. URI only. Do not cache.
+          headers:
+            Cache-Control: {schema: {type: string, enum: [no-store]}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, uri]
+                additionalProperties: false
+                properties:
+                  id: {type: string}
+                  uri: {type: string}
+        "503": {$ref: "#/components/responses/Error"}
+
+  /api/v1/config/documents/{domain}:
+    servers:
+      - url: http://localhost:9090
+    parameters:
+      - name: domain
+        in: path
+        required: true
+        description: Configuration domain; may include slash-separated segments.
+        schema: {type: string, maxLength: 128}
+    get:
+      operationId: getControlDocument
+      security: [{InternalBearer: []}]
+      responses:
+        "200":
+          description: Current valid document, or the last-known-good version with degraded=true.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ControlDocument"}
+        "404": {$ref: "#/components/responses/Error"}
+    put:
+      operationId: putControlDocument
+      security: [{InternalBearer: []}]
+      parameters:
+        - $ref: "#/components/parameters/OperatorHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ControlDocumentPut"}
+      responses:
+        "200":
+          description: Versioned document committed.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ControlDocument"}
+        "400": {$ref: "#/components/responses/Error"}
+        "409": {$ref: "#/components/responses/Error"}
+  /api/v1/migration/domains/{domain}:
+    servers:
+      - url: http://localhost:9090
+    parameters:
+      - name: domain
+        in: path
+        required: true
+        schema: {type: string, maxLength: 128}
+    get:
+      operationId: getDomainOwner
+      security: [{InternalBearer: []}]
+      responses:
+        "200":
+          description: Current single-writer owner and cutover state.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/DomainOwner"}
+    put:
+      operationId: putDomainOwner
+      security: [{InternalBearer: []}]
+      parameters:
+        - $ref: "#/components/parameters/OperatorHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/DomainOwnerPut"}
+      responses:
+        "200":
+          description: Domain owner transition committed.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/DomainOwner"}
+        "400": {$ref: "#/components/responses/Error"}
+        "409": {$ref: "#/components/responses/Error"}
+  /api/v1/operations:
+    servers:
+      - url: http://localhost:9090
+    post:
+      operationId: enqueueControlOperation
+      security: [{InternalBearer: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/OperationEnqueue"}
+      responses:
+        "202":
+          description: Operation enqueued or existing idempotent operation returned.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ControlOperation"}
+        "400": {$ref: "#/components/responses/Error"}
+  /api/v1/operations/claim:
+    servers:
+      - url: http://localhost:9090
+    post:
+      operationId: claimControlOperation
+      security: [{InternalBearer: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [worker, lease_seconds]
+              properties:
+                worker: {type: string}
+                lease_seconds: {type: integer, minimum: 1, maximum: 3600}
+      responses:
+        "200":
+          description: Operation lease acquired.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ControlOperation"}
+        "404": {$ref: "#/components/responses/Error"}
+  /api/v1/operations/{id}:
+    servers:
+      - url: http://localhost:9090
+    get:
+      operationId: getControlOperation
+      security: [{InternalBearer: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: Persisted operation state.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ControlOperation"}
+        "404": {$ref: "#/components/responses/Error"}
+  /api/v1/operations/{id}/complete:
+    servers:
+      - url: http://localhost:9090
+    post:
+      operationId: completeControlOperation
+      security: [{InternalBearer: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [worker, status]
+              properties:
+                worker: {type: string}
+                status: {type: string, enum: [succeeded, failed, cancelled]}
+                result: {}
+                last_error: {type: string}
+      responses:
+        "200":
+          description: Operation completed by its current lease owner.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ControlOperation"}
+        "400": {$ref: "#/components/responses/Error"}
+        "409": {$ref: "#/components/responses/Error"}
 components:
+  securitySchemes:
+    InternalBearer:
+      type: http
+      scheme: bearer
+      description: KIN_CONTROL_INTERNAL_TOKEN shared only with trusted internal callers.
   parameters:
     SessionHeader:
       name: x-kin-session-id
@@ -197,6 +512,12 @@ components:
       in: path
       required: true
       schema: {type: string, maxLength: 128}
+    OperatorHeader:
+      name: x-kin-operator
+      in: header
+      required: false
+      schema: {type: string, maxLength: 128}
+      description: Trusted operator identity supplied by the Node BFF; defaults to control-api.
   responses:
     Error:
       description: Error response.
@@ -341,3 +662,470 @@ components:
         slot_group: {type: string}
         max_inflight: {type: integer, minimum: 1}
         max_waiting_tool: {type: integer, minimum: 0}
+    ApplyStatus:
+      type: object
+      additionalProperties: false
+      required: [state, desired_revision, effective_revision]
+      properties:
+        state: {type: string, enum: [effective, pending_restart, rejected]}
+        desired_revision: {type: integer, minimum: 0}
+        effective_revision: {type: integer, minimum: 0}
+        last_error: {type: string, maxLength: 4096}
+    PersonaTemplateBlock:
+      type: object
+      additionalProperties: false
+      required: [text]
+      properties:
+        id: {type: string, maxLength: 128}
+        note: {type: string, maxLength: 256}
+        drop_if_empty: {type: boolean}
+        hide: {type: boolean}
+        type: {type: string, enum: [text, wrapper]}
+        text: {type: string, maxLength: 40000}
+        cache_control:
+          type: object
+          additionalProperties: false
+          properties:
+            type: {type: string, enum: [ephemeral]}
+    PersonaRule:
+      type: object
+      additionalProperties: false
+      required: [id, enabled, no_tools_only, match, append]
+      properties:
+        id: {type: string, maxLength: 128}
+        enabled: {type: boolean}
+        no_tools_only: {type: boolean}
+        match: {type: array, maxItems: 64, items: {type: string, maxLength: 1024}}
+        append: {type: string, maxLength: 40000}
+    CompatibilityConfig:
+      type: object
+      additionalProperties: false
+      required: [tool_name_rewrite, cache_control_limit, persona_templates, overlay_preset, overlay_templates, persona_standing, persona_leak_append, persona_rules, cache_ttl]
+      properties:
+        tool_name_rewrite: {type: boolean}
+        cache_control_limit: {type: integer, minimum: 0, maximum: 32}
+        persona_inject: {type: string}
+        persona_agent: {type: string}
+        persona_park: {type: boolean}
+        persona_park_style: {type: string}
+        persona_expansion: {type: string}
+        persona_preset: {type: string, enum: [official, zero, custom]}
+        persona_templates:
+          type: object
+          additionalProperties:
+            type: array
+            maxItems: 24
+            items: {$ref: "#/components/schemas/PersonaTemplateBlock"}
+        overlay_preset: {type: string, enum: [off, official, minimal, custom]}
+        overlay_templates:
+          type: object
+          additionalProperties:
+            type: array
+            maxItems: 24
+            items: {$ref: "#/components/schemas/PersonaTemplateBlock"}
+        persona_standing: {type: string, maxLength: 40000}
+        persona_leak_append: {type: string, maxLength: 40000}
+        persona_rules:
+          type: array
+          maxItems: 128
+          items: {$ref: "#/components/schemas/PersonaRule"}
+        cache_ttl: {type: string, maxLength: 32}
+    RoutingConfig:
+      type: object
+      additionalProperties: false
+      required: [sticky, concurrency, quota, tiers, pool, failover, inference, compatibility]
+      properties:
+        sticky:
+          type: object
+          additionalProperties: false
+          required: [enabled, mode, ttl_seconds, header_keys, body_keys]
+          properties:
+            enabled: {type: boolean}
+            mode: {type: string, enum: [conversation, none]}
+            ttl_seconds: {type: integer, minimum: 1, maximum: 2592000}
+            header_keys: {type: array, maxItems: 32, items: {type: string, maxLength: 128}}
+            body_keys: {type: array, maxItems: 32, items: {type: string, maxLength: 128}}
+        concurrency:
+          type: object
+          additionalProperties: false
+          required: [default_max_per_account, default_key_concurrency, fable_max_per_account]
+          properties:
+            default_max_per_account: {type: integer, minimum: 1, maximum: 1000}
+            default_key_concurrency: {type: integer, minimum: 1, maximum: 1000}
+            default_max_rpm: {type: integer, minimum: 0, maximum: 1000000}
+            fable_max_per_account: {type: integer, minimum: 1, maximum: 1000}
+        quota:
+          type: object
+          additionalProperties: false
+          required: [safety_ratio, weekly_safety_ratio, warn_ratio, block_on_5h, block_on_7d, weekly_split]
+          properties:
+            safety_ratio: {type: number, minimum: 0, maximum: 1}
+            weekly_safety_ratio: {type: number, minimum: 0, maximum: 1}
+            warn_ratio: {type: number, minimum: 0, maximum: 1}
+            block_on_5h: {type: boolean}
+            block_on_7d: {type: boolean}
+            weekly_split:
+              type: object
+              additionalProperties: false
+              required: [enabled, fable_share]
+              properties:
+                enabled: {type: boolean}
+                fable_share: {type: number, minimum: 0, maximum: 1}
+        tiers:
+          type: object
+          required: [default, pro, max]
+          additionalProperties: {$ref: "#/components/schemas/TierPolicy"}
+        pool:
+          type: object
+          additionalProperties: false
+          required: [strategy, manual_schedule_wins, max_waiters_per_account, fallback_wait_timeout_ms, sticky_wait_timeout_ms, worker_health_ttl_ms, heartbeat_stale_ms]
+          properties:
+            strategy: {type: string, enum: [weighted-round-robin]}
+            manual_schedule_wins: {type: boolean}
+            max_waiters_per_account: {type: integer, minimum: 1, maximum: 10000}
+            fallback_wait_timeout_ms: {type: integer, minimum: 0, maximum: 600000}
+            sticky_wait_timeout_ms: {type: integer, minimum: 0, maximum: 600000}
+            worker_health_ttl_ms: {type: integer, minimum: 100, maximum: 600000}
+            heartbeat_stale_ms: {type: integer, minimum: 100, maximum: 600000}
+        failover:
+          type: object
+          additionalProperties: false
+          required: [max_account_switches, max_total_attempts, total_retry_deadline_ms, delivery_mode, oauth_401_cooldown_ms, stream_keepalive_ms, signature_repair]
+          properties:
+            max_account_switches: {type: integer, minimum: 0, maximum: 100}
+            max_total_attempts: {type: integer, minimum: 1, maximum: 100}
+            total_retry_deadline_ms: {type: integer, minimum: 1, maximum: 3600000}
+            delivery_mode: {type: string, enum: [realtime, verified]}
+            oauth_401_cooldown_ms: {type: integer, minimum: 0, maximum: 86400000}
+            stream_keepalive_ms: {type: integer, minimum: 0, maximum: 600000}
+            signature_repair: {type: boolean}
+        inference:
+          type: object
+          additionalProperties: false
+          required: [engine, fallback_to_go]
+          properties:
+            engine: {type: string, enum: [go, rust]}
+            fallback_to_go: {type: boolean}
+        compatibility: {$ref: "#/components/schemas/CompatibilityConfig"}
+    TierPolicy:
+      type: object
+      additionalProperties: false
+      required: [max_concurrency, max_rpm, limit_5h, limit_7d, max_sessions, session_idle_min, safety_ratio, weekly_safety_ratio, warn_ratio]
+      properties:
+        max_concurrency: {type: integer, minimum: 1, maximum: 1000}
+        max_rpm: {type: integer, minimum: 0, maximum: 1000000}
+        limit_5h: {type: number, minimum: 0, maximum: 1}
+        limit_7d: {type: number, minimum: 0, maximum: 1}
+        max_sessions: {type: integer, minimum: 0, maximum: 100000}
+        session_idle_min: {type: integer, minimum: 1, maximum: 10080}
+        safety_ratio: {type: number, minimum: 0, maximum: 1}
+        weekly_safety_ratio: {type: number, minimum: 0, maximum: 1}
+        warn_ratio: {type: number, minimum: 0, maximum: 1}
+    RoutingPut:
+      type: object
+      additionalProperties: false
+      required: [expected_revision, data]
+      properties:
+        expected_revision: {type: integer, minimum: 0}
+        data: {type: object, description: Deep partial RoutingConfig patch; unknown fields are rejected.}
+        import: {type: boolean, default: false}
+    RoutingEnvelope:
+      type: object
+      required: [schema_version, revision, config_hash, runtime_hash, kernel_hash, data, apply, degraded]
+      properties:
+        schema_version: {type: integer, minimum: 1}
+        revision: {type: integer, minimum: 0}
+        config_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        runtime_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        kernel_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        data: {$ref: "#/components/schemas/RoutingConfig"}
+        apply: {$ref: "#/components/schemas/ApplyStatus"}
+        degraded: {type: boolean}
+    ModelDefaults:
+      type: object
+      additionalProperties: false
+      required: [enabled, max_tokens, thinking_fallback_budget, strip_context_1m, context_1m_whitelist, normalize_thinking]
+      properties:
+        enabled: {type: boolean}
+        max_tokens: {type: integer, minimum: 1, maximum: 10000000}
+        thinking_fallback_budget: {type: integer, minimum: 0, maximum: 10000000}
+        strip_context_1m: {type: boolean}
+        context_1m_whitelist: {type: array, maxItems: 1000, items: {type: string, maxLength: 128}}
+        normalize_thinking: {type: boolean}
+    ModelCapabilities:
+      type: object
+      additionalProperties: false
+      required: [context_window, supports_1m, thinking_mode, supports_adaptive, requires_adaptive, supports_interleaved, supports_effort, supports_context_management]
+      properties:
+        context_window: {type: integer, minimum: 1, maximum: 10000000}
+        supports_1m: {type: boolean}
+        thinking_mode: {type: string, enum: [enabled_only, adaptive_or_enabled, adaptive_only]}
+        supports_adaptive: {type: boolean}
+        requires_adaptive: {type: boolean}
+        supports_interleaved: {type: boolean}
+        supports_effort: {type: boolean}
+        supports_context_management: {type: boolean}
+    ModelBetas:
+      type: object
+      additionalProperties: false
+      required: [required, drop, allow_client, pass_context_1m]
+      properties:
+        required: {type: array, maxItems: 128, items: {type: string, maxLength: 256}}
+        drop: {type: array, maxItems: 128, items: {type: string, maxLength: 256}}
+        allow_client: {type: boolean}
+        pass_context_1m: {type: boolean}
+    ModelParams:
+      type: object
+      additionalProperties: false
+      required: [max_tokens_default, max_tokens_cap, thinking_fallback_budget, on_adaptive, on_enabled]
+      properties:
+        max_tokens_default: {type: integer, minimum: 1, maximum: 10000000}
+        max_tokens_cap: {type: integer, minimum: 1, maximum: 10000000}
+        thinking_fallback_budget: {type: integer, minimum: 0, maximum: 10000000}
+        on_adaptive: {type: string, enum: [passthrough, convert_to_enabled, convert_to_adaptive, strip, reject]}
+        on_enabled: {type: string, enum: [passthrough, convert_to_enabled, convert_to_adaptive, strip, reject]}
+    ModelDefinition:
+      type: object
+      additionalProperties: false
+      required: [enabled, display_name, family, sort, capabilities, betas, params, aliases]
+      properties:
+        enabled: {type: boolean}
+        display_name: {type: string, maxLength: 256}
+        family: {type: string, maxLength: 64}
+        sort: {type: integer, minimum: 0, maximum: 100000}
+        capabilities: {$ref: "#/components/schemas/ModelCapabilities"}
+        betas: {$ref: "#/components/schemas/ModelBetas"}
+        params: {$ref: "#/components/schemas/ModelParams"}
+        aliases: {type: array, maxItems: 128, items: {type: string, maxLength: 128}}
+    ModelPolicy:
+      type: object
+      additionalProperties: false
+      required: [version, updated_at, source, defaults, models, aliases, catalog_mode]
+      properties:
+        version: {type: integer, minimum: 1}
+        updated_at: {type: string}
+        source: {type: string}
+        defaults: {$ref: "#/components/schemas/ModelDefaults"}
+        models: {type: object, minProperties: 1, maxProperties: 1000, additionalProperties: {$ref: "#/components/schemas/ModelDefinition"}}
+        aliases: {type: object, additionalProperties: {type: string}}
+        catalog_mode: {type: string, enum: [policy_only, worker_intersect_policy, worker_only]}
+    ModelPolicyPut:
+      type: object
+      additionalProperties: false
+      required: [expected_revision, data]
+      properties:
+        expected_revision: {type: integer, minimum: 0}
+        data: {$ref: "#/components/schemas/ModelPolicy"}
+        import: {type: boolean, default: false}
+    ModelPolicyEnvelope:
+      type: object
+      required: [schema_version, revision, config_hash, runtime_hash, kernel_hash, data, apply, degraded]
+      properties:
+        schema_version: {type: integer, minimum: 1}
+        revision: {type: integer, minimum: 1}
+        config_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        runtime_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        kernel_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        data: {$ref: "#/components/schemas/ModelPolicy"}
+        apply: {$ref: "#/components/schemas/ApplyStatus"}
+        degraded: {type: boolean}
+    SlotPolicy:
+      type: object
+      additionalProperties: false
+      properties:
+        tier: {type: string, enum: [default, pro, max]}
+        max_concurrency: {type: [integer, "null"], minimum: 1, maximum: 1000}
+        max_rpm: {type: [integer, "null"], minimum: 0, maximum: 1000000}
+        allowed_models: {type: [array, "null"], maxItems: 1000, items: {type: string, maxLength: 128}}
+        weight: {type: [integer, "null"], minimum: 1, maximum: 1000}
+        schedulable: {type: [boolean, "null"]}
+        inference_engine: {type: [string, "null"], enum: [go, rust, null]}
+        persona_preset: {type: [string, "null"], enum: [official, zero, null]}
+    EffectiveSlotPolicy:
+      type: object
+      required: [tier, max_concurrency, max_rpm, weight, schedulable, inference_engine, persona_preset]
+      properties:
+        tier: {type: string, enum: [default, pro, max]}
+        max_concurrency: {type: integer}
+        max_rpm: {type: integer}
+        allowed_models: {type: array, items: {type: string}}
+        weight: {type: integer}
+        schedulable: {type: boolean}
+        inference_engine: {type: string, enum: [go, rust]}
+        persona_preset: {type: string, enum: [official, zero]}
+    SlotPatch:
+      type: object
+      additionalProperties: false
+      required: [expected_revision, data]
+      properties:
+        expected_revision: {type: integer, minimum: 0}
+        data: {$ref: "#/components/schemas/SlotPolicy"}
+        import: {type: boolean, default: false}
+    SlotEnvelope:
+      type: object
+      required: [slot_id, schema_version, revision, config_hash, runtime_hash, kernel_hash, data, effective, apply]
+      properties:
+        slot_id: {type: string}
+        schema_version: {type: integer, minimum: 1}
+        revision: {type: integer, minimum: 0}
+        config_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        runtime_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        kernel_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        data: {$ref: "#/components/schemas/SlotPolicy"}
+        effective: {$ref: "#/components/schemas/EffectiveSlotPolicy"}
+        apply: {$ref: "#/components/schemas/ApplyStatus"}
+    SlotBatchPatch:
+      type: object
+      additionalProperties: false
+      required: [ids, data]
+      properties:
+        ids: {type: array, minItems: 1, maxItems: 1000, items: {type: string}}
+        data: {$ref: "#/components/schemas/SlotPolicy"}
+        import: {type: boolean, default: false}
+    SlotBatchResult:
+      type: object
+      required: [updated, missing, failed, items]
+      properties:
+        updated: {type: integer, minimum: 0}
+        missing: {type: array, items: {type: string}}
+        failed:
+          type: array
+          items:
+            type: object
+            required: [slot_id, code, message]
+            properties:
+              slot_id: {type: string}
+              code: {type: string}
+              message: {type: string}
+        items: {type: array, items: {$ref: "#/components/schemas/SlotEnvelope"}}
+    ProxyPoolConfig:
+      type: object
+      additionalProperties: false
+      required: [probe_interval_min, probe_timeout_ms, max_failures, enabled, disconnect_on_error, bind_limit]
+      properties:
+        probe_interval_min: {type: integer, enum: [5, 10, 30, 60]}
+        probe_timeout_ms: {type: integer, minimum: 1000, maximum: 60000}
+        max_failures: {type: integer, minimum: 1, maximum: 10}
+        enabled: {type: boolean}
+        disconnect_on_error: {type: boolean}
+        bind_limit: {type: integer, minimum: 1, maximum: 32}
+    ProxyPoolPut:
+      type: object
+      additionalProperties: false
+      required: [expected_revision, data]
+      properties:
+        expected_revision: {type: integer, minimum: 0}
+        data: {type: object, description: Deep partial ProxyPoolConfig patch.}
+        import: {type: boolean, default: false}
+    ProxyPoolEnvelope:
+      type: object
+      required: [schema_version, revision, config_hash, runtime_hash, kernel_hash, data, apply, degraded]
+      properties:
+        schema_version: {type: integer, minimum: 1}
+        revision: {type: integer, minimum: 0}
+        config_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        runtime_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        kernel_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        data: {$ref: "#/components/schemas/ProxyPoolConfig"}
+        apply: {$ref: "#/components/schemas/ApplyStatus"}
+        degraded: {type: boolean}
+    PublicProxy:
+      type: object
+      additionalProperties: false
+      required: [id, host, port, has_auth, status, enabled, bound_vm_ids]
+      properties:
+        id: {type: string}
+        revision: {type: integer, minimum: 0}
+        host: {type: string}
+        port: {type: integer, minimum: 1, maximum: 65535}
+        has_auth: {type: boolean}
+        status: {type: string, enum: [unknown, ok, fail, dead]}
+        enabled: {type: boolean}
+        bound_vm_id: {type: [string, "null"]}
+        bound_vm_ids: {type: array, items: {type: string}}
+        bound_count: {type: integer}
+        bind_limit: {type: integer}
+        consecutive_failures: {type: integer}
+        latency_ms: {type: [integer, "null"]}
+        last_probe_at: {type: string}
+        last_error: {type: string}
+        created_at: {type: string, format: date-time}
+    ProxyPoolSnapshot:
+      type: object
+      required: [config, totals, proxies]
+      properties:
+        config: {$ref: "#/components/schemas/ProxyPoolEnvelope"}
+        totals: {type: object, additionalProperties: {type: integer}}
+        proxies: {type: array, items: {$ref: "#/components/schemas/PublicProxy"}}
+
+    ControlDocumentPut:
+      type: object
+      additionalProperties: false
+      required: [schema_version, expected_revision, data]
+      properties:
+        schema_version: {type: integer, minimum: 1}
+        expected_revision: {type: integer, minimum: 0}
+        data: {}
+        change_kind: {type: string}
+    ControlDocument:
+      type: object
+      required: [domain, schema_version, revision, config_hash, data, updated_at, updated_by, degraded]
+      properties:
+        domain: {type: string}
+        schema_version: {type: integer, minimum: 1}
+        revision: {type: integer, minimum: 1}
+        config_hash: {type: string, pattern: "^[a-f0-9]{64}$"}
+        data: {}
+        updated_at: {type: string, format: date-time}
+        updated_by: {type: string}
+        degraded: {type: boolean}
+    DomainOwnerPut:
+      type: object
+      additionalProperties: false
+      required: [owner, state, expected_revision]
+      properties:
+        owner: {type: string, enum: [node, go]}
+        state:
+          type: string
+          enum: [node, shadow_import, shadow_match, frozen, go, verified, rollback_export, rejected]
+        source_hash: {type: string}
+        expected_revision: {type: integer, minimum: 0}
+    DomainOwner:
+      type: object
+      required: [domain, owner, state, revision, updated_at, updated_by]
+      properties:
+        domain: {type: string}
+        owner: {type: string, enum: [node, go]}
+        state: {type: string}
+        source_hash: {type: string}
+        revision: {type: integer, minimum: 0}
+        updated_at: {type: string, format: date-time}
+        updated_by: {type: string}
+    OperationEnqueue:
+      type: object
+      additionalProperties: false
+      required: [kind, target, payload, max_attempts, idempotency_key]
+      properties:
+        kind: {type: string, maxLength: 128}
+        target: {type: string, maxLength: 512}
+        payload: {}
+        max_attempts: {type: integer, minimum: 1, maximum: 20}
+        idempotency_key: {type: string, maxLength: 256}
+    ControlOperation:
+      type: object
+      required: [id, kind, target, status, payload, attempts, max_attempts, idempotency_key, created_at, updated_at]
+      properties:
+        id: {type: string}
+        kind: {type: string}
+        target: {type: string}
+        status: {type: string, enum: [pending, claimed, running, succeeded, failed, cancelled]}
+        payload: {}
+        result: {}
+        attempts: {type: integer, minimum: 0}
+        max_attempts: {type: integer, minimum: 1}
+        lease_owner: {type: string}
+        lease_expires_at: {type: string, format: date-time}
+        idempotency_key: {type: string}
+        last_error: {type: string}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
