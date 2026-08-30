@@ -1,1 +1,6 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/kernel/quality-guidelines.md", "reason": "kernel 质量门槛：test/clippy/fmt 水位不得下降（AC6-AC8）"}
+{"file": ".trellis/spec/kernel/multiplex-cli-subsystem.md", "reason": "核对 spec 描述与删除后实现一致（AC1-AC5）"}
+{"file": ".trellis/spec/kernel/api-and-schema.md", "reason": "核对 /healthz /readyz 字段与 config_hash 未破契约"}
+{"file": ".trellis/spec/kernel/error-handling.md", "reason": "确认删除未引入静默吞错或掩盖式默认值"}
+{"file": ".trellis/spec/control/quality-guidelines.md", "reason": "Go 侧 go test/go vet 门槛（S4 三方契约）"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "跨层数据流核对：Go desired ↔ Rust applied ↔ CLI 回传"}
