@@ -186,6 +186,7 @@ fn response(
         usage: Usage {
             input_tokens: approximate_tokens(input_chars),
             output_tokens: approximate_tokens(output_chars),
+            ..Usage::default()
         },
     }
 }

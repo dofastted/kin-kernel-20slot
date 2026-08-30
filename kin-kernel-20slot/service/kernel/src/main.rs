@@ -1,13 +1,13 @@
 mod api;
 mod config;
 mod error;
+mod gateway_worker;
 mod model;
 mod provider;
 mod scheduler;
 mod session;
 mod state;
 mod stream;
-
 use std::sync::Arc;
 
 use tokio::{net::TcpListener, time::Duration};
@@ -34,6 +34,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .json()
         .init();
 
+    let args: Vec<String> = std::env::args().collect();
+    match gateway_worker::parse_args(&args)? {
+        gateway_worker::LaunchMode::GatewayWorker { config } => {
+            return gateway_worker::run(&config).await;
+        }
+        gateway_worker::LaunchMode::PublicHttp => run_public().await,
+    }
+}
+
+async fn run_public() -> Result<(), Box<dyn std::error::Error>> {
     let config = Config::from_env()?;
     let scheduler = Arc::new(Scheduler::new(config.worker_count, config.slots_per_worker));
     let sessions = Arc::new(SessionDirectory::new(
