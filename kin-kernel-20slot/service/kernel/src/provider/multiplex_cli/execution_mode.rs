@@ -2,17 +2,14 @@ use std::{env, fmt, str::FromStr};
 
 /// How a worker drives Claude Code.
 ///
-/// `mcp_slot` is the current Agent+MCP loop (model-visible slot_wait/kin_done).
-/// `native_slot` (now `NativeAgent`) is the frozen v1 native host: the CLI
-/// owns the slot loop but still parks on tool results inside the process.
+/// `native_slot` (`NativeAgent`) is the frozen v1 native host: the CLI owns
+/// the slot loop but still parks on tool results inside the process.
 /// `native_messages` is the v2 stateless target: the CLI holds no tools/
 /// agents/cross-job state, Rust drives every turn as a fresh job.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum ExecutionMode {
-    McpSlot,
     NativeAgent,
     /// Default since AC19: the stateless v2 protocol is the product target.
-    /// `mcp_slot` stays reachable as the explicit fallback.
     #[default]
     NativeMessages,
 }
@@ -20,16 +17,9 @@ pub enum ExecutionMode {
 impl ExecutionMode {
     pub fn as_str(self) -> &'static str {
         match self {
-            Self::McpSlot => "mcp_slot",
             Self::NativeAgent => "native_slot",
             Self::NativeMessages => "native_messages",
         }
-    }
-
-    /// True for any mode that speaks the stdin/stdout `kin_*` protocol
-    /// instead of the MCP slot_wait/kin_done tool loop.
-    pub fn is_native(self) -> bool {
-        matches!(self, Self::NativeAgent | Self::NativeMessages)
     }
 
     /// True only for the stateless v2 protocol (no in-CLI tool parking).
@@ -85,11 +75,10 @@ impl FromStr for ExecutionMode {
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         match value.trim().to_ascii_lowercase().as_str() {
-            "mcp" | "mcp_slot" | "agent" => Ok(Self::McpSlot),
             "native" | "native_slot" | "host" => Ok(Self::NativeAgent),
             "native_messages" => Ok(Self::NativeMessages),
             other => Err(format!(
-                "KIN_EXECUTION_MODE must be mcp_slot, native_slot, or native_messages (got {other})"
+                "KIN_EXECUTION_MODE must be native_slot or native_messages (got {other})"
             )),
         }
     }
@@ -101,22 +90,13 @@ mod tests {
 
     #[test]
     fn parses_aliases() {
-        assert_eq!(
-            "native".parse::<ExecutionMode>().unwrap(),
-            ExecutionMode::NativeAgent
-        );
-        assert_eq!(
-            "native_slot".parse::<ExecutionMode>().unwrap(),
-            ExecutionMode::NativeAgent
-        );
-        assert_eq!(
-            "host".parse::<ExecutionMode>().unwrap(),
-            ExecutionMode::NativeAgent
-        );
-        assert_eq!(
-            "mcp_slot".parse::<ExecutionMode>().unwrap(),
-            ExecutionMode::McpSlot
-        );
+        for alias in ["native", "native_slot", "host"] {
+            assert_eq!(
+                alias.parse::<ExecutionMode>().unwrap(),
+                ExecutionMode::NativeAgent,
+                "{alias}"
+            );
+        }
     }
 
     #[test]
@@ -125,7 +105,6 @@ mod tests {
             "native_messages".parse::<ExecutionMode>().unwrap(),
             ExecutionMode::NativeMessages
         );
-        assert!(ExecutionMode::NativeMessages.is_native());
         assert!(ExecutionMode::NativeMessages.is_native_messages());
         assert!(!ExecutionMode::NativeAgent.is_native_messages());
     }
@@ -133,6 +112,10 @@ mod tests {
     #[test]
     fn rejects_unknown() {
         assert!("bogus".parse::<ExecutionMode>().is_err());
+        assert!(
+            "mcp_slot".parse::<ExecutionMode>().is_err(),
+            "the MCP slot path no longer exists"
+        );
     }
 
     #[test]
@@ -167,10 +150,8 @@ mod tests {
     }
 
     #[test]
-    fn other_modes_are_never_gated() {
-        for mode in [ExecutionMode::McpSlot, ExecutionMode::NativeMessages] {
-            assert!(mode.check_opt_in(None).is_ok(), "{mode} must stay ungated");
-        }
+    fn native_messages_is_never_gated() {
+        assert!(ExecutionMode::NativeMessages.check_opt_in(None).is_ok());
     }
 
     /// AC19: with `KIN_EXECUTION_MODE` unset the kernel must select
@@ -184,18 +165,5 @@ mod tests {
             ExecutionMode::default().check_opt_in(None).is_ok(),
             "the default mode must never require an opt-in"
         );
-    }
-
-    /// `mcp_slot` remains the explicit fallback (PRD: "不改 mcp_slot 路径,
-    /// 保持回退可用"), so every alias must keep resolving after the switch.
-    #[test]
-    fn mcp_slot_remains_reachable_as_fallback() {
-        for alias in ["mcp", "mcp_slot", "agent"] {
-            assert_eq!(
-                alias.parse::<ExecutionMode>().unwrap(),
-                ExecutionMode::McpSlot,
-                "{alias} must still select the fallback"
-            );
-        }
     }
 }

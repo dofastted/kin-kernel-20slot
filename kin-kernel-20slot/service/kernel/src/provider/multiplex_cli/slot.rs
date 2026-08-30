@@ -6,17 +6,15 @@ use serde::Serialize;
 #[serde(rename_all = "snake_case")]
 pub enum SlotPhase {
     Booting,
+    /// Idle and registered with the scheduler, waiting for a job.
     ReadyBlocked,
     Running,
-    WaitingTool,
-    Draining,
     Dead,
 }
 
 #[derive(Debug)]
 pub struct Slot {
     pub id: String,
-    pub parent_tool_use_id: Option<String>,
     pub phase: SlotPhase,
     pub tenant_id: Option<String>,
     pub session_id: Option<String>,
@@ -31,7 +29,6 @@ impl Slot {
         let now = Instant::now();
         Self {
             id: id.into(),
-            parent_tool_use_id: None,
             phase: SlotPhase::Booting,
             tenant_id: None,
             session_id: None,
@@ -40,15 +37,6 @@ impl Slot {
             created_at: now,
             last_change: now,
         }
-    }
-
-    pub fn cas(&mut self, from: SlotPhase, to: SlotPhase) -> bool {
-        if self.phase != from {
-            return false;
-        }
-        self.phase = to;
-        self.last_change = Instant::now();
-        true
     }
 
     pub fn bind_job(&mut self, tenant: &str, session: &str, job_id: &str) -> bool {
@@ -104,7 +92,6 @@ impl Slot {
 pub struct SlotSnapshot {
     pub id: String,
     pub phase: SlotPhase,
-    pub parent_tool_use_id: Option<String>,
     pub session_id: Option<String>,
     pub tenant_id: Option<String>,
     pub jobs_completed: u32,
