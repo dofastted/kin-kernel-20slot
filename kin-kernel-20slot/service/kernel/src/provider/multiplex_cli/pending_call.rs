@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Instant};
+use std::collections::HashMap;
 
 use serde_json::{Value, json};
 use tokio::sync::oneshot;
@@ -18,7 +18,9 @@ pub struct Job {
 
 #[derive(Debug)]
 pub enum SlotWaitPayload {
-    Job(Job),
+    /// Boxed: `Job` carries a whole `MessageRequest`, so an inline
+    /// variant would make every `Retire` pay for it too.
+    Job(Box<Job>),
     Retire,
 }
 
@@ -26,13 +28,6 @@ pub enum SlotWaitPayload {
 pub struct PendingCalls {
     slot_wait: HashMap<String, oneshot::Sender<SlotWaitPayload>>,
     client_tool: HashMap<String, oneshot::Sender<Value>>,
-    done: HashMap<String, oneshot::Sender<JobOutcome>>,
-}
-
-#[derive(Clone, Debug)]
-pub struct JobOutcome {
-    pub text: String,
-    pub is_error: bool,
 }
 
 impl PendingCalls {
@@ -100,23 +95,9 @@ impl PendingCalls {
         Ok(())
     }
 
-    pub fn register_done(&mut self, job_id: &str) -> oneshot::Receiver<JobOutcome> {
-        let (tx, rx) = oneshot::channel();
-        self.done.insert(job_id.to_string(), tx);
-        rx
-    }
-
-    pub fn finish_job(&mut self, job_id: &str, outcome: JobOutcome) -> Result<(), KernelError> {
-        if let Some(tx) = self.done.remove(job_id) {
-            let _ = tx.send(outcome);
-        }
-        Ok(())
-    }
-
     pub fn drop_job(&mut self, job_id: &str) {
         self.client_tool
             .retain(|key, _| key != job_id && !key.starts_with(&format!("{job_id}:")));
-        self.done.remove(job_id);
     }
 
     pub fn abort_client_tools(&mut self, job_id: &str, message: &str) {
@@ -152,8 +133,4 @@ fn client_key(job_id: &str, tool_id: Option<&str>) -> String {
 
 pub fn new_id(prefix: &str) -> String {
     format!("{prefix}_{}", Uuid::new_v4().simple())
-}
-
-pub fn now() -> Instant {
-    Instant::now()
 }

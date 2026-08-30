@@ -22,7 +22,6 @@ pub struct Slot {
     pub session_id: Option<String>,
     pub job_id: Option<String>,
     pub jobs_completed: u32,
-    pub bytes_used: usize,
     pub created_at: Instant,
     pub last_change: Instant,
 }
@@ -38,7 +37,6 @@ impl Slot {
             session_id: None,
             job_id: None,
             jobs_completed: 0,
-            bytes_used: 0,
             created_at: now,
             last_change: now,
         }
@@ -101,6 +99,7 @@ impl Slot {
     }
 }
 
+#[cfg(test)]
 #[derive(Clone, Debug, Serialize)]
 pub struct SlotSnapshot {
     pub id: String,

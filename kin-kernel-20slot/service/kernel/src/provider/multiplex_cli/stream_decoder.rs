@@ -1,7 +1,5 @@
 use serde_json::Value;
 
-use crate::stream::StreamAssembler;
-
 #[derive(Debug)]
 pub enum Decoded {
     AgentSpawn {
@@ -9,9 +7,6 @@ pub enum Decoded {
     },
     Routed {
         parent_tool_use_id: String,
-        event: Option<Value>,
-        assistant: Option<Value>,
-        result: bool,
     },
     Root,
 }
@@ -37,13 +32,6 @@ pub fn decode(frame: &Value) -> Decoded {
     if let Some(parent) = parent_id(frame) {
         return Decoded::Routed {
             parent_tool_use_id: parent.to_string(),
-            event: frame
-                .get("event")
-                .cloned()
-                .filter(|_| frame.get("type").and_then(Value::as_str) == Some("stream_event")),
-            assistant: (frame.get("type").and_then(Value::as_str) == Some("assistant"))
-                .then(|| frame.clone()),
-            result: frame.get("type").and_then(Value::as_str) == Some("result"),
         };
     }
     Decoded::Root
@@ -65,19 +53,6 @@ fn agent_spawn_id(frame: &Value) -> Option<String> {
             }
     }
     None
-}
-
-pub fn apply_routed(assembler: &mut StreamAssembler, frame: &Value) {
-    match frame.get("type").and_then(Value::as_str) {
-        Some("stream_event") => {
-            if let Some(event) = frame.get("event") {
-                assembler.apply_event(event);
-            }
-        }
-        Some("assistant") => assembler.apply_assistant(frame),
-        Some("result") => assembler.apply_result(frame),
-        _ => {}
-    }
 }
 
 pub const MAX_LINE_BYTES: usize = 2 * 1024 * 1024;

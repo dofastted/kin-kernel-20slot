@@ -48,6 +48,7 @@ impl ContinuationToken {
         Ok(format!("kct_{}.{}", hex(&payload), hex(&mac)))
     }
 
+    #[cfg(test)]
     pub fn decode(raw: &str, secret: &[u8]) -> Result<Self, KernelError> {
         let trimmed = raw.strip_prefix("kct_").unwrap_or(raw);
         let (payload_hex, sig_hex) = trimmed
@@ -70,6 +71,7 @@ impl ContinuationToken {
         Ok(token)
     }
 
+    #[cfg(test)]
     pub fn matches_runtime(&self, process_generation: u64) -> Result<(), KernelError> {
         if self.process_generation != process_generation {
             return Err(KernelError::ContinuationLost);
@@ -95,6 +97,7 @@ fn hex(data: &[u8]) -> String {
     out
 }
 
+#[cfg(test)]
 fn unhex(text: &str) -> Result<Vec<u8>, ()> {
     if !text.len().is_multiple_of(2) {
         return Err(());

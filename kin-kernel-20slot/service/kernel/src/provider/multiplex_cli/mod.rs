@@ -16,6 +16,9 @@ pub mod memory_guard;
 pub mod native_protocol;
 pub mod pending_call;
 pub mod relay;
+/// Local trace-replay harness. Every item is exercised only by its own
+/// `#[cfg(test)]` block — it never runs in the shipped binary.
+#[cfg(test)]
 pub mod replay;
 pub mod scheduler;
 pub mod signing;
@@ -40,7 +43,7 @@ use tokio::sync::{Mutex, Notify, OnceCell, mpsc};
 use uuid::Uuid;
 
 use crate::{
-    config::{DEFAULT_CLIENT_STALL_SECS, RelayMode},
+    config::RelayMode,
     error::KernelError,
     model::{ContentBlock, MessageContent, MessageRequest, MessageResponse, StopReason, Usage},
     provider::{ExecutionContext, Provider, ProviderCapabilities, StreamTx, job_event_channel},
@@ -52,14 +55,14 @@ use self::{
     execution_mode::ExecutionMode,
     job_stream::JobStream,
     memory_guard::MemoryGuard,
-    pending_call::{Job, JobOutcome, PendingCalls, SlotWaitPayload, new_id},
+    pending_call::{Job, PendingCalls, SlotWaitPayload, new_id},
     relay::{
         arbiter::{ArbiterEffect, SourceArbiter},
         correlate::{CorrelatedJob, RelayContextToken},
         sse_tap::TapEvent,
     },
     scheduler::SlotScheduler,
-    slot::{Slot, SlotPhase, SlotSnapshot},
+    slot::{Slot, SlotPhase},
 };
 
 #[derive(Clone)]
@@ -540,12 +543,13 @@ impl Runtime {
         self.ready.load(Ordering::Relaxed)
     }
 
-    pub async fn snapshots(&self) -> Vec<SlotSnapshot> {
+    #[cfg(test)]
+    pub async fn snapshots(&self) -> Vec<slot::SlotSnapshot> {
         self.slots
             .lock()
             .await
             .iter()
-            .map(|slot| SlotSnapshot {
+            .map(|slot| slot::SlotSnapshot {
                 id: slot.id.clone(),
                 phase: slot.phase,
                 parent_tool_use_id: slot.parent_tool_use_id.clone(),
@@ -564,6 +568,7 @@ impl Runtime {
         self.running.load(Ordering::Relaxed)
     }
 
+    #[cfg(test)]
     pub fn bump_generation(&self) -> u64 {
         self.process_generation.fetch_add(1, Ordering::AcqRel) + 1
     }
@@ -944,25 +949,18 @@ impl Runtime {
         Ok(())
     }
 
-    async fn finish_sent_job(&self, job_id: &str, response: MessageResponse) {
+    async fn finish_sent_job(&self, job_id: &str) {
         if let Some(sink) = self.sinks.lock().await.get(job_id).cloned()
             && !sink.set_terminal(Terminal::Done)
         {
             self.abort_terminal_job(job_id).await;
             return;
         }
-        let text = response_text(&response);
-        let is_error = matches!(response.stop_reason, StopReason::Refusal);
         let job = self.jobs.lock().await.remove(job_id);
         let slot_id = job.as_ref().map(|job| job.slot_id.clone());
         self.sinks.lock().await.remove(job_id);
         self.job_streams.lock().await.remove(job_id);
         self.stream_assemblers.lock().await.remove(job_id);
-        self.pending
-            .lock()
-            .await
-            .finish_job(job_id, JobOutcome { text, is_error })
-            .ok();
         self.running
             .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
                 Some(n.saturating_sub(1))
@@ -1766,7 +1764,7 @@ impl Runtime {
         self.pending
             .lock()
             .await
-            .wake_slot(&slot_id, SlotWaitPayload::Job(job))?;
+            .wake_slot(&slot_id, SlotWaitPayload::Job(Box::new(job)))?;
         Ok(())
     }
 
@@ -1961,9 +1959,9 @@ async fn job_egress(
         match sent {
             Ok(()) if final_response.is_some() || tool_response => {
                 sink.client_tx.lock().await.take();
-                if let Some(response) = final_response {
+                if final_response.is_some() {
                     if let Some(runtime) = runtime.upgrade() {
-                        runtime.finish_sent_job(&job_id, response).await;
+                        runtime.finish_sent_job(&job_id).await;
                     }
                     break;
                 }
@@ -2008,6 +2006,7 @@ fn is_lossless_delta(item: &StreamItem) -> bool {
     )
 }
 
+#[cfg(test)]
 fn response_text(response: &MessageResponse) -> String {
     let mut out = String::new();
     for block in &response.content {
@@ -2485,6 +2484,7 @@ impl MultiplexCliProvider {
         })
     }
 
+    #[cfg(test)]
     pub fn simulated(slot_count: usize) -> Self {
         Self {
             cfg: MultiplexConfig {
@@ -2499,7 +2499,9 @@ impl MultiplexCliProvider {
                 session_idle_ttl: Duration::from_secs(600),
                 simulate_latency: Duration::from_millis(60),
                 continuation_ttl_secs: 600,
-                client_stall_timeout: Duration::from_secs(DEFAULT_CLIENT_STALL_SECS),
+                client_stall_timeout: Duration::from_secs(
+                    crate::config::DEFAULT_CLIENT_STALL_SECS,
+                ),
                 submit_wait: Duration::from_millis(200),
                 relay_mode: RelayMode::Off,
                 relay_addr: "127.0.0.1:0".parse().unwrap(),

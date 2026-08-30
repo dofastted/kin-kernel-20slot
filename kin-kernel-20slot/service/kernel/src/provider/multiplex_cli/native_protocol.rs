@@ -77,6 +77,7 @@ pub fn encode_stdin(frame: &KinStdin) -> Result<Vec<u8>, String> {
     Ok(line)
 }
 
+#[cfg(test)]
 pub fn decode_stdout_line(line: &str) -> Option<KinStdout> {
     serde_json::from_str(line).ok()
 }

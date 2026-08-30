@@ -10,6 +10,10 @@ use thiserror::Error;
 pub enum KernelError {
     #[error("{0}")]
     InvalidRequest(String),
+    /// Reserved 501 surface: constructed by callers that reject a
+    /// request feature this build does not implement. Kept even while
+    /// unconstructed so the HTTP contract stays stable.
+    #[allow(dead_code)]
     #[error("{0}")]
     UnsupportedFeature(String),
     #[error("no compatible capacity is currently available")]

@@ -123,6 +123,7 @@ impl MemoryGuard {
         self.claude_pid.store(pid, Ordering::Relaxed);
     }
 
+    #[cfg(test)]
     pub fn set_rss_override(&self, bytes: u64) {
         self.rss_override.store(bytes, Ordering::Relaxed);
     }

@@ -21,6 +21,9 @@ pub enum CliAuthMode {
 
 #[derive(Debug, Clone)]
 pub struct ResolvedCliAuth {
+    /// Which credential shape was resolved. Asserted by the auth tests;
+    /// the spawn path branches on `setup_token` instead.
+    #[allow(dead_code)]
     pub mode: CliAuthMode,
     pub blob: Value,
     pub setup_token: Option<String>,
@@ -158,9 +161,7 @@ fn flatten_credentials(creds: Value, typ: &str) -> Value {
             .map(|s| json!(s.split_whitespace().collect::<Vec<_>>()))
             .unwrap_or_else(|| json!(["user:inference"]))
     });
-    let kind = if typ == "setup-token" || typ == "setup_token" {
-        "setup-token"
-    } else if refresh.is_empty() {
+    let kind = if typ == "setup-token" || typ == "setup_token" || refresh.is_empty() {
         "setup-token"
     } else {
         "claude_ai_oauth"

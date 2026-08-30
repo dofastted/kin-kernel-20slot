@@ -48,6 +48,9 @@ pub trait Provider: Send + Sync {
     fn name(&self) -> &'static str;
     fn capabilities(&self) -> ProviderCapabilities;
 
+    /// Convenience default on the Provider contract. Current call sites
+    /// drive `execute_stream` + `collect_stream` themselves.
+    #[allow(dead_code)]
     async fn execute(
         &self,
         request: &MessageRequest,

@@ -58,6 +58,14 @@ pub struct LocalCliProvider {
     table: Arc<Mutex<SessionTable>>,
 }
 
+/// Static CLI-process configuration shared by `run_turn` and `spawn_parked`.
+#[derive(Clone, Copy)]
+struct CliSetup<'a> {
+    bin: &'a Path,
+    mock: bool,
+    isolation: IsolationMode,
+}
+
 impl LocalCliProvider {
     pub fn from_env(isolation: IsolationMode) -> Result<Self, Box<dyn std::error::Error>> {
         let max_slots = env::var("KIN_SLOTS_PER_WORKER")
@@ -130,9 +138,11 @@ impl Provider for LocalCliProvider {
         let (tx, rx) = stream_channel();
         spawn_blocking(move || {
             let result = run_turn(
-                &bin,
-                mock,
-                isolation,
+                CliSetup {
+                    bin: &bin,
+                    mock,
+                    isolation,
+                },
                 max_slots,
                 table.as_ref(),
                 &request,
@@ -153,9 +163,7 @@ impl Provider for LocalCliProvider {
 }
 
 fn run_turn(
-    bin: &Path,
-    mock: bool,
-    isolation: IsolationMode,
+    setup: CliSetup<'_>,
     max_slots: usize,
     table: &Mutex<SessionTable>,
     request: &MessageRequest,
@@ -170,7 +178,7 @@ fn run_turn(
     let auth = cli_auth::resolve()?;
     cli_auth::write_credentials(&session_dir, &auth)?;
 
-    let keep_alive = isolation != IsolationMode::ProcessPerTurn;
+    let keep_alive = setup.isolation != IsolationMode::ProcessPerTurn;
     let mut parked = take_session(
         table,
         &context.session_id,
@@ -180,9 +188,7 @@ fn run_turn(
         keep_alive,
         || {
             spawn_parked(
-                bin,
-                mock,
-                isolation,
+                setup,
                 &session_dir,
                 &cli_session,
                 &request.model,
@@ -192,7 +198,7 @@ fn run_turn(
         },
     )?;
 
-    if isolation == IsolationMode::ResetAndReuse && !context.resumed {
+    if setup.isolation == IsolationMode::ResetAndReuse && !context.resumed {
         let _ = write_text(&mut parked, "/clear", &cli_session);
         let _ = read_until_boundary(&mut parked, &request.model, None);
     }
@@ -363,21 +369,19 @@ fn apply_proxy_env(cmd: &mut Command) -> Result<(), KernelError> {
 }
 
 fn spawn_parked(
-    bin: &Path,
-    mock: bool,
-    isolation: IsolationMode,
+    setup: CliSetup<'_>,
     session_dir: &Path,
     session_id: &str,
     model: &str,
     generation: u64,
     auth: &cli_auth::ResolvedCliAuth,
 ) -> Result<Parked, KernelError> {
-    let mut cmd = if mock {
+    let mut cmd = if setup.mock {
         let mut cmd = Command::new("node");
-        cmd.arg(bin);
+        cmd.arg(setup.bin);
         cmd
     } else {
-        Command::new(bin)
+        Command::new(setup.bin)
     };
     apply_proxy_env(&mut cmd)?;
     let agents = r#"{"kin-slot":{"description":"persistent request slot","prompt":"You are a persistent request slot."}}"#;
@@ -398,7 +402,7 @@ fn spawn_parked(
         "--model",
         model,
     ];
-    if isolation == IsolationMode::Multiplexed {
+    if setup.isolation == IsolationMode::Multiplexed {
         args.extend(["--agents", agents]);
     }
     auth.apply_std(&mut cmd);
@@ -458,10 +462,7 @@ fn read_until_boundary(
     events: Option<&StreamTx>,
 ) -> Result<(Vec<ContentBlock>, StopReason, Usage), KernelError> {
     let mut assembler = StreamAssembler::new(model);
-    loop {
-        let Some(frame) = read_line(&mut parked.stdout)? else {
-            break;
-        };
+    while let Some(frame) = read_line(&mut parked.stdout)? {
         match frame.get("type").and_then(Value::as_str) {
             Some("stream_event") => {
                 if let Some(event) = frame.get("event") {
@@ -596,15 +597,32 @@ mod tests {
         LocalCliProvider::from_env(mode).expect("mock bin")
     }
 
+    /// The success-path tests below need a real CLI to spawn. The default
+    /// `mock-claude.mjs` has never existed in this repository, so without an
+    /// explicit `KIN_CLAUDE_BIN` those tests can only assert on a spawn
+    /// failure. Skip rather than fail on a fixture this repo does not ship.
+    fn mock_bin_available(provider: &LocalCliProvider) -> bool {
+        if provider.bin.exists() {
+            return true;
+        }
+        eprintln!(
+            "skipping: no CLI at {} (set KIN_CLAUDE_BIN to run this test)",
+            provider.bin.display()
+        );
+        false
+    }
+
     fn run(
         provider: &LocalCliProvider,
         request: &MessageRequest,
         context: &ExecutionContext,
     ) -> Result<MessageResponse, KernelError> {
         run_turn(
-            &provider.bin,
-            true,
-            provider.isolation,
+            CliSetup {
+                bin: &provider.bin,
+                mock: true,
+                isolation: provider.isolation,
+            },
             provider.max_slots,
             provider.table.as_ref(),
             request,
@@ -616,6 +634,9 @@ mod tests {
     #[test]
     fn parks_and_binds_same_pid() {
         let provider = provider(IsolationMode::ProcessPerTurn);
+        if !mock_bin_available(&provider) {
+            return;
+        }
         let session = format!("sess-{}", Uuid::new_v4().simple());
         let first = run(
             &provider,
@@ -682,6 +703,9 @@ mod tests {
     #[test]
     fn multiplex_same_session_reuses_pid() {
         let provider = provider(IsolationMode::Multiplexed);
+        if !mock_bin_available(&provider) {
+            return;
+        }
         let session = "sess-sticky";
         let first = run(
             &provider,

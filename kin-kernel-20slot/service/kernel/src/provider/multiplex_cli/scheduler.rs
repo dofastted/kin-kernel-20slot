@@ -33,10 +33,6 @@ impl SlotScheduler {
         self.sticky.insert(session_key, slot_id);
     }
 
-    pub fn sticky(&self, session_key: &str) -> Option<&String> {
-        self.sticky.get(session_key)
-    }
-
     pub fn pick(
         &mut self,
         slots: &mut [Slot],
@@ -75,9 +71,6 @@ impl SlotScheduler {
         Err(KernelError::NoCapacity)
     }
 
-    pub fn ready_count(&self) -> usize {
-        self.ready.len()
-    }
 }
 
 impl Default for SlotScheduler {

@@ -13,7 +13,6 @@ use crate::provider::cli_auth;
 pub struct Supervised {
     pub child: Child,
     pub pid: u32,
-    pub session_dir: PathBuf,
 }
 
 pub struct SpawnSpec {
@@ -177,11 +176,7 @@ pub async fn spawn(spec: &SpawnSpec) -> Result<Supervised, KernelError> {
         .spawn()
         .map_err(|err| KernelError::Provider(format!("spawn claude: {err}")))?;
     let pid = child.id().unwrap_or(0);
-    Ok(Supervised {
-        child,
-        pid,
-        session_dir: spec.session_dir.clone(),
-    })
+    Ok(Supervised { child, pid })
 }
 
 fn apply_envelope_env(cmd: &mut Command) {
