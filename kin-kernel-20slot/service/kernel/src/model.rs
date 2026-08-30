@@ -257,6 +257,24 @@ pub enum StopReason {
 pub struct Usage {
     pub input_tokens: u64,
     pub output_tokens: u64,
+    #[serde(default, skip_serializing_if = "is_zero_u64")]
+    pub cache_read_input_tokens: u64,
+    #[serde(default, skip_serializing_if = "is_zero_u64")]
+    pub cache_creation_input_tokens: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cache_creation: Option<CacheCreation>,
+}
+
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct CacheCreation {
+    #[serde(default, skip_serializing_if = "is_zero_u64")]
+    pub ephemeral_5m_input_tokens: u64,
+    #[serde(default, skip_serializing_if = "is_zero_u64")]
+    pub ephemeral_1h_input_tokens: u64,
+}
+
+fn is_zero_u64(value: &u64) -> bool {
+    *value == 0
 }
 
 #[derive(Clone, Debug, Deserialize)]
