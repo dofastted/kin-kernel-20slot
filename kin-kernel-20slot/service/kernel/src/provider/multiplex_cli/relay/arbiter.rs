@@ -102,6 +102,7 @@ impl SourceArbiter {
         self.failed
     }
 
+    #[cfg(test)]
     pub fn upstream_text(&self) -> &str {
         &self.upstream_text
     }

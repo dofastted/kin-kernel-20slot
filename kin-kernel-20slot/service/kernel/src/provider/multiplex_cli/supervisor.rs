@@ -27,12 +27,6 @@ pub struct SpawnSpec {
     pub desired_config_hash: Option<String>,
 }
 
-#[allow(dead_code)]
-pub fn write_oauth_file(dir: &Path) -> Result<(), KernelError> {
-    let auth = cli_auth::resolve()?;
-    cli_auth::write_credentials(dir, &auth)
-}
-
 pub fn write_mcp_config(dir: &Path, url: &str) -> Result<PathBuf, KernelError> {
     let path = dir.join("mcp.json");
     let body = json!({

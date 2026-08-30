@@ -1,9 +1,8 @@
 //! Loopback Messages Relay data plane plus boot/health helpers.
 //!
 //! Production wiring lives in `start_claude` and the per-job tap forwarder.
-//! Keep this module-level allowance while test-only helpers (`TapQueue::poisoned`,
-//! `SseDecoder::poisoned`, scanner `last_valid`) are unused on the bin path.
-#![allow(dead_code)]
+//! Test-only helpers here carry their own `#[cfg(test)]` rather than a
+//! module-wide `allow(dead_code)`, so genuine dead code stays visible.
 
 pub mod arbiter;
 pub mod correlate;

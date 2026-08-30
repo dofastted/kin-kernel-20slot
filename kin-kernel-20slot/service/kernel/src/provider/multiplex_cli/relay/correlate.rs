@@ -228,6 +228,7 @@ pub enum CorrelationOutcome {
 }
 
 impl CorrelationOutcome {
+    #[cfg(test)]
     pub fn matched(self) -> Option<CorrelatedJob> {
         match self {
             Self::Matched(job) => Some(job),

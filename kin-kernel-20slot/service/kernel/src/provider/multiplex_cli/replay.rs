@@ -95,23 +95,18 @@ impl Trace {
 }
 
 #[derive(Clone, Debug)]
-#[allow(dead_code)]
 pub struct VirtualIds {
     pub session_id: String,
-    pub slot_id: String,
     pub job_id: String,
     pub parent_tool_use_id: String,
-    pub connection_id: String,
 }
 
 impl VirtualIds {
     pub fn new(index: usize) -> Self {
         Self {
             session_id: format!("vsess-{index:02}"),
-            slot_id: format!("slot-{index:02}"),
             job_id: format!("job-{index:02}"),
             parent_tool_use_id: format!("parent-{index:02}"),
-            connection_id: format!("conn-{index:02}"),
         }
     }
 }
@@ -287,7 +282,6 @@ fn emit(
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[allow(dead_code)]
 enum EmitResult {
     Sent,
     StageDropped,
@@ -295,7 +289,6 @@ enum EmitResult {
     Closed,
 }
 
-#[allow(dead_code)]
 fn is_lossless_delta(item: &StreamItem) -> bool {
     let StreamItem::Event(event) = item else {
         return true;

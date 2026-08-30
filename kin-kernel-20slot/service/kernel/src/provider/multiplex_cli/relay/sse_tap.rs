@@ -50,7 +50,6 @@ pub struct TapQueue {
     metrics: Arc<RelayMetrics>,
     job_id: String,
     out: mpsc::Sender<TapEvent>,
-    index_allocator: Arc<AtomicUsize>,
     turn_id: u64,
 }
 
@@ -85,7 +84,6 @@ impl TapQueue {
             metrics,
             job_id,
             out,
-            index_allocator,
             turn_id,
         }
     }
@@ -110,6 +108,7 @@ impl TapQueue {
         }
     }
 
+    #[cfg(test)]
     pub fn poisoned(&self) -> bool {
         self.poisoned.load(Ordering::Relaxed)
     }
@@ -360,6 +359,7 @@ impl SseDecoder {
         Ok(out)
     }
 
+    #[cfg(test)]
     pub fn poisoned(&self) -> bool {
         self.poisoned
     }
@@ -440,6 +440,7 @@ impl EventFilter {
         }
     }
 
+    #[cfg(test)]
     pub fn with_start_index(next_index: usize) -> Self {
         Self::new(Arc::new(AtomicUsize::new(next_index)))
     }
@@ -487,6 +488,7 @@ impl EventFilter {
         }
     }
 
+    #[cfg(test)]
     pub fn usage(&self) -> Value {
         Value::Object(self.usage.clone())
     }
@@ -865,15 +867,6 @@ fn resolve_escape(esc: &str) -> EscapeStep {
             }
         }
         _ => EscapeStep::Invalid,
-    }
-}
-
-fn add_usage(total: &mut Map<String, Value>, usage: &Map<String, Value>) {
-    for (key, value) in usage {
-        let Some(value) = value.as_u64() else {
-            continue;
-        };
-        add_usage_value(total, key, value);
     }
 }
 
