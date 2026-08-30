@@ -3,7 +3,7 @@
   "name": "native-slot-stateless",
   "title": "native_slot stateless 重构与本机测试环境",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "ted",
   "assignee": "ted",
   "createdAt": "2026-08-30",
-  "completedAt": null,
+  "completedAt": "2026-08-30",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "已完成：AC1–AC19 全绿并切为默认；其成果（native_messages 无状态协议）已成为唯一执行路径，后续收敛由 08-30-patch-only-consolidation 承接。",
   "meta": {}
 }
