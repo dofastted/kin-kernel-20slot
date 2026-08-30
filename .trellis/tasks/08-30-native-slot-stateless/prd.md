@@ -125,8 +125,10 @@ system/env/SOCKS 变更走 drain → 重启 CLI → generation+1，禁止任务�
 ## Non-Goals
 
 - 不实现服务端代执行宿主工具。该能力留给 `native_agent` 模式，本任务不对外暴露。
-- 不改 `mcp_slot` 路径，保持回退可用。
-- 不改 relay。`native_messages` 下 relay 关闭。
+- ~~不改 `mcp_slot` 路径，保持回退可用。~~ **已于 2026-08-30 被 `08-30-patch-only-consolidation` 显式推翻**：
+  该条款是 native_messages 未验证时的保底回退措施；AC1–AC19 全绿后回退需求消失，旧路径改为删除。
+- ~~不改 relay。~~ **同上被推翻**。`native_messages` 下 relay 本就关闭，且 patch 模式在结构上优于 relay
+  （CLI 原装 TLS/指纹，无需 Rust 侧 SSE 解码/事件仲裁/上下文关联三套补偿机制），故整体删除。
 
 ## Acceptance Criteria
 
