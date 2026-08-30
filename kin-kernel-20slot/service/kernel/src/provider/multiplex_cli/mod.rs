@@ -1143,6 +1143,7 @@ fn usage_from_value(value: &Value) -> Usage {
             .get("output_tokens")
             .and_then(Value::as_u64)
             .unwrap_or(0),
+        ..Usage::default()
     }
 }
 

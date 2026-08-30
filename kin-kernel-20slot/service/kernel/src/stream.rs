@@ -1,7 +1,9 @@
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
 use uuid::Uuid;
 
-use crate::model::{ContentBlock, MessageRequest, MessageResponse, StopReason, Usage};
+use crate::model::{
+    CacheCreation, ContentBlock, MessageRequest, MessageResponse, StopReason, Usage,
+};
 
 #[derive(Debug)]
 pub enum StreamItem {
@@ -232,13 +234,78 @@ impl StreamAssembler {
     }
 
     fn apply_usage(&mut self, usage: &Value) {
-        if let Some(tokens) = usage.get("input_tokens").and_then(Value::as_u64) {
+        if let Some(tokens) = json_u64(usage.get("input_tokens")) {
             self.usage.input_tokens = tokens;
         }
-        if let Some(tokens) = usage.get("output_tokens").and_then(Value::as_u64) {
+        if let Some(tokens) = json_u64(usage.get("output_tokens")) {
             self.usage.output_tokens = tokens;
         }
+        if let Some(tokens) = json_u64(usage.get("cache_read_input_tokens")) {
+            self.usage.cache_read_input_tokens = tokens;
+        }
+        if let Some(tokens) = json_u64(usage.get("cache_creation_input_tokens")) {
+            self.usage.cache_creation_input_tokens = tokens;
+        }
+        if let Some(creation) = usage.get("cache_creation") {
+            self.usage.cache_creation = Some(merge_cache_creation(
+                self.usage.cache_creation.take(),
+                creation,
+            ));
+        }
     }
+}
+
+pub fn merge_usage(current: &mut Map<String, Value>, next: &Map<String, Value>) {
+    for (key, value) in next {
+        current.insert(key.clone(), value.clone());
+    }
+}
+
+pub fn event_usage(event: &Value) -> Option<Map<String, Value>> {
+    if let Some(usage) = event.get("usage").and_then(Value::as_object) {
+        return Some(usage.clone());
+    }
+    event
+        .get("message")
+        .and_then(|message| message.get("usage"))
+        .and_then(Value::as_object)
+        .cloned()
+}
+
+pub fn event_model(event: &Value) -> Option<String> {
+    event
+        .get("message")
+        .and_then(|message| message.get("model"))
+        .and_then(Value::as_str)
+        .map(ToOwned::to_owned)
+}
+
+pub fn event_stop_reason(event: &Value) -> Option<String> {
+    event
+        .pointer("/delta/stop_reason")
+        .or_else(|| event.pointer("/message/stop_reason"))
+        .and_then(Value::as_str)
+        .filter(|reason| !reason.is_empty())
+        .map(ToOwned::to_owned)
+}
+
+fn merge_cache_creation(current: Option<CacheCreation>, next: &Value) -> CacheCreation {
+    let mut cache = current.unwrap_or_default();
+    if let Some(tokens) = json_u64(next.get("ephemeral_5m_input_tokens")) {
+        cache.ephemeral_5m_input_tokens = tokens;
+    }
+    if let Some(tokens) = json_u64(next.get("ephemeral_1h_input_tokens")) {
+        cache.ephemeral_1h_input_tokens = tokens;
+    }
+    cache
+}
+
+fn json_u64(value: Option<&Value>) -> Option<u64> {
+    let value = value?;
+    value
+        .as_u64()
+        .or_else(|| value.as_i64().and_then(|n| u64::try_from(n).ok()))
+        .or_else(|| value.as_f64().and_then(|n| (n >= 0.0).then_some(n as u64)))
 }
 
 pub fn parse_sse_block(block: &str) -> Option<Value> {
@@ -318,6 +385,70 @@ mod tests {
         let event = parse_sse_block("event: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\"ab\"}}\n").unwrap();
         assert_eq!(event["type"], "content_block_delta");
         assert_eq!(event["delta"]["text"], "ab");
+    }
+
+    #[test]
+    fn merges_sub2api_cache_usage_from_start_and_delta() {
+        let mut assembler = StreamAssembler::new("claude-haiku-4-5-20251001");
+        assembler.apply_event(&json!({
+            "type": "message_start",
+            "message": {
+                "model": "claude-haiku-4-5-20251001",
+                "usage": {
+                    "input_tokens": 12,
+                    "cache_read_input_tokens": 3,
+                    "cache_creation_input_tokens": 7,
+                    "cache_creation": {
+                        "ephemeral_5m_input_tokens": 5,
+                        "ephemeral_1h_input_tokens": 2
+                    }
+                }
+            }
+        }));
+        assembler.apply_event(&json!({
+            "type": "message_delta",
+            "delta": { "stop_reason": "end_turn" },
+            "usage": { "output_tokens": 4 }
+        }));
+        let (_, _, usage) = assembler.parts();
+        assert_eq!(usage.input_tokens, 12);
+        assert_eq!(usage.output_tokens, 4);
+        assert_eq!(usage.cache_read_input_tokens, 3);
+        assert_eq!(usage.cache_creation_input_tokens, 7);
+        let cache_creation = usage.cache_creation.unwrap();
+        assert_eq!(cache_creation.ephemeral_5m_input_tokens, 5);
+        assert_eq!(cache_creation.ephemeral_1h_input_tokens, 2);
+    }
+
+    #[test]
+    fn merge_usage_keeps_start_fields_when_delta_only_has_output() {
+        let mut usage = Map::new();
+        let start = json!({
+            "type": "message_start",
+            "message": {
+                "usage": {
+                    "input_tokens": 12,
+                    "cache_read_input_tokens": 3,
+                    "cache_creation_input_tokens": 7,
+                    "cache_creation": {
+                        "ephemeral_5m_input_tokens": 5,
+                        "ephemeral_1h_input_tokens": 2
+                    }
+                }
+            }
+        });
+        merge_usage(&mut usage, &event_usage(&start).unwrap());
+        let delta = json!({
+            "type": "message_delta",
+            "delta": { "stop_reason": "end_turn" },
+            "usage": { "output_tokens": 4 }
+        });
+        merge_usage(&mut usage, &event_usage(&delta).unwrap());
+        assert_eq!(usage["input_tokens"], 12);
+        assert_eq!(usage["output_tokens"], 4);
+        assert_eq!(usage["cache_read_input_tokens"], 3);
+        assert_eq!(usage["cache_creation"]["ephemeral_5m_input_tokens"], 5);
+        assert_eq!(usage["cache_creation"]["ephemeral_1h_input_tokens"], 2);
     }
 
     /// AC5: a native `server_tool_use` block (e.g. WebSearch) must assemble
