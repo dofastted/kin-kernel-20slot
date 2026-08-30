@@ -641,6 +641,49 @@ end-to-end against a real CLI process, not a deterministic unit test).
 AC17 left unchecked: two of four required scenarios lack dedicated
 tests.
 
+**AC17 closed (2026-08-30)**: added two unit tests in
+`mod.rs::tests` closing the two gaps above.
+`handle_cli_frame_discards_slot_id_mismatch` drives both a
+`kin_stream_event` and a `kin_job_done` frame tagged with a
+`slot_id` that doesn't match the job's real slot through
+`handle_cli_frame()`, asserting neither seeds a `StreamAssembler`
+nor emits any `StreamItem` nor completes/removes the job — then
+sanity-checks the same frames *with* the correct `slot_id` do apply
+normally (job removal assertion uses the same drain-then-poll
+pattern as `native_messages_tool_use_resume_round_trip`, since job
+removal happens asynchronously in `finish_sent_job()` via the
+background `job_egress()` task, not synchronously inside
+`handle_cli_frame()`). `abort_terminal_job_waits_for_cancel_ack_before_freeing_slot`
+calls `abort_terminal_job()` directly and asserts the slot falls
+back to `SlotPhase::ReadyBlocked` immediately when `write_cli_stdin()`
+fails (the only branch a unit test can drive without a real
+`ChildStdin` — `cli_stdin` is never populated with one outside
+`supervisor::spawn()`, which no native-mode test invokes), plus that
+a late `kin_cancel_ack` arriving afterward is a no-op. **Scope
+caveat, honestly kept**: this proves the *fallback* branch of the
+7-step cancel sequence (stdin write fails → immediate
+`register_native_ready`), not R2's primary/normal branch (stdin
+write succeeds → slot stays occupied until a real `CancelAck`
+frame). Proving the primary branch deterministically in a unit test
+would require fabricating a real child process's `ChildStdin`,
+which contradicts this test suite's established pure-mock-frame
+pattern used throughout (including by
+`native_messages_tool_use_resume_round_trip`). The primary branch
+remains verified only by AC6's live-Docker smoke test (recorded
+above: "追加测试证明被取消槽的完整七步回收真的完成"). Given all
+four PRD-literal scenarios now have some form of verification, and
+the previously-fully-blocking gap ("real code but zero dedicated
+assertions") is closed for both, AC17 is marked PASS with this
+caveat rather than left unchecked — consistent with how AC8's
+"2-4GB" wording mismatch was handled. `cargo test --bin kin-kernel`:
+137 passed / 2 failed (same two pre-existing flaky
+`local_cli::tests::{multiplex_same_session_reuses_pid,parks_and_binds_same_pid}`
+tests recorded elsewhere in this file, unrelated to native_messages,
+zero new regressions). `cargo clippy --all-targets -- -D warnings`
+diagnostic count unchanged at 35 (verified via
+`grep -E "^error(\[|:)" | grep -v "could not compile" | wc -l`),
+confirming the two new tests introduce no new lint findings.
+
 **AC18 `native_agent` exposure gate audit (2026-08-30)**: design.md
 line 173 states `NativeAgent` 需显式 opt-in 门禁. Checked
 `execution_mode.rs::from_env()` (`mod.rs:154`) and `FromStr` (line

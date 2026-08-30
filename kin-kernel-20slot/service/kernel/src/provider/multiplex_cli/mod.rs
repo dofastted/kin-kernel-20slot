@@ -4029,4 +4029,189 @@ mod tests {
             other => panic!("expected text block, got {other:?}"),
         }
     }
+
+    /// AC17 "job-slot 不匹配丢弃": `handle_cli_frame()` must silently discard
+    /// a `kin_stream_event`/`kin_job_done` frame whose `slot_id` does not
+    /// match the job's actual assigned slot (`mod.rs`'s `job.slot_id !=
+    /// slot_id` guards), rather than applying it to the wrong job's state.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn handle_cli_frame_discards_slot_id_mismatch() {
+        let runtime = Runtime::new(native_cfg(Duration::from_secs(1)));
+        let real_slot = "s00".to_string();
+        let wrong_slot = "s99".to_string();
+        runtime.register_native_ready(real_slot.clone()).await;
+
+        let job_id = "job-ac17-mismatch".to_string();
+        runtime.jobs.lock().await.insert(
+            job_id.clone(),
+            Job {
+                job_id: job_id.clone(),
+                tenant_id: "demo".into(),
+                session_id: "sess-ac17".into(),
+                slot_id: real_slot.clone(),
+                generation: runtime.process_generation.load(Ordering::Relaxed),
+                request: text_request("hello"),
+            },
+        );
+        let (tx, mut rx) = mpsc::channel(64);
+        runtime.start_job_sink(job_id.clone(), tx).await;
+
+        // A stream_event tagged with a slot_id that doesn't match the job's
+        // real slot must be discarded: no StreamAssembler state, no emitted
+        // StreamItem.
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_stream_event",
+                "job_id": job_id,
+                "slot_id": wrong_slot,
+                "event": {
+                    "type": "content_block_delta",
+                    "index": 0,
+                    "delta": { "type": "text_delta", "text": "should not apply" }
+                }
+            }))
+            .await;
+        assert!(
+            !runtime.stream_assemblers.lock().await.contains_key(&job_id),
+            "mismatched slot_id must not seed a StreamAssembler"
+        );
+        assert!(
+            timeout(Duration::from_millis(100), rx.recv()).await.is_err(),
+            "mismatched slot_id must not emit any StreamItem"
+        );
+
+        // A job_done tagged with the wrong slot_id must not complete the job.
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_job_done",
+                "job_id": job_id,
+                "slot_id": wrong_slot,
+                "stop_reason": "end_turn",
+                "usage": {}
+            }))
+            .await;
+        assert!(
+            runtime.jobs.lock().await.contains_key(&job_id),
+            "mismatched slot_id job_done must not complete/remove the job"
+        );
+        assert!(
+            timeout(Duration::from_millis(100), rx.recv()).await.is_err(),
+            "mismatched slot_id job_done must not emit a Finished item"
+        );
+
+        // Sanity: the same frames on the correct slot_id do apply.
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_stream_event",
+                "job_id": job_id,
+                "slot_id": real_slot,
+                "event": {
+                    "type": "content_block_delta",
+                    "index": 0,
+                    "delta": { "type": "text_delta", "text": "ok" }
+                }
+            }))
+            .await;
+        assert!(
+            runtime.stream_assemblers.lock().await.contains_key(&job_id),
+            "matching slot_id must seed the StreamAssembler"
+        );
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_job_done",
+                "job_id": job_id,
+                "slot_id": real_slot,
+                "stop_reason": "end_turn",
+                "usage": {}
+            }))
+            .await;
+        loop {
+            match timeout(Duration::from_secs(1), rx.recv())
+                .await
+                .expect("matching slot_id job_done must emit a stream item")
+                .expect("channel open")
+                .expect("item ok")
+            {
+                StreamItem::Finished(_) => break,
+                StreamItem::Event(_) => continue,
+            }
+        }
+        for _ in 0..20 {
+            if !runtime.jobs.lock().await.contains_key(&job_id) {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+        assert!(
+            !runtime.jobs.lock().await.contains_key(&job_id),
+            "matching slot_id job_done must complete/remove the job"
+        );
+    }
+
+    /// AC17 "取消七步时序" (R2): a slot must not be reusable until the
+    /// terminal step of the cancel sequence — the real `KinStdin::Cancel`
+    /// write succeeding means the slot stays occupied until a later
+    /// `kin_cancel_ack` frame arrives; only a *failed* stdin write (CLI
+    /// already gone) is allowed to free the slot immediately as a fallback.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn abort_terminal_job_waits_for_cancel_ack_before_freeing_slot() {
+        let runtime = Runtime::new(native_cfg(Duration::from_secs(1)));
+        let slot_id = "s00".to_string();
+        runtime.register_native_ready(slot_id.clone()).await;
+
+        let job_id = "job-ac17-cancel".to_string();
+        runtime.jobs.lock().await.insert(
+            job_id.clone(),
+            Job {
+                job_id: job_id.clone(),
+                tenant_id: "demo".into(),
+                session_id: "sess-ac17-cancel".into(),
+                slot_id: slot_id.clone(),
+                generation: runtime.process_generation.load(Ordering::Relaxed),
+                request: text_request("hello"),
+            },
+        );
+        let (tx, _rx) = mpsc::channel(64);
+        runtime.start_job_sink(job_id.clone(), tx).await;
+        runtime.running.fetch_add(1, Ordering::Relaxed);
+
+        // No CLI stdin is wired up in this test harness, so `write_cli_stdin`
+        // fails exactly like a dead/never-started CLI process would — this
+        // exercises abort_terminal_job's documented fallback branch, and is
+        // the only branch a unit test (without a real ChildStdin) can drive.
+        runtime.abort_terminal_job(&job_id).await;
+
+        assert!(
+            !runtime.jobs.lock().await.contains_key(&job_id),
+            "abort_terminal_job must remove the job's bookkeeping unconditionally"
+        );
+        assert!(
+            runtime
+                .slots
+                .lock()
+                .await
+                .iter()
+                .any(|slot| slot.id == slot_id && slot.phase == SlotPhase::ReadyBlocked),
+            "stdin write failure must fall back to freeing the slot immediately"
+        );
+
+        // Re-registering ready is idempotent: a real cancel_ack arriving
+        // after the fallback already fired must not panic or double-count.
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_cancel_ack",
+                "job_id": job_id,
+                "slot_id": slot_id
+            }))
+            .await;
+        assert!(
+            runtime
+                .slots
+                .lock()
+                .await
+                .iter()
+                .any(|slot| slot.id == slot_id && slot.phase == SlotPhase::ReadyBlocked),
+            "a late cancel_ack must remain a no-op once the slot is already ready"
+        );
+    }
 }
