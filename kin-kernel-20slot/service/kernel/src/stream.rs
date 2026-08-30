@@ -93,13 +93,14 @@ impl StreamAssembler {
                                 .to_string(),
                             input: block.get("input").cloned().unwrap_or(json!({})),
                         };
-                        if let Some(raw) = block.get("input") {
-                            if raw.is_string() {
-                                self.tool_json[index] = raw.as_str().unwrap_or("").to_string();
-                            } else {
-                                self.tool_json[index] = raw.to_string();
-                            }
-                        }
+                        // Real Anthropic streams always send an empty `input: {}`
+                        // placeholder here; the actual arguments arrive as
+                        // `input_json_delta` fragments and are parsed whole at
+                        // `content_block_stop`. Seeding tool_json from a
+                        // non-empty `input` here would corrupt that
+                        // concatenation (e.g. `{}` + delta fragments is not
+                        // valid JSON), so always start the accumulator empty.
+                        self.tool_json[index] = String::new();
                     }
                     Some("server_tool_use") => {
                         self.content[index] = ContentBlock::ServerToolUse {
@@ -115,6 +116,10 @@ impl StreamAssembler {
                                 .to_string(),
                             input: block.get("input").cloned().unwrap_or(json!({})),
                         };
+                        // Same placeholder-input pitfall as `tool_use` above:
+                        // real args arrive via `input_json_delta` and are
+                        // parsed whole at `content_block_stop`.
+                        self.tool_json[index] = String::new();
                     }
                     Some("web_search_tool_result") => {
                         self.content[index] = ContentBlock::WebSearchToolResult {
@@ -168,15 +173,15 @@ impl StreamAssembler {
             }
             Some("content_block_stop") => {
                 let index = event.get("index").and_then(Value::as_u64).unwrap_or(0) as usize;
-                if let Some(raw) = self.tool_json.get(index) {
-                    if !raw.is_empty() {
-                        if let Ok(parsed) = serde_json::from_str::<Value>(raw) {
-                            if let ContentBlock::ToolUse { input, .. } = &mut self.content[index] {
-                                *input = parsed;
+                if let Some(raw) = self.tool_json.get(index)
+                    && !raw.is_empty()
+                        && let Ok(parsed) = serde_json::from_str::<Value>(raw) {
+                            match &mut self.content[index] {
+                                ContentBlock::ToolUse { input, .. } => *input = parsed,
+                                ContentBlock::ServerToolUse { input, .. } => *input = parsed,
+                                _ => {}
                             }
                         }
-                    }
-                }
             }
             Some("message_delta") => {
                 if let Some(usage) = event.get("usage") {
@@ -213,14 +218,13 @@ impl StreamAssembler {
         if let Some(tokens) = frame.get("usage") {
             self.apply_usage(tokens);
         }
-        if self.content.is_empty() {
-            if let Some(text) = frame.get("result").and_then(Value::as_str) {
+        if self.content.is_empty()
+            && let Some(text) = frame.get("result").and_then(Value::as_str) {
                 self.content.push(ContentBlock::Text {
                     text: text.to_string(),
                     cache_control: None,
                 });
             }
-        }
         if !matches!(self.stop, StopReason::ToolUse) {
             self.stop = StopReason::EndTurn;
         }
@@ -422,5 +426,71 @@ mod tests {
         let event = parse_sse_block("event: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\"ab\"}}\n").unwrap();
         assert_eq!(event["type"], "content_block_delta");
         assert_eq!(event["delta"]["text"], "ab");
+    }
+
+    /// AC5: a native `server_tool_use` block (e.g. WebSearch) must assemble
+    /// its real `input` from `input_json_delta` fragments at
+    /// `content_block_stop`, exactly like `tool_use` — not keep the
+    /// `content_block_start` placeholder `{}`.
+    #[test]
+    fn assembles_server_tool_use_input_from_deltas() {
+        let mut assembler = StreamAssembler::new("claude-haiku-4-5-20251001");
+        assembler.apply_event(&json!({
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": { "type": "server_tool_use", "id": "srvtoolu_1", "name": "web_search", "input": {} }
+        }));
+        for chunk in ["{\"qu", "ery\":\"cur", "rent UTC time\"}"] {
+            assembler.apply_event(&json!({
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": { "type": "input_json_delta", "partial_json": chunk }
+            }));
+        }
+        assembler.apply_event(&json!({
+            "type": "content_block_stop",
+            "index": 0
+        }));
+        let (content, _, _) = assembler.parts();
+        match &content[0] {
+            ContentBlock::ServerToolUse { name, input, .. } => {
+                assert_eq!(name, "web_search");
+                assert_eq!(input, &json!({"query": "current UTC time"}));
+            }
+            other => panic!("expected server_tool_use block, got {other:?}"),
+        }
+    }
+
+    /// AC3 regression fixture: a real captured `tool_use` event sequence
+    /// (job_ad1947...) that once produced an empty `input` object in a
+    /// live-server run. Feeding it directly to a fresh `StreamAssembler`
+    /// reproduces the correct assembled input, confirming the assembler
+    /// logic itself is not the source of that one-off anomaly.
+    #[test]
+    fn assembles_tool_use_input_from_real_captured_event_sequence() {
+        let mut assembler = StreamAssembler::new("claude-sonnet-5");
+        let events: Vec<Value> = vec![
+            json!({"type":"content_block_start","index":0,"content_block":{"type":"tool_use","id":"toolu_01RPzzVenCnqx1J4HnyUwCX4","name":"get_weather","input":{},"caller":{"type":"direct"}}}),
+            json!({"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":""}}),
+            json!({"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{\"city\""}}),
+            json!({"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":": \"To"}}),
+            json!({"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"kyo\""}}),
+            json!({"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":", \"un"}}),
+            json!({"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"it\": \"c"}}),
+            json!({"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"el"}}),
+            json!({"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"sius"}}),
+            json!({"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"\"}"}}),
+            json!({"type":"content_block_stop","index":0}),
+        ];
+        for ev in &events {
+            assembler.apply_event(ev);
+        }
+        let (content, _stop, _usage) = assembler.parts();
+        match &content[0] {
+            ContentBlock::ToolUse { input, .. } => {
+                assert_eq!(input, &json!({"city":"Tokyo","unit":"celsius"}), "input was: {input:?}");
+            }
+            other => panic!("expected tool_use, got {other:?}"),
+        }
     }
 }

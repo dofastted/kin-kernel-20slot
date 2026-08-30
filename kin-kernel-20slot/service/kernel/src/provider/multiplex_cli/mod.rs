@@ -580,15 +580,14 @@ impl Runtime {
         };
         {
             let mut slots = self.slots.lock().await;
-            if let Some(slot) = slots.iter_mut().find(|slot| slot.id == slot_id) {
-                if slot.phase != SlotPhase::Dead
+            if let Some(slot) = slots.iter_mut().find(|slot| slot.id == slot_id)
+                && slot.phase != SlotPhase::Dead
                     && slot.phase != SlotPhase::Draining
                     && slot.phase != SlotPhase::ReadyBlocked
                 {
                     slot.phase = SlotPhase::ReadyBlocked;
                     slot.job_id = None;
                 }
-            }
             if self.sched.lock().await.enqueue_ready(slot_id.clone()) {
                 self.ready.fetch_add(1, Ordering::Relaxed);
             }
@@ -766,11 +765,10 @@ impl Runtime {
         let result = rx.await.map_err(|_| KernelError::ContinuationLost)?;
         {
             let mut slots = self.slots.lock().await;
-            if let Some(slot) = slots.iter_mut().find(|slot| slot.id == job.slot_id) {
-                if slot.phase != SlotPhase::Dead {
+            if let Some(slot) = slots.iter_mut().find(|slot| slot.id == job.slot_id)
+                && slot.phase != SlotPhase::Dead {
                     let _ = slot.cas(SlotPhase::WaitingTool, SlotPhase::Running);
                 }
-            }
         }
         let _ = encoded;
         Ok(result)
@@ -811,11 +809,10 @@ impl Runtime {
         let retire = args.get("retire").and_then(Value::as_bool).unwrap_or(true);
         self.complete_job(job_id, error, true, "refusal", json!({}))
             .await?;
-        if retire {
-            if let Some(job) = self.jobs.lock().await.get(job_id).cloned() {
+        if retire
+            && let Some(job) = self.jobs.lock().await.get(job_id).cloned() {
                 self.retire_slot(&job.slot_id).await;
             }
-        }
         Ok(json!({ "ok": true }))
     }
 
@@ -2431,6 +2428,17 @@ fn http_to_socks_script() -> PathBuf {
     manifest.join("../../scripts/http_to_socks.py")
 }
 
+/// Charges `line_len` bytes against `key`'s running total in `job_bytes` and
+/// reports whether that job has now exceeded `MAX_JOB_BYTES`. Metering is
+/// per-`key` (job_id, or its `parent_tool_use_id` for mcp_slot's nested
+/// frames) so one runaway job's stdout can't starve other concurrent jobs
+/// sharing the same CLI PID.
+fn charge_job_bytes(job_bytes: &mut HashMap<String, usize>, key: &str, line_len: usize) -> bool {
+    let used = job_bytes.entry(key.to_string()).or_insert(0);
+    *used = used.saturating_add(line_len);
+    *used > stream_decoder::MAX_JOB_BYTES
+}
+
 async fn decode_stdout(runtime: Arc<Runtime>, stdout: impl tokio::io::AsyncRead + Unpin) {
     use tokio::io::{AsyncBufReadExt, BufReader};
     let mut lines = BufReader::new(stdout).lines();
@@ -2455,12 +2463,10 @@ async fn decode_stdout(runtime: Arc<Runtime>, stdout: impl tokio::io::AsyncRead 
         };
         let metering_key = stream_decoder::parent_id(&frame)
             .or_else(|| frame.get("job_id").and_then(Value::as_str));
-        if let Some(key) = metering_key {
-            let used = job_bytes.entry(key.to_string()).or_insert(0);
-            *used = used.saturating_add(line.len());
-            if *used > stream_decoder::MAX_JOB_BYTES {
-                continue;
-            }
+        if let Some(key) = metering_key
+            && charge_job_bytes(&mut job_bytes, key, line.len())
+        {
+            continue;
         }
         runtime.handle_cli_frame(frame).await;
     }
@@ -2578,11 +2584,10 @@ impl Provider for MultiplexCliProvider {
                 obj.insert("peak_running".into(), json!(runtime.peak_running()));
                 obj.insert("running".into(), json!(runtime.running_jobs()));
                 obj.insert("ready_slots".into(), json!(runtime.ready_slots()));
-                if let Ok(host) = runtime.native_host.try_lock() {
-                    if let Some(info) = host.as_ref() {
+                if let Ok(host) = runtime.native_host.try_lock()
+                    && let Some(info) = host.as_ref() {
                         obj.insert("native_host".into(), json!(info));
                     }
-                }
             }
             value
         })
@@ -3687,6 +3692,31 @@ mod tests {
         );
     }
 
+    /// AC13: a single job's stdout metering trips `MAX_JOB_BYTES` once its
+    /// cumulative line bytes exceed the cap, while a concurrent job sharing
+    /// the same CLI PID keeps accumulating independently and is unaffected.
+    #[test]
+    fn job_byte_metering_trips_only_the_oversized_job() {
+        let mut job_bytes: HashMap<String, usize> = HashMap::new();
+
+        // Job "big" steadily approaches the cap without tripping it yet.
+        assert!(!charge_job_bytes(
+            &mut job_bytes,
+            "job-big",
+            stream_decoder::MAX_JOB_BYTES - 100
+        ));
+        // A concurrent job on the same PID has its own independent budget.
+        assert!(!charge_job_bytes(&mut job_bytes, "job-small", 50));
+
+        // "big" now crosses the cap and truncation should engage for it.
+        assert!(charge_job_bytes(&mut job_bytes, "job-big", 200));
+        // Once tripped, further bytes for the same job stay tripped.
+        assert!(charge_job_bytes(&mut job_bytes, "job-big", 1));
+
+        // "small" is completely unaffected by "big" having been truncated.
+        assert!(!charge_job_bytes(&mut job_bytes, "job-small", 50));
+    }
+
     #[test]
     fn relay_context_generation_respects_mode() {
         let off = Runtime::new(test_cfg(Duration::from_secs(1)));
@@ -3760,5 +3790,243 @@ mod tests {
                 Some("expected-hash"),
             )
             .expect("matching config_hash must be accepted");
+    }
+
+    fn native_cfg(stall: Duration) -> MultiplexConfig {
+        let mut cfg = test_cfg(stall);
+        cfg.execution_mode = ExecutionMode::NativeMessages;
+        cfg
+    }
+
+    /// AC3: a native_messages job that ends on `tool_use` must assemble the
+    /// correct `ContentBlock::ToolUse` from `kin_stream_event` frames alone
+    /// (CLI sends empty `stop_reason`/`usage` in `kin_job_done`, per
+    /// APPLY.md's second protocol-defect fix), free its slot once the
+    /// response is delivered, and accept a second job on that same slot
+    /// carrying the matching `ContentBlock::ToolResult` through to
+    /// `StopReason::EndTurn`. This drives `handle_cli_frame()` directly
+    /// (bypassing `submit()`/`resume()`, which require a real CLI child
+    /// process for `write_cli_stdin()`) — see APPLY.md for the scope note.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn native_messages_tool_use_resume_round_trip() {
+        let runtime = Runtime::new(native_cfg(Duration::from_secs(1)));
+        let slot_id = "s00".to_string();
+        runtime.register_native_ready(slot_id.clone()).await;
+
+        // Turn 1: request ends on tool_use.
+        let job_id_1 = "job-ac3-1".to_string();
+        runtime.jobs.lock().await.insert(
+            job_id_1.clone(),
+            Job {
+                job_id: job_id_1.clone(),
+                tenant_id: "demo".into(),
+                session_id: "sess-ac3".into(),
+                slot_id: slot_id.clone(),
+                generation: runtime.process_generation.load(Ordering::Relaxed),
+                request: text_request("please call echo"),
+            },
+        );
+        let (tx1, mut rx1) = mpsc::channel(64);
+        runtime.start_job_sink(job_id_1.clone(), tx1).await;
+
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_stream_event",
+                "job_id": job_id_1,
+                "slot_id": slot_id,
+                "event": {
+                    "type": "message_start",
+                    "message": { "id": "msg_1", "model": "claude-sonnet-5", "usage": {} }
+                }
+            }))
+            .await;
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_stream_event",
+                "job_id": job_id_1,
+                "slot_id": slot_id,
+                "event": {
+                    "type": "content_block_start",
+                    "index": 0,
+                    "content_block": { "type": "tool_use", "id": "toolu_1", "name": "echo", "input": {} }
+                }
+            }))
+            .await;
+        for chunk in ["{\"te", "xt\":\"", "hi\"}"] {
+            runtime
+                .handle_cli_frame(json!({
+                    "type": "kin_stream_event",
+                    "job_id": job_id_1,
+                    "slot_id": slot_id,
+                    "event": {
+                        "type": "content_block_delta",
+                        "index": 0,
+                        "delta": { "type": "input_json_delta", "partial_json": chunk }
+                    }
+                }))
+                .await;
+        }
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_stream_event",
+                "job_id": job_id_1,
+                "slot_id": slot_id,
+                "event": { "type": "content_block_stop", "index": 0 }
+            }))
+            .await;
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_stream_event",
+                "job_id": job_id_1,
+                "slot_id": slot_id,
+                "event": {
+                    "type": "message_delta",
+                    "delta": { "stop_reason": "tool_use" },
+                    "usage": { "output_tokens": 12, "input_tokens": 34 }
+                }
+            }))
+            .await;
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_job_done",
+                "job_id": job_id_1,
+                "slot_id": slot_id,
+                "stop_reason": "",
+                "usage": {}
+            }))
+            .await;
+
+        let response_1 = loop {
+            match timeout(Duration::from_secs(1), rx1.recv())
+                .await
+                .expect("turn 1 stream item")
+                .expect("turn 1 channel open")
+                .expect("turn 1 item ok")
+            {
+                StreamItem::Finished(response) => break response,
+                StreamItem::Event(_) => continue,
+            }
+        };
+        assert!(matches!(response_1.stop_reason, StopReason::ToolUse));
+        assert_eq!(response_1.usage.output_tokens, 12);
+        assert_eq!(response_1.usage.input_tokens, 34);
+        let tool_use_id = match &response_1.content[0] {
+            ContentBlock::ToolUse { id, name, input } => {
+                assert_eq!(name, "echo");
+                assert_eq!(input, &json!({"text": "hi"}));
+                id.clone()
+            }
+            other => panic!("expected tool_use block, got {other:?}"),
+        };
+
+        // Slot must be free again (finish_sent_job re-registers native slots
+        // unconditionally, including on ToolUse).
+        drop(rx1);
+        for _ in 0..20 {
+            if !runtime.jobs.lock().await.contains_key(&job_id_1) {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+        assert!(!runtime.jobs.lock().await.contains_key(&job_id_1));
+        assert!(
+            runtime
+                .slots
+                .lock()
+                .await
+                .iter()
+                .any(|slot| slot.id == slot_id && slot.phase == SlotPhase::ReadyBlocked),
+            "slot should be re-registered ready after turn 1"
+        );
+
+        // Turn 2: continuation carries the matching tool_result, ends on end_turn.
+        let job_id_2 = "job-ac3-2".to_string();
+        let mut request_2 = text_request("please call echo");
+        request_2.messages.push(Message {
+            role: "user".into(),
+            content: MessageContent::Blocks(vec![ContentBlock::ToolResult {
+                tool_use_id: tool_use_id.clone(),
+                content: json!("ok"),
+                is_error: false,
+            }]),
+            tool_call_id: None,
+            tool_calls: Vec::new(),
+        });
+        runtime.jobs.lock().await.insert(
+            job_id_2.clone(),
+            Job {
+                job_id: job_id_2.clone(),
+                tenant_id: "demo".into(),
+                session_id: "sess-ac3".into(),
+                slot_id: slot_id.clone(),
+                generation: runtime.process_generation.load(Ordering::Relaxed),
+                request: request_2,
+            },
+        );
+        let (tx2, mut rx2) = mpsc::channel(64);
+        runtime.start_job_sink(job_id_2.clone(), tx2).await;
+
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_stream_event",
+                "job_id": job_id_2,
+                "slot_id": slot_id,
+                "event": {
+                    "type": "content_block_start",
+                    "index": 0,
+                    "content_block": { "type": "text", "text": "" }
+                }
+            }))
+            .await;
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_stream_event",
+                "job_id": job_id_2,
+                "slot_id": slot_id,
+                "event": {
+                    "type": "content_block_delta",
+                    "index": 0,
+                    "delta": { "type": "text_delta", "text": "done" }
+                }
+            }))
+            .await;
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_stream_event",
+                "job_id": job_id_2,
+                "slot_id": slot_id,
+                "event": {
+                    "type": "message_delta",
+                    "delta": { "stop_reason": "end_turn" },
+                    "usage": { "output_tokens": 3, "input_tokens": 9 }
+                }
+            }))
+            .await;
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_job_done",
+                "job_id": job_id_2,
+                "slot_id": slot_id,
+                "stop_reason": "",
+                "usage": {}
+            }))
+            .await;
+
+        let response_2 = loop {
+            match timeout(Duration::from_secs(1), rx2.recv())
+                .await
+                .expect("turn 2 stream item")
+                .expect("turn 2 channel open")
+                .expect("turn 2 item ok")
+            {
+                StreamItem::Finished(response) => break response,
+                StreamItem::Event(_) => continue,
+            }
+        };
+        assert!(matches!(response_2.stop_reason, StopReason::EndTurn));
+        match &response_2.content[0] {
+            ContentBlock::Text { text, .. } => assert_eq!(text, "done"),
+            other => panic!("expected text block, got {other:?}"),
+        }
     }
 }
