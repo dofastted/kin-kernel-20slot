@@ -842,7 +842,9 @@ mod tests {
         assert_eq!(usage["input_tokens"], 12);
         assert_eq!(usage["output_tokens"], 4);
         assert_eq!(usage["cache_read_input_tokens"], 3);
+        assert_eq!(usage["cache_creation_input_tokens"], 7);
         assert_eq!(usage["cache_creation"]["ephemeral_5m_input_tokens"], 5);
+        assert_eq!(usage["cache_creation"]["ephemeral_1h_input_tokens"], 2);
         assert_eq!(
             headers.get("x-kin-model").and_then(|v| v.to_str().ok()),
             Some("claude-haiku-4-5-20251001")

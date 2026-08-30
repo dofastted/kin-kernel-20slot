@@ -367,7 +367,7 @@ fn truncate_raw(raw: &[u8]) -> String {
 #[cfg(test)]
 pub fn usage_sse_fixture() -> bytes::Bytes {
     bytes::Bytes::from_static(
-        b"data: {\"type\":\"message_start\",\"message\":{\"model\":\"claude-haiku-4-5-20251001\",\"usage\":{\"input_tokens\":12,\"cache_read_input_tokens\":3,\"cache_creation_input_tokens\":5,\"cache_creation\":{\"ephemeral_5m_input_tokens\":5,\"ephemeral_1h_input_tokens\":0}}}}\n\n\
+        b"data: {\"type\":\"message_start\",\"message\":{\"model\":\"claude-haiku-4-5-20251001\",\"usage\":{\"input_tokens\":12,\"cache_read_input_tokens\":3,\"cache_creation_input_tokens\":7,\"cache_creation\":{\"ephemeral_5m_input_tokens\":5,\"ephemeral_1h_input_tokens\":2}}}}\n\n\
 data: {\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"end_turn\"},\"usage\":{\"output_tokens\":4}}\n\n\
 data: {\"type\":\"message_stop\"}\n\n",
     )
@@ -400,6 +400,10 @@ mod tests {
         assert_eq!(
             outcome.result.usage["cache_creation"]["ephemeral_5m_input_tokens"],
             5
+        );
+        assert_eq!(
+            outcome.result.usage["cache_creation"]["ephemeral_1h_input_tokens"],
+            2
         );
         assert_eq!(outcome.result.event_count, 3);
     }

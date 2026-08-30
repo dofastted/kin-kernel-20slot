@@ -397,10 +397,10 @@ mod tests {
                 "usage": {
                     "input_tokens": 12,
                     "cache_read_input_tokens": 3,
-                    "cache_creation_input_tokens": 5,
+                    "cache_creation_input_tokens": 7,
                     "cache_creation": {
                         "ephemeral_5m_input_tokens": 5,
-                        "ephemeral_1h_input_tokens": 0
+                        "ephemeral_1h_input_tokens": 2
                     }
                 }
             }
@@ -414,8 +414,10 @@ mod tests {
         assert_eq!(usage.input_tokens, 12);
         assert_eq!(usage.output_tokens, 4);
         assert_eq!(usage.cache_read_input_tokens, 3);
-        assert_eq!(usage.cache_creation_input_tokens, 5);
-        assert_eq!(usage.cache_creation.unwrap().ephemeral_5m_input_tokens, 5);
+        assert_eq!(usage.cache_creation_input_tokens, 7);
+        let cache_creation = usage.cache_creation.unwrap();
+        assert_eq!(cache_creation.ephemeral_5m_input_tokens, 5);
+        assert_eq!(cache_creation.ephemeral_1h_input_tokens, 2);
     }
 
     #[test]
@@ -427,10 +429,10 @@ mod tests {
                 "usage": {
                     "input_tokens": 12,
                     "cache_read_input_tokens": 3,
-                    "cache_creation_input_tokens": 5,
+                    "cache_creation_input_tokens": 7,
                     "cache_creation": {
                         "ephemeral_5m_input_tokens": 5,
-                        "ephemeral_1h_input_tokens": 0
+                        "ephemeral_1h_input_tokens": 2
                     }
                 }
             }
@@ -446,6 +448,7 @@ mod tests {
         assert_eq!(usage["output_tokens"], 4);
         assert_eq!(usage["cache_read_input_tokens"], 3);
         assert_eq!(usage["cache_creation"]["ephemeral_5m_input_tokens"], 5);
+        assert_eq!(usage["cache_creation"]["ephemeral_1h_input_tokens"], 2);
     }
 
     /// AC5: a native `server_tool_use` block (e.g. WebSearch) must assemble
