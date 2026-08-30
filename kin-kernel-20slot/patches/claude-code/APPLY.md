@@ -224,8 +224,8 @@ non-applicable.
 
 S3 functional acceptance (AC1–AC15) otherwise still needs systematic
 coverage beyond these smoke tests and the AC3/AC4 unit tests above.
-Default `KIN_EXECUTION_MODE` remains `mcp_slot` until S3 acceptance
-passes on native.
+Default `KIN_EXECUTION_MODE` remained `mcp_slot` while S3 acceptance was
+in progress; it is now `native_messages` (see "AC19 closed" below).
 
 AC5 (WebSearch native server-tool SSE) passed its first real end-to-end
 smoke test against the live Anthropic API: a `kin_job_start` with
@@ -785,3 +785,32 @@ explanatory message when `provider.bin` is missing, so they run for
 anyone who points `KIN_CLAUDE_BIN` at a real CLI and no longer report a
 false failure for a fixture this repo does not ship — rather than
 deleting them or hiding the gap behind `#[ignore]`.
+
+**AC19 closed (2026-08-30)**: default `KIN_EXECUTION_MODE` switched from
+`mcp_slot` to `native_messages`, on explicit user Gate-5 confirmation
+after AC1–AC18 all went green. The default now lives in exactly one
+place — `#[default]` on `ExecutionMode::NativeMessages` — and
+`from_env()`'s not-present arm returns `Self::default()` rather than
+naming a variant, so the two can no longer disagree.
+
+Fixed a latent drift hazard while doing this: `api.rs` built the
+`execution_mode` field of both `/healthz` and `/readyz` from its own
+hardcoded `unwrap_or_else(|_| "mcp_slot")`, independent of the enum.
+Flipping the enum alone would have left those two endpoints reporting a
+mode the kernel was not running — and since Go compares its desired
+`config_hash` against what the kernel reports, that would have surfaced
+as a spurious three-way mismatch (R7/AC14) rather than an obvious bug.
+Both now route through one `reported_execution_mode()` helper keyed on
+`ExecutionMode::default()`. It echoes a set-but-invalid value back
+verbatim instead of masking it as the default, so a typo stays visible.
+
+`mcp_slot` remains fully supported as the rollback path (PRD Non-Goals:
+不改 mcp_slot 路径, 保持回退可用) and `native_slot` keeps its AC18 gate.
+Two new tests pin the contract: `default_is_native_messages` (asserts
+the enum default, its `as_str()`, and that the default never requires an
+opt-in) and `mcp_slot_remains_reachable_as_fallback` (all three aliases
+still resolve). Verified against the real built binary, not tests alone:
+with `KIN_EXECUTION_MODE` unset `/healthz` reports
+`execution_mode = native_messages`; with `mcp_slot` it reports
+`mcp_slot`; with `native_slot` and no opt-in the process still refuses
+to start.

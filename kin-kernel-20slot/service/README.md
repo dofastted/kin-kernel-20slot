@@ -69,8 +69,9 @@ cli-node.js → HTTPS_PROXY (http_to_socks) → SOCKS5 → api.anthropic.com
 
 ```bash
 export KIN_RELAY_MODE=off          # default
-export KIN_EXECUTION_MODE=mcp_slot # rollback; native_slot is the 0-inject host loop
-# export KIN_EXECUTION_MODE=native_slot
+# KIN_EXECUTION_MODE defaults to native_messages (stateless v2, AC19).
+# export KIN_EXECUTION_MODE=mcp_slot   # supported rollback path
+# native_slot/native_agent additionally requires KIN_ALLOW_NATIVE_AGENT (AC18).
 export KIN_SYSTEM_MODE=zero        # billing.prompt_version=official sentence
 # export KIN_SYSTEM_MODE=identity  # official sentence as its own system block
 export KIN_SLOT_TZ=America/New_York  # must match SOCKS egress

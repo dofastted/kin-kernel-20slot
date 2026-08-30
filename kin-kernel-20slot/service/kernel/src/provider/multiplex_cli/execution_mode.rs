@@ -9,9 +9,11 @@ use std::{env, fmt, str::FromStr};
 /// agents/cross-job state, Rust drives every turn as a fresh job.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum ExecutionMode {
-    #[default]
     McpSlot,
     NativeAgent,
+    /// Default since AC19: the stateless v2 protocol is the product target.
+    /// `mcp_slot` stays reachable as the explicit fallback.
+    #[default]
     NativeMessages,
 }
 
@@ -39,7 +41,7 @@ impl ExecutionMode {
     pub fn from_env() -> Result<Self, String> {
         let mode = match env::var("KIN_EXECUTION_MODE") {
             Ok(value) => value.parse()?,
-            Err(env::VarError::NotPresent) => Self::McpSlot,
+            Err(env::VarError::NotPresent) => Self::default(),
             Err(_) => return Err("KIN_EXECUTION_MODE must be valid unicode".into()),
         };
         mode.check_opt_in(env::var(NATIVE_AGENT_OPT_IN).ok().as_deref())?;
@@ -168,6 +170,32 @@ mod tests {
     fn other_modes_are_never_gated() {
         for mode in [ExecutionMode::McpSlot, ExecutionMode::NativeMessages] {
             assert!(mode.check_opt_in(None).is_ok(), "{mode} must stay ungated");
+        }
+    }
+
+    /// AC19: with `KIN_EXECUTION_MODE` unset the kernel must select
+    /// `native_messages`, and that default must be reachable without any
+    /// opt-in (unlike `NativeAgent`).
+    #[test]
+    fn default_is_native_messages() {
+        assert_eq!(ExecutionMode::default(), ExecutionMode::NativeMessages);
+        assert_eq!(ExecutionMode::default().as_str(), "native_messages");
+        assert!(
+            ExecutionMode::default().check_opt_in(None).is_ok(),
+            "the default mode must never require an opt-in"
+        );
+    }
+
+    /// `mcp_slot` remains the explicit fallback (PRD: "不改 mcp_slot 路径,
+    /// 保持回退可用"), so every alias must keep resolving after the switch.
+    #[test]
+    fn mcp_slot_remains_reachable_as_fallback() {
+        for alias in ["mcp", "mcp_slot", "agent"] {
+            assert_eq!(
+                alias.parse::<ExecutionMode>().unwrap(),
+                ExecutionMode::McpSlot,
+                "{alias} must still select the fallback"
+            );
         }
     }
 }

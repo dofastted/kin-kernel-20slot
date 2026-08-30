@@ -37,6 +37,21 @@ use crate::{
     stream::{StreamItem, openai_chunk},
 };
 
+/// Execution mode as reported by `/healthz` and `/readyz`. Derived from the
+/// same `ExecutionMode` default as the boot path so the two can never drift
+/// (a mismatch would break the three-way `config_hash` check). A set but
+/// invalid value is echoed back verbatim instead of being masked.
+fn reported_execution_mode() -> String {
+    use crate::provider::multiplex_cli::execution_mode::ExecutionMode;
+    match std::env::var("KIN_EXECUTION_MODE") {
+        Ok(raw) => raw
+            .parse::<ExecutionMode>()
+            .map(|mode| mode.as_str().to_string())
+            .unwrap_or(raw),
+        Err(_) => ExecutionMode::default().as_str().to_string(),
+    }
+}
+
 pub fn router(state: AppState) -> Router {
     let max_body_bytes = state.config.max_body_bytes;
     let request_id = HeaderName::from_static("x-request-id");
@@ -65,7 +80,7 @@ async fn health(State(state): State<AppState>) -> Json<serde_json::Value> {
         "slots_per_worker": state.config.slots_per_worker,
         "memory": state.provider.memory_snapshot(),
         "relay": state.provider.relay_snapshot(),
-        "execution_mode": std::env::var("KIN_EXECUTION_MODE").unwrap_or_else(|_| "mcp_slot".into()),
+        "execution_mode": reported_execution_mode(),
         "config_hash": state.config.desired_config_hash,
         "envelope": crate::provider::multiplex_cli::envelope::load(),
         "limits": {
@@ -133,7 +148,7 @@ async fn envelope_get() -> Json<serde_json::Value> {
         "timezone": cfg.timezone,
         "path": crate::provider::multiplex_cli::envelope::config_path(),
         "identity": crate::provider::multiplex_cli::envelope::IDENTITY,
-        "execution_mode": std::env::var("KIN_EXECUTION_MODE").unwrap_or_else(|_| "mcp_slot".into()),
+        "execution_mode": reported_execution_mode(),
         "notes": {
             "zero": "official sentence lives in billing prompt_version; no identity block",
             "identity": "official sentence is a standalone system block",
