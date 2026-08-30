@@ -46,6 +46,16 @@ Invariants:
   `KIN_DESIRED_CONFIG_HASH` is set) the echoed `config_hash` must all match before
   any slot is registered. A `config_hash` mismatch sets the flag `/readyz` turns
   into a 503 — never downgrade it to a warning.
+- **Only cancel a job the CLI still owns.** The CLI drops its slot to idle the
+  instant it emits `kin_job_done` / `kin_job_error`, and its `kin_cancel`
+  handler returns silently for a job it no longer owns — no
+  `kin_cancel_ack`. So `abort_terminal_job(job_id, cli_owns_job)` takes
+  `false` after any CLI-side terminal frame (re-register the slot locally) and
+  `true` only while the CLI is still streaming (client gone / overflow /
+  stall), where the ack is the authoritative release. Getting this wrong leaks
+  the slot forever: two failed jobs took a live 2-slot runtime to
+  `no_capacity`. Regression test:
+  `cli_side_job_error_frees_the_slot_without_a_cancel_ack`.
 - **`MAX_LINE_BYTES` / `MAX_JOB_BYTES` are per-job.** Metering keys on `job_id` so a
   runaway job stops being decoded without starving the other slots sharing the CLI
   process.
@@ -157,6 +167,9 @@ Rules when extending it:
   turn open without waiting for the answer (there is a test for that).
 - Each job runs in its own task, so N submissions really overlap; the 20-slot test
   asserts both wall time and `peak_running`.
+- Cancel semantics must stay faithful: a `kin_cancel` for a job the simulator
+  no longer runs is dropped **without** an ack, exactly like the real runner.
+  Acking unconditionally would hide slot-release bugs.
 - The simulator echoes the `config_hash` it was handed, exactly like the real CLI.
   It therefore cannot fake a stale-CLI mismatch — that path is covered by
   `validate_host_ready_rejects_config_hash_mismatch` and

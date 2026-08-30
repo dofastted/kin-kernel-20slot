@@ -77,18 +77,17 @@
 - [x] AC7 `cargo clippy --all-targets -- -D warnings` 零诊断，且不新增 `allow(dead_code)`
 - [x] AC8 `cargo fmt --check` 干净
 - [x] AC9 二进制实机可启动，`/healthz` 正常响应
-- [!] AC10 **阻塞（缺凭证，非代码问题）**：真实 patched CLI 已用本次改动后的内核拉起并完成
-  `kin_host_ready` 握手（protocol_version=2, slots=2, capabilities=[multi_slot,
-  native_sse, stateless]），`/readyz` 返回 200、`/internal/v1/slots` 显示 capacity=2，
-  证明 S1–S5 后的代码能驱动真 CLI。但 `/v1/messages` 返回
-  `provider error: Not logged in · Please run /login`：本机
-  `~/.claude/.credentials.json` 只有 MCP OAuth 条目，没有 Claude 订阅
-  `claudeAiOauth` blob，`ANTHROPIC_API_KEY` / `CLAUDE_CODE_OAUTH_TOKEN` 均未设置。
-  需要 `KIN_CLAUDE_AI_OAUTH_JSON`（订阅 blob）或 `KIN_CLAUDE_CODE_OAUTH_TOKEN`
-  （setup-token）后重跑一次单槽 hello + 一次 tool_use 续接即可闭合。
-  替代证据：模拟 CLI 走同一条 `write_cli_stdin` / `decode_stdout` /
-  `handle_native_frame` 路径的逐 token 输出与 tool_use 续接均已在测试与实机
-  `/v1/messages`（流式与非流式）验证。
+- [x] AC10 **已用真实 API 复跑通过**（凭证：`claude-acc/sub2api-account-vm-05` setup-token +
+  账号绑定 SOCKS5 出口，内核自动起 http_to_socks 桥）。
+  - 单槽 hello 流式：事件序列 `message_start → content_block_start →
+    content_block_delta ×2 → content_block_stop → message_delta → message_stop`，
+    逐 token 增量（`['h', 'ello from kin kernel.']`），拼装结果与要求一致。
+  - tool_use 续接：turn1 `stop_reason=tool_use`，工具块
+    `{"name":"get_weather","input":{"city":"Osaka","unit":"c"}}` 参数正确；
+    turn2 带 `x-kin-continuation` + `tool_result` 续接，流式返回
+    「The current weather in Osaka is **18°C** with **light rain**.」——
+    模型确实消费了工具结果。
+  - 过程中暴露并修复一个真实缺陷（见下）。
 
 ### 度量
 
@@ -106,6 +105,33 @@
   `local_cli` 后只剩 `Multiplexed`，同样删除枚举与 `KIN_ISOLATION`。两处对外报告的
   字符串改为常量（`api.rs::EXECUTION_MODE` / `ISOLATION`），因为 `execution_mode` 是
   `config_hash` 三方契约的一部分，payload 形状不能变。
+
+## 实机暴露并修复的缺陷
+
+**slot 在 CLI 侧错误后永久泄漏。** 真实 API 复跑时两次 400（`thinking.budget_tokens`
+与 `tool_choice` 冲突）之后 `ready_slots` 归零、后续请求 `no_capacity`。根因：CLI 发出
+`kin_job_error` 时已把自己的 slot 置 idle，而其 `kin_cancel` 处理对「不再持有的 job」
+静默返回、不回 `kin_cancel_ack`；内核的 `abort_terminal_job` 却在写出 cancel 成功后
+等待那个永远不会来的 ack。修复：`abort_terminal_job(job_id, cli_owns_job)` —— CLI 侧
+终局帧（`kin_job_error` / `kin_job_done` 后投递失败）传 `false` 直接本地回收；仅当
+CLI 仍在跑该 job（客户端断开/溢出/停滞）才传 `true` 走 cancel+ack。
+同时收紧模拟器：对未持有的 job 不回 ack（原来无条件回 ack，会掩盖这类 bug）。
+回归测试 `cli_side_job_error_frees_the_slot_without_a_cancel_ack`：把参数改回 `true`
+即失败，证明它锁住的是这个行为。实机复验：一次 400 后 `ready_slots` 仍为 2，后续请求
+正常返回。
+
+该缺陷在 S3 之前的 native 分支就已存在（本次只是把 `is_native` 分支拉平），但既然
+native 是唯一路径，必须修。
+
+## 发现但未处理（超出本任务范围）
+
+同一 session 连续两次 `mark_waiting` 会遗留一个 worker 预留：第一次 tool_use 轮次
+`park_waiting()` 把 `waiting_tool` +1，若该 session 记录随后被新的 `mark_waiting`
+覆盖，旧预留就成孤儿，只能等 `continuation_ttl`（默认 600s）由 `sweep_expired()` →
+`expire_waiting()` 归还。实机现象：`/internal/v1/slots` 常驻 `waiting_tool: 1`，
+capacity 2 的 runtime 只剩 1 路并发。有 TTL 兜底、非永久泄漏，且位于
+`session.rs`/`scheduler.rs` 的容量记账（本任务未触及该层），故未在本批次修改。
+建议单独一个任务：`mark_waiting` 覆盖旧记录前先归还旧预留。
 
 ## 实施偏差（据实记录）
 

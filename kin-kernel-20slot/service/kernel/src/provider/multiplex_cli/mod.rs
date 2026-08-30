@@ -14,7 +14,7 @@ pub mod slot;
 pub mod supervisor;
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     env,
     path::PathBuf,
     sync::{
@@ -476,7 +476,8 @@ impl Runtime {
             if let Some(sink) = self.sinks.lock().await.get(job_id).cloned() {
                 sink.set_terminal(Terminal::Failed(KernelError::Provider(error)));
             }
-            self.abort_terminal_job(job_id).await;
+            // kin_job_error already released the slot on the CLI side.
+            self.abort_terminal_job(job_id, false).await;
             return Ok(());
         }
         let (content, assembled_stop, assembled_usage) = self
@@ -513,7 +514,8 @@ impl Runtime {
             usage,
         };
         if self.emit(job_id, StreamItem::Finished(response)).await != EmitResult::Sent {
-            self.abort_terminal_job(job_id).await;
+            // kin_job_done arrived; only client delivery failed.
+            self.abort_terminal_job(job_id, false).await;
         }
         Ok(())
     }
@@ -522,7 +524,7 @@ impl Runtime {
         if let Some(sink) = self.sinks.lock().await.get(job_id).cloned()
             && !sink.set_terminal(Terminal::Done)
         {
-            self.abort_terminal_job(job_id).await;
+            self.abort_terminal_job(job_id, false).await;
             return;
         }
         let job = self.jobs.lock().await.remove(job_id);
@@ -845,7 +847,17 @@ impl Runtime {
         ));
     }
 
-    async fn abort_terminal_job(&self, job_id: &str) {
+    /// Tear down a job that will not complete normally.
+    ///
+    /// `cli_owns_job` decides who frees the slot. The CLI drops its slot back
+    /// to idle the moment it emits `kin_job_done`/`kin_job_error`, and its
+    /// `kin_cancel` handler returns silently for a job it no longer owns — so
+    /// cancelling after a CLI-side terminal frame gets no `kin_cancel_ack`
+    /// and would leak the slot forever. Pass `false` in that case and
+    /// re-register locally; pass `true` only while the CLI is still running
+    /// the job (client gone / overflow / stall), where the ack is the
+    /// authoritative release.
+    async fn abort_terminal_job(&self, job_id: &str, cli_owns_job: bool) {
         let sink = self.sinks.lock().await.get(job_id).cloned();
         if let Some(sink) = &sink
             && let Some(terminal) = sink.terminal.get()
@@ -865,6 +877,10 @@ impl Runtime {
                     Some(n.saturating_sub(1))
                 })
                 .ok();
+            if !cli_owns_job {
+                self.register_native_ready(job.slot_id).await;
+                return;
+            }
             let frame = native_protocol::KinStdin::Cancel {
                 job_id: job.job_id.clone(),
                 slot_id: Some(job.slot_id.clone()),
@@ -1015,7 +1031,9 @@ async fn job_egress(
         {
             fail_client_stream(&sink, terminal).await;
             if let Some(runtime) = runtime.upgrade() {
-                runtime.abort_terminal_job(&job_id).await;
+                // The CLI is still streaming this job: cancel it and wait for
+                // kin_cancel_ack to free the slot.
+                runtime.abort_terminal_job(&job_id, true).await;
             }
             break;
         }
@@ -1158,6 +1176,10 @@ fn latest_text(request: &MessageRequest) -> String {
 /// The request text selects the reply shape: `[use_tool:NAME]` ends the turn
 /// on `tool_use`, `[web_search]` emits server tool blocks, anything else
 /// answers with a single text block.
+///
+/// Cancel semantics mirror the real runner: a `kin_cancel` for a job the CLI
+/// no longer owns is dropped **without** an ack, because the CLI releases its
+/// slot as soon as it emits a terminal frame.
 async fn simulated_cli(
     reader: impl tokio::io::AsyncRead + Unpin,
     writer: impl tokio::io::AsyncWrite + Unpin + Send + 'static,
@@ -1167,6 +1189,7 @@ async fn simulated_cli(
 ) {
     use tokio::io::{AsyncBufReadExt, BufReader};
     let writer = Arc::new(Mutex::new(writer));
+    let live: Arc<Mutex<HashSet<String>>> = Arc::new(Mutex::new(HashSet::new()));
     let layout = envelope::load();
     let ready = native_protocol::KinStdout::HostReady {
         protocol_version: native_protocol::KIN_PROTOCOL_VERSION,
@@ -1194,11 +1217,17 @@ async fn simulated_cli(
                 request,
             } => {
                 let writer = Arc::clone(&writer);
+                let live = Arc::clone(&live);
+                live.lock().await.insert(job_id.clone());
                 tokio::spawn(async move {
-                    simulated_job(writer, job_id, slot_id, request, latency).await;
+                    simulated_job(writer, job_id.clone(), slot_id, request, latency).await;
+                    live.lock().await.remove(&job_id);
                 });
             }
             native_protocol::KinStdin::Cancel { job_id, slot_id } => {
+                if !live.lock().await.remove(&job_id) {
+                    continue;
+                }
                 let slot_id = slot_id.unwrap_or_default();
                 let _ = write_sim_frame(
                     &writer,
@@ -2605,7 +2634,7 @@ mod tests {
         // fails exactly like a dead/never-started CLI process would — this
         // exercises abort_terminal_job's documented fallback branch, and is
         // the only branch a unit test (without a real ChildStdin) can drive.
-        runtime.abort_terminal_job(&job_id).await;
+        runtime.abort_terminal_job(&job_id, true).await;
 
         assert!(
             !runtime.jobs.lock().await.contains_key(&job_id),
@@ -2638,6 +2667,68 @@ mod tests {
                 .iter()
                 .any(|slot| slot.id == slot_id && slot.phase == SlotPhase::ReadyBlocked),
             "a late cancel_ack must remain a no-op once the slot is already ready"
+        );
+    }
+
+    /// A CLI-side terminal frame (`kin_job_error` here) already released the
+    /// slot inside the CLI, and the CLI drops a `kin_cancel` for a job it no
+    /// longer owns **without** acking it. Sending cancel on this path
+    /// therefore leaked the slot forever (observed live: two failed jobs took
+    /// a 2-slot runtime to `no_capacity`). The slot must come back
+    /// immediately instead.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn cli_side_job_error_frees_the_slot_without_a_cancel_ack() {
+        let runtime = Runtime::new(test_cfg(Duration::from_secs(1)));
+        runtime.start_simulated().await.expect("simulated cli");
+        let slot_id = native_protocol::slot_id(0);
+
+        let job_id = "job-cli-error".to_string();
+        runtime.jobs.lock().await.insert(
+            job_id.clone(),
+            Job {
+                job_id: job_id.clone(),
+                slot_id: slot_id.clone(),
+                request: text_request("hello"),
+            },
+        );
+        let (tx, _rx) = mpsc::channel(64);
+        runtime.start_job_sink(job_id.clone(), tx).await;
+        runtime.running.fetch_add(1, Ordering::Relaxed);
+        {
+            let mut slots = runtime.slots.lock().await;
+            let slot = slots
+                .iter_mut()
+                .find(|slot| slot.id == slot_id)
+                .expect("registered slot");
+            assert!(slot.bind_job("demo", "sess-cli-error", &job_id));
+        }
+
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_job_error",
+                "job_id": job_id,
+                "slot_id": slot_id,
+                "error": "API Error: 400 invalid_request_error"
+            }))
+            .await;
+
+        assert!(
+            !runtime.jobs.lock().await.contains_key(&job_id),
+            "the failed job must be torn down"
+        );
+        assert!(
+            runtime
+                .slots
+                .lock()
+                .await
+                .iter()
+                .any(|slot| slot.id == slot_id && slot.phase == SlotPhase::ReadyBlocked),
+            "slot must be reusable right after a CLI-side error, not wait for an ack that never comes"
+        );
+        assert_eq!(
+            runtime.ready_slots(),
+            1,
+            "the freed slot must be schedulable"
         );
     }
 }

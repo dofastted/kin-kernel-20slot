@@ -869,20 +869,45 @@ streaming and non-streaming mode; `mcp_slot`/`native_slot` profiles now 400.
 Rollback is `git revert` of a batch commit — no environment variable can
 restore the deleted paths, which is the intended outcome.
 
-### Real-CLI verification status after the consolidation
+### Real-CLI verification after the consolidation (AC10 closed)
 
-The patched CLI was started **by the post-consolidation kernel** and completed
-the protocol v2 handshake: `kin_host_ready` with `protocol_version=2`,
-`slots=2`, `capabilities=[multi_slot, native_sse, stateless]`, after which
-`/readyz` returned 200 and `/internal/v1/slots` reported `capacity=2`. So the
-surviving code path drives the real CLI, not just the in-memory simulator.
+Run against the **live API** with the patched CLI driven by the
+post-consolidation kernel (setup-token account + its bound SOCKS5 egress via
+the auto-started `http_to_socks` bridge):
 
-The per-token / tool_use rerun against the **live API** (task AC10) is still
-open on this machine for a credential reason only: `/v1/messages` came back
-`provider error: Not logged in · Please run /login` because
-`~/.claude/.credentials.json` here holds MCP OAuth entries only — no
-`claudeAiOauth` subscription blob — and neither `ANTHROPIC_API_KEY` nor
-`CLAUDE_CODE_OAUTH_TOKEN` is set. Supply `KIN_CLAUDE_AI_OAUTH_JSON` (or
-`KIN_CLAUDE_CODE_OAUTH_TOKEN`) and rerun one single-slot hello plus one
-tool_use continuation to close it.
+- handshake: `kin_host_ready` `protocol_version=2`, `slots=2`,
+  `capabilities=[multi_slot, native_sse, stateless]`, `/readyz 200`.
+- single-slot hello, `stream:true`: `message_start → content_block_start →
+  content_block_delta ×2 → content_block_stop → message_delta →
+  message_stop`, token-incremental (`['h', 'ello from kin kernel.']`).
+- tool_use round trip: turn 1 returned `stop_reason=tool_use` with
+  `get_weather{city:"Osaka", unit:"c"}` — arguments verbatim, nothing executed
+  locally; turn 2 with `x-kin-continuation` + a `tool_result` streamed back
+  "The current weather in Osaka is **18°C** with **light rain**.", i.e. the
+  model consumed the tool result through a brand-new job on a fresh slot.
 
+Two request-shape notes for anyone reproducing this: the CLI enables thinking
+by default, so `max_tokens` must leave room for `budget_tokens >= 1024`, and a
+forcing `tool_choice` is rejected by the API while thinking is on (use tool
+declarations plus an instruction instead).
+
+**Bug found and fixed during that run — slot leak on CLI-side errors.** After
+two 400s the runtime reported `ready_slots: 0` and then `no_capacity`. The CLI
+sets its slot idle the moment it emits `kin_job_done`/`kin_job_error`, and
+`cancelJob()` returns silently for a job it no longer owns (`slot.jobId !==
+jobId` → no `kin_cancel_ack`). The kernel's `abort_terminal_job()` nevertheless
+sent `kin_cancel` and waited for that ack, so every failed job burned a slot
+permanently. Fix: `abort_terminal_job(job_id, cli_owns_job)` — `false` after
+any CLI-side terminal frame (re-register the slot locally), `true` only while
+the CLI is still streaming the job. The simulated CLI was tightened to match
+the real cancel semantics (no ack for a job it does not own), and
+`cli_side_job_error_frees_the_slot_without_a_cancel_ack` pins it — flipping the
+argument back to `true` makes that test fail. Re-verified live: one 400 now
+leaves `ready_slots: 2` and the next request succeeds.
+
+The pre-existing defect this run also surfaced but did **not** touch:
+`/internal/v1/slots` keeps a stale `waiting_tool: 1` when the same session
+calls `mark_waiting` twice (the older worker reservation only comes back via
+the `continuation_ttl` sweep), which halves usable concurrency until the TTL
+fires. That lives in `session.rs`/`scheduler.rs`, outside this task; see the
+task prd.md's "发现但未处理" note.
