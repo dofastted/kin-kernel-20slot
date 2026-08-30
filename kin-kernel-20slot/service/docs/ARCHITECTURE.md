@@ -240,7 +240,7 @@ health() -> ProviderHealth
 1. `mock`：本包已实现，用于契约与状态机测试。
 2. `anthropic_api`：本包含正式 Messages API 的非流式参考实现，使用 API key；生产版补 WIF、SSE、完整 content block 与 rate-limit 指标。
 3. `openai_api`：正式 Responses/Chat API，映射 canonical events。
-4. `local_cli`：只在用户自有、单租户、明确批准的自动化场景启用；`--bare -p`、API key、工具白名单、工作目录沙箱。
+4. `local_cli`：只在用户自有、单租户、明确批准的自动化场景启用。实现为 patched CLI 的 `native_messages` 单一路线：`-p --output-format stream-json`（**不用** `--bare`）、订阅 OAuth 或 setup-token（**不设** `ANTHROPIC_API_KEY`）、CLI 不持有任何工具（工具只作声明经 `extraToolSchemas` 下发，执行留在调用方）、每请求独立 `CLAUDE_CONFIG_DIR` 沙箱。
 
 每个适配器必须输出 capability，不允许主程序通过版本字符串猜特性。Claude Code 的 `system/init.capabilities` 也应做 feature detection，而不是写死版本号。
 
@@ -296,7 +296,7 @@ SNAT 的合法用途是固定出口和供应商 allowlist。不能把公网 IP �
 
 - `kin_http_requests_total{tenant,protocol,route,status}`（tenant 应哈希或低基数）；
 - `kin_slot_state{group,state}`；
-- `kin_slot_wait_seconds`、`kin_queue_seconds`、`kin_first_token_seconds`；
+- `kin_slot_acquire_seconds`（等空闲 slot 的时间；与已删除的 MCP `slot_wait` 工具无关）、`kin_queue_seconds`、`kin_first_token_seconds`；
 - `kin_continuation_total{result}`、`kin_continuation_age_seconds`；
 - `kin_provider_rate_pressure{provider,model}`；
 - `kin_scheduler_decisions_total{reason}`；

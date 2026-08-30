@@ -61,29 +61,14 @@ without also calling `expire_waiting` will leak a scheduler reservation.
 ## The Simple Continuation-Token Protocol
 
 `session.rs` issues plain opaque tokens shaped `cont_<uuid>` — a random UUID with no
-embedded structure or signature. This is **a different, independent system** from
-`provider/multiplex_cli/continuation.rs`'s `ContinuationToken`, which is
-cryptographically signed (with a custom MAC, not HMAC — see
-`multiplex-cli-subsystem.md`) and encodes `process_generation`/`slot_id`/`job_id` in
-its payload. Non-multiplex providers (`mock`, `anthropic_api`, `LocalCliProvider`) use
-the plain `session.rs` token; only `MultiplexCliProvider` uses the signed one. When
-reasoning about "what does a continuation token contain," always check which
-provider issued it — do not assume the `session.rs` shape applies to multiplex
-tokens or vice versa.
+embedded structure or signature, validated by single-use equality against the stored
+session record (`SessionDirectory::resume`) plus tenant/worker-generation and
+`tool_use_id`-subset checks. This is now the **only** continuation protocol: the
+signed multiplex `ContinuationToken` died with the MCP client-tool path, so every
+provider (`mock`, `anthropic_api`, `local_cli`) uses the same shape. Do not
+reintroduce a provider-specific token format; extend the session record instead.
 
-## Isolation Modes (`kernel/src/config.rs`)
-
-```rust
-pub enum IsolationMode {
-    ProcessPerTurn,   // KIN_ISOLATION=process — one Claude child per turn
-    ResetAndReuse,    // KIN_ISOLATION=session-reset — reuse one child, /clear between turns
-    Multiplexed,      // KIN_ISOLATION=subagent-pool — one CLI process, N MCP-blocked slots
-}
-```
-
-`FromStr` is alias-tolerant (`"process"`/`"one-shot"`/`"process-per-turn"` all map to
-`ProcessPerTurn`, etc.) — when adding a new alias, add it to the match in `config.rs`,
-do not normalize aliases at call sites.
+## Worker / Slot Sizing (`kernel/src/config.rs`)
 
 **Hard invariant**: `Config::from_env()` rejects `KIN_SLOTS_PER_WORKER > 20` with an
 explicit error ("Claude official subagent cap is 20"). Do not raise this constant
@@ -91,10 +76,9 @@ without confirming the underlying Claude Code CLI's subagent concurrency limit h
 actually changed — this is an external platform constraint, not an internal tuning
 knob.
 
-Default worker/slot counts differ by mode: `ProcessPerTurn` defaults to
-`worker_count=4, slots_per_worker=5`; every other mode defaults to `worker_count=1,
-slots_per_worker=20` (because non-`ProcessPerTurn` modes model one OS process as one
-worker with many logical slots, not many OS processes).
+Defaults are `worker_count=1, slots_per_worker=20`: one OS process is one worker with
+many logical slots, not many OS processes. `KIN_ISOLATION` and the per-turn-process
+defaults were deleted along with the `local_cli` provider variants.
 
 ## Verification
 

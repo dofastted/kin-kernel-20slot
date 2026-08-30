@@ -1,33 +1,20 @@
 //! One Claude OS process, N slots.
 //!
-//! `mcp_slot` (default): HTTP never shares stdin. Jobs wake a ReadyBlocked
-//! slot via MCP `slot_wait`; stream-json is demuxed by `parent_tool_use_id`.
-//!
-//! `native_slot`: jobs go stdin as `kin_job_start`; CLI hosts QueryEngine
-//! slots; stdout `kin_stream_event` is the only text authority.
+//! Jobs go to the CLI's stdin as `kin_job_start`; the CLI hosts the slots and
+//! its stdout `kin_stream_event` / `kin_job_done` frames are the only
+//! authority for a job's text and terminal state.
 
 pub mod bootstrap;
-pub mod continuation;
 pub mod envelope;
-pub mod execution_mode;
-pub mod job_stream;
-pub mod mcp_server;
+pub mod job;
 pub mod memory_guard;
 pub mod native_protocol;
-pub mod pending_call;
-pub mod relay;
-/// Local trace-replay harness. Every item is exercised only by its own
-/// `#[cfg(test)]` block — it never runs in the shipped binary.
-#[cfg(test)]
-pub mod replay;
 pub mod scheduler;
-pub mod signing;
 pub mod slot;
-pub mod stream_decoder;
 pub mod supervisor;
 
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashMap, HashSet},
     env,
     path::PathBuf,
     sync::{
@@ -43,7 +30,6 @@ use tokio::sync::{Mutex, Notify, OnceCell, mpsc};
 use uuid::Uuid;
 
 use crate::{
-    config::RelayMode,
     error::KernelError,
     model::{ContentBlock, MessageContent, MessageRequest, MessageResponse, StopReason, Usage},
     provider::{ExecutionContext, Provider, ProviderCapabilities, StreamTx, job_event_channel},
@@ -51,16 +37,8 @@ use crate::{
 };
 
 use self::{
-    continuation::ContinuationToken,
-    execution_mode::ExecutionMode,
-    job_stream::JobStream,
+    job::{Job, new_id},
     memory_guard::MemoryGuard,
-    pending_call::{Job, PendingCalls, SlotWaitPayload, new_id},
-    relay::{
-        arbiter::{ArbiterEffect, SourceArbiter},
-        correlate::{CorrelatedJob, RelayContextToken},
-        sse_tap::TapEvent,
-    },
     scheduler::SlotScheduler,
     slot::{Slot, SlotPhase},
 };
@@ -72,7 +50,6 @@ pub struct MultiplexConfig {
     pub bin: PathBuf,
     pub mock_bin: bool,
     pub model: String,
-    pub retire_after_turn: bool,
     pub max_jobs_per_slot: u32,
     pub slot_max_lifetime: Duration,
     pub session_idle_ttl: Duration,
@@ -81,10 +58,6 @@ pub struct MultiplexConfig {
     pub client_stall_timeout: Duration,
     /// Bounded wait for a slot to re-enter slot_wait before returning 503.
     pub submit_wait: Duration,
-    pub relay_mode: RelayMode,
-    pub relay_addr: std::net::SocketAddr,
-    pub relay_upstream: String,
-    pub execution_mode: ExecutionMode,
     /// Go control-plane's computed `RuntimeProfile` hash (design.md §6),
     /// mirrors `crate::config::Config::desired_config_hash`. Read once at
     /// startup; `None` skips three-way config_hash validation.
@@ -108,18 +81,12 @@ impl MultiplexConfig {
         let simulate = env::var("KIN_MULTIPLEX_SIMULATE")
             .map(|value| value != "0")
             .unwrap_or(mock_bin);
-        let relay_addr = env::var("KIN_RELAY_ADDR")
-            .unwrap_or_else(|_| "127.0.0.1:0".to_string())
-            .parse()?;
         Ok(Self {
             slot_count,
             simulate,
             mock_bin,
             bin,
             model: env::var("KIN_CLI_MODEL").unwrap_or_else(|_| "claude-sonnet-5".into()),
-            retire_after_turn: env::var("KIN_ISOLATION")
-                .map(|value| value == "session-reset")
-                .unwrap_or(false),
             max_jobs_per_slot: env::var("KIN_SLOT_MAX_JOBS")
                 .ok()
                 .and_then(|value| value.parse().ok())
@@ -150,40 +117,22 @@ impl MultiplexConfig {
                     .and_then(|value| value.parse().ok())
                     .unwrap_or(2000),
             ),
-            relay_mode: RelayMode::from_env()?,
-            relay_addr,
-            relay_upstream: env::var("KIN_RELAY_UPSTREAM")
-                .unwrap_or_else(|_| "https://api.anthropic.com".into()),
-            execution_mode: ExecutionMode::from_env()?,
             desired_config_hash: env::var("KIN_DESIRED_CONFIG_HASH").ok(),
         })
     }
 }
 
 pub struct Runtime {
-    pub process_generation: AtomicU64,
     pub pid: AtomicU32,
-    secret: Vec<u8>,
     cfg: MultiplexConfig,
     slots: Mutex<Vec<Slot>>,
     sched: Mutex<SlotScheduler>,
-    pending: Mutex<PendingCalls>,
     jobs: Mutex<HashMap<String, Job>>,
     sinks: Mutex<HashMap<String, JobSink>>,
-    parents: Mutex<HashMap<String, String>>,
-    unassigned_parents: Mutex<VecDeque<String>>,
-    issued: Mutex<HashMap<String, ContinuationToken>>,
-    streamed: Mutex<HashSet<String>>,
-    job_streams: Mutex<HashMap<String, JobStream>>,
     job_sizes: Mutex<HashMap<String, usize>>,
-    arbiters: Mutex<HashMap<String, SourceArbiter>>,
-    tap_senders: Mutex<HashMap<String, mpsc::Sender<TapEvent>>>,
-    tap_poisoned: Mutex<HashMap<String, TapPoisonState>>,
-    tap_index_allocators: Mutex<HashMap<String, Arc<AtomicUsize>>>,
-    tap_drains: Mutex<HashMap<String, TapDrainState>>,
-    tap_turns: Mutex<HashMap<String, u64>>,
-    relay: OnceLock<relay::RelayHandle>,
-    cli_stdin: Mutex<Option<tokio::process::ChildStdin>>,
+    /// Boxed rather than `ChildStdin` so the simulated CLI can be driven
+    /// over an in-memory pipe on exactly the same code path.
+    cli_stdin: Mutex<Option<Box<dyn tokio::io::AsyncWrite + Send + Unpin>>>,
     pub memory: MemoryGuard,
     running: AtomicUsize,
     peak_running: AtomicUsize,
@@ -233,16 +182,6 @@ struct ByteBudget {
     max: usize,
 }
 
-struct TapDrainState {
-    active: usize,
-    notify: Arc<Notify>,
-}
-
-struct TapPoisonState {
-    turn_id: u64,
-    poisoned: Arc<AtomicBool>,
-}
-
 #[derive(Debug)]
 enum Terminal {
     Overflow,
@@ -277,10 +216,6 @@ impl JobSink {
             client_tx: Arc::new(Mutex::new(Some(client_tx))),
         };
         (sink, data_rx)
-    }
-
-    async fn replace_client(&self, tx: StreamTx) {
-        *self.client_tx.lock().await = Some(tx);
     }
 
     fn try_push(&self, item: StreamItem) -> Result<(), SinkPushError> {
@@ -378,33 +313,14 @@ impl Terminal {
 
 impl Runtime {
     pub fn new(cfg: MultiplexConfig) -> Arc<Self> {
-        let mut secret = vec![0u8; 32];
-        for byte in &mut secret {
-            *byte = rand_byte();
-        }
         Arc::new(Self {
-            process_generation: AtomicU64::new(1),
             pid: AtomicU32::new(0),
-            secret,
             cfg,
             slots: Mutex::new(Vec::new()),
             sched: Mutex::new(SlotScheduler::new()),
-            pending: Mutex::new(PendingCalls::new()),
             jobs: Mutex::new(HashMap::new()),
             sinks: Mutex::new(HashMap::new()),
-            parents: Mutex::new(HashMap::new()),
-            unassigned_parents: Mutex::new(VecDeque::new()),
-            issued: Mutex::new(HashMap::new()),
-            streamed: Mutex::new(HashSet::new()),
-            job_streams: Mutex::new(HashMap::new()),
             job_sizes: Mutex::new(HashMap::new()),
-            arbiters: Mutex::new(HashMap::new()),
-            tap_senders: Mutex::new(HashMap::new()),
-            tap_poisoned: Mutex::new(HashMap::new()),
-            tap_index_allocators: Mutex::new(HashMap::new()),
-            tap_drains: Mutex::new(HashMap::new()),
-            tap_turns: Mutex::new(HashMap::new()),
-            relay: OnceLock::new(),
             cli_stdin: Mutex::new(None),
             memory: MemoryGuard::from_env(),
             running: AtomicUsize::new(0),
@@ -425,54 +341,38 @@ impl Runtime {
         }
     }
 
+    /// Stand-in for the CLI child: an in-memory pipe carrying the very same
+    /// `kin_*` protocol, so tests exercise `write_cli_stdin` /
+    /// `decode_stdout` instead of a bespoke fake.
     async fn start_simulated(self: &Arc<Self>) -> Result<(), KernelError> {
         self.pid.store(std::process::id(), Ordering::Relaxed);
-        for index in 0..self.cfg.slot_count {
-            let parent = format!("parent_{index}");
-            let runtime = Arc::clone(self);
-            tokio::spawn(async move {
-                simulate_worker(runtime, parent).await;
-            });
-        }
+        let (kernel_side, cli_side) = tokio::io::duplex(256 * 1024);
+        let (kernel_read, kernel_write) = tokio::io::split(kernel_side);
+        let (cli_read, cli_write) = tokio::io::split(cli_side);
+        *self.cli_stdin.lock().await = Some(Box::new(kernel_write));
+        let runtime = Arc::clone(self);
+        tokio::spawn(async move {
+            decode_stdout(runtime, kernel_read).await;
+        });
+        tokio::spawn(simulated_cli(
+            cli_read,
+            cli_write,
+            self.cfg.slot_count,
+            self.cfg.simulate_latency,
+            self.cfg.desired_config_hash.clone(),
+        ));
         bootstrap::wait_ready(self, self.cfg.slot_count, Duration::from_secs(5)).await
     }
 
     async fn start_claude(self: &Arc<Self>) -> Result<(), KernelError> {
-        let native = self.cfg.execution_mode.is_native();
-        let mut mcp_url = String::new();
-        if !native {
-            let mcp_addr = mcp_server::spawn(
-                Arc::clone(self),
-                "127.0.0.1:0"
-                    .parse()
-                    .map_err(|err| KernelError::Provider(format!("{err}")))?,
-            )
-            .await?;
-            tracing::info!(mcp = %mcp_addr, "kin mcp listening");
-            mcp_url = format!("http://{mcp_addr}/mcp");
-        }
-        let mut anthropic_base_url = None;
-        if !native && self.cfg.relay_mode != RelayMode::Off {
-            let handle = relay::spawn(Arc::clone(self), &self.cfg).await?;
-            relay::confirm_healthy(handle.addr).await?;
-            relay::upstream::UpstreamClient::new(&self.cfg.relay_upstream)?
-                .preflight()
-                .await?;
-            anthropic_base_url = Some(format!("http://{}", handle.addr));
-            let _ = self.relay.set(handle);
-        } else {
-            ensure_socks_http_bridge()?;
-        }
+        ensure_socks_http_bridge()?;
         let dir = PathBuf::from("/tmp/kin-cli/multiplex").join(Uuid::new_v4().to_string());
         let spec = supervisor::SpawnSpec {
             bin: self.cfg.bin.clone(),
             mock: self.cfg.mock_bin,
             model: self.cfg.model.clone(),
             slot_count: self.cfg.slot_count,
-            mcp_url,
             session_dir: dir,
-            anthropic_base_url,
-            native_slots: native.then_some(self.cfg.slot_count),
             desired_config_hash: self.cfg.desired_config_hash.clone(),
         };
         let mut supervised = supervisor::spawn(&spec).await?;
@@ -483,7 +383,7 @@ impl Runtime {
             .stdout
             .take()
             .ok_or_else(|| KernelError::Provider("claude stdout missing".into()))?;
-        let mut stdin = supervised
+        let stdin = supervised
             .child
             .stdin
             .take()
@@ -513,28 +413,17 @@ impl Runtime {
                 }
             });
         }
-        if native {
-            // Do not write kin_hello: official `-p` peeks stdin and, after the
-            // first byte, waits for EOF. A live job pipe never ends, so a boot
-            // hello hung the CLI before runHeadless / kin_slot_ready.
-            *self.cli_stdin.lock().await = Some(stdin);
-            tokio::spawn(async move {
-                match supervised.child.wait().await {
-                    Ok(status) => tracing::warn!(%status, "claude process exited"),
-                    Err(err) => tracing::warn!(%err, "claude wait failed"),
-                }
-            });
-        } else {
-            bootstrap::write_root_prompt(&mut stdin, self.cfg.slot_count).await?;
-            tokio::spawn(async move {
-                let _stdin = stdin;
-                match supervised.child.wait().await {
-                    Ok(status) => tracing::warn!(%status, "claude process exited"),
-                    Err(err) => tracing::warn!(%err, "claude wait failed"),
-                }
-            });
-        }
-        tracing::info!(pid = supervised.pid, native, "claude supervisor alive");
+        // Do not write kin_hello: official `-p` peeks stdin and, after the
+        // first byte, waits for EOF. A live job pipe never ends, so a boot
+        // hello hung the CLI before runHeadless / kin_slot_ready.
+        *self.cli_stdin.lock().await = Some(Box::new(stdin));
+        tokio::spawn(async move {
+            match supervised.child.wait().await {
+                Ok(status) => tracing::warn!(%status, "claude process exited"),
+                Err(err) => tracing::warn!(%err, "claude wait failed"),
+            }
+        });
+        tracing::info!(pid = supervised.pid, "claude supervisor alive");
         let wait = Duration::from_secs((120 + 8 * self.cfg.slot_count as u64).min(240));
         bootstrap::wait_ready(self, self.cfg.slot_count, wait).await
     }
@@ -552,7 +441,6 @@ impl Runtime {
             .map(|slot| slot::SlotSnapshot {
                 id: slot.id.clone(),
                 phase: slot.phase,
-                parent_tool_use_id: slot.parent_tool_use_id.clone(),
                 session_id: slot.session_id.clone(),
                 tenant_id: slot.tenant_id.clone(),
                 jobs_completed: slot.jobs_completed,
@@ -568,263 +456,11 @@ impl Runtime {
         self.running.load(Ordering::Relaxed)
     }
 
-    #[cfg(test)]
-    pub fn bump_generation(&self) -> u64 {
-        self.process_generation.fetch_add(1, Ordering::AcqRel) + 1
-    }
-
-    pub async fn mcp_slot_wait(&self, args: Value) -> Result<Value, KernelError> {
-        let hinted = args
-            .get("slot_id")
-            .and_then(Value::as_str)
-            .map(ToOwned::to_owned);
-        let slot_id = self.register_or_get_slot(hinted).await;
-        let rx = {
-            let mut pending = self.pending.lock().await;
-            pending.register_slot_wait(&slot_id)
-        };
-        {
-            let mut slots = self.slots.lock().await;
-            if let Some(slot) = slots.iter_mut().find(|slot| slot.id == slot_id)
-                && slot.phase != SlotPhase::Dead
-                && slot.phase != SlotPhase::Draining
-                && slot.phase != SlotPhase::ReadyBlocked
-            {
-                slot.phase = SlotPhase::ReadyBlocked;
-                slot.job_id = None;
-            }
-            if self.sched.lock().await.enqueue_ready(slot_id.clone()) {
-                self.ready.fetch_add(1, Ordering::Relaxed);
-            }
-        }
-        match rx.await {
-            Ok(SlotWaitPayload::Job(job)) => {
-                let relay_context = self.issue_relay_context(&job)?;
-                let mut payload = json!({
-                "type": "job",
-                "job_id": job.job_id,
-                "slot_id": job.slot_id,
-                "session_id": job.session_id,
-                "model": job.request.model,
-                "max_tokens": job.request.max_tokens,
-                "stream": job.request.stream,
-                "system": job.request.system,
-                "thinking": job.request.thinking,
-                "tool_choice": job.request.tool_choice,
-                "metadata": job.request.metadata,
-                "temperature": job.request.temperature,
-                "top_p": job.request.top_p,
-                "top_k": job.request.top_k,
-                "stop_sequences": job.request.stop_sequences,
-                "betas": job.request.betas,
-                "messages": job.request.messages,
-                "tools": job.request.tools,
-                "extra": job.request.extra,
-                "request": job.request
-                });
-                if let Some(token) = relay_context {
-                    payload["relay_context"] = json!(token);
-                }
-                Ok(payload)
-            }
-            Ok(SlotWaitPayload::Retire) => Ok(json!({ "type": "retire" })),
-            Err(_) => Err(KernelError::Provider("slot_wait cancelled".into())),
-        }
-    }
-
-    fn issue_relay_context(&self, job: &Job) -> Result<Option<String>, KernelError> {
-        if self.cfg.relay_mode == RelayMode::Off {
-            return Ok(None);
-        }
-        RelayContextToken::issue(
-            job.job_id.clone(),
-            job.slot_id.clone(),
-            self.process_generation.load(Ordering::Relaxed),
-            &self.secret,
-        )
-        .map(Some)
-    }
-
-    pub(crate) fn secret(&self) -> &[u8] {
-        &self.secret
-    }
-
-    pub(crate) async fn correlate_lookup(
-        &self,
-        token: &RelayContextToken,
-    ) -> Option<CorrelatedJob> {
-        let current_generation = self.process_generation.load(Ordering::Relaxed);
-        if token.generation != current_generation {
-            return None;
-        }
-        let job = self.jobs.lock().await.get(&token.job_id).cloned()?;
-        if job.slot_id != token.slot_id {
-            return None;
-        }
-        let slot_matches =
-            self.slots.lock().await.iter().any(|slot| {
-                slot.id == token.slot_id && slot.job_id.as_deref() == Some(&token.job_id)
-            });
-        if !slot_matches {
-            return None;
-        }
-        Some(CorrelatedJob {
-            job_id: token.job_id.clone(),
-            slot_id: token.slot_id.clone(),
-            generation: token.generation,
-        })
-    }
-
-    pub async fn mcp_client_tool(&self, args: Value) -> Result<Value, KernelError> {
-        let job_id = args
-            .get("job_id")
-            .and_then(Value::as_str)
-            .ok_or_else(|| KernelError::InvalidRequest("client_tool needs job_id".into()))?
-            .to_string();
-        let name = args
-            .get("name")
-            .and_then(Value::as_str)
-            .unwrap_or("tool")
-            .to_string();
-        let input = args.get("input").cloned().unwrap_or_else(|| json!({}));
-        let tool_id = args
-            .get("client_tool_use_id")
-            .and_then(Value::as_str)
-            .map(ToOwned::to_owned)
-            .unwrap_or_else(|| new_id("toolu"));
-        let job = self
-            .jobs
-            .lock()
-            .await
-            .get(&job_id)
-            .cloned()
-            .ok_or(KernelError::ContinuationLost)?;
-        {
-            let mut slots = self.slots.lock().await;
-            let slot = slots
-                .iter_mut()
-                .find(|slot| slot.id == job.slot_id)
-                .ok_or(KernelError::ContinuationLost)?;
-            if !slot.cas(SlotPhase::Running, SlotPhase::WaitingTool) {
-                return Err(KernelError::ContinuationMismatch("slot not running".into()));
-            }
-        }
-        let generation = self.process_generation.load(Ordering::Relaxed);
-        let (token, encoded) = ContinuationToken::issue(
-            generation,
-            &job.slot_id,
-            &job.job_id,
-            &job.session_id,
-            &tool_id,
-            self.cfg.continuation_ttl_secs,
-            &self.secret,
-        )?;
-        self.issued.lock().await.insert(token.nonce.clone(), token);
-        let tool_block = json!({
-            "type": "tool_use",
-            "id": tool_id.clone(),
-            "name": name.clone(),
-            "input": input.clone()
-        });
-        let events = {
-            let mut streams = self.job_streams.lock().await;
-            match streams.get_mut(&job_id) {
-                Some(stream) => {
-                    let mut events = stream.emit_complete_block(&tool_block);
-                    events.extend(stream.finish("tool_use", json!({})));
-                    events
-                }
-                None => vec![json!({
-                    "type": "content_block_start",
-                    "index": 0,
-                    "content_block": {
-                        "type": "tool_use",
-                        "id": &tool_id,
-                        "name": &name,
-                        "input": &input
-                    }
-                })],
-            }
-        };
-        for event in events {
-            self.emit(&job_id, StreamItem::Event(event)).await;
-        }
-        let response = MessageResponse {
-            id: format!("msg_{}", self.pid.load(Ordering::Relaxed)),
-            r#type: "message",
-            role: "assistant",
-            model: job.request.model.clone(),
-            content: vec![ContentBlock::ToolUse {
-                id: tool_id.clone(),
-                name,
-                input,
-            }],
-            stop_reason: StopReason::ToolUse,
-            usage: Usage::default(),
-        };
-        self.emit(&job_id, StreamItem::Finished(response)).await;
-        let rx = {
-            let mut pending = self.pending.lock().await;
-            pending.register_client_tool(&job_id, Some(tool_id.as_str()))
-        };
-        let result = rx.await.map_err(|_| KernelError::ContinuationLost)?;
-        {
-            let mut slots = self.slots.lock().await;
-            if let Some(slot) = slots.iter_mut().find(|slot| slot.id == job.slot_id)
-                && slot.phase != SlotPhase::Dead
-            {
-                let _ = slot.cas(SlotPhase::WaitingTool, SlotPhase::Running);
-            }
-        }
-        let _ = encoded;
-        Ok(result)
-    }
-
-    pub async fn mcp_kin_done(&self, args: Value) -> Result<Value, KernelError> {
-        let job_id = args
-            .get("job_id")
-            .and_then(Value::as_str)
-            .ok_or_else(|| KernelError::InvalidRequest("kin_done needs job_id".into()))?;
-        let fallback = args
-            .get("fallback_content")
-            .or_else(|| args.get("text"))
-            .and_then(Value::as_str)
-            .unwrap_or("")
-            .to_string();
-        let stop = args
-            .get("stop_reason")
-            .and_then(Value::as_str)
-            .unwrap_or("end_turn")
-            .to_string();
-        let usage = args.get("usage").cloned().unwrap_or_else(|| json!({}));
-        self.complete_job(job_id, fallback, false, &stop, usage)
-            .await?;
-        Ok(json!({ "ok": true }))
-    }
-
-    pub async fn mcp_kin_fail(&self, args: Value) -> Result<Value, KernelError> {
-        let job_id = args
-            .get("job_id")
-            .and_then(Value::as_str)
-            .ok_or_else(|| KernelError::InvalidRequest("kin_fail needs job_id".into()))?;
-        let error = args
-            .get("error")
-            .and_then(Value::as_str)
-            .unwrap_or("slot failed")
-            .to_string();
-        let retire = args.get("retire").and_then(Value::as_bool).unwrap_or(true);
-        self.complete_job(job_id, error, true, "refusal", json!({}))
-            .await?;
-        if retire && let Some(job) = self.jobs.lock().await.get(job_id).cloned() {
-            self.retire_slot(&job.slot_id).await;
-        }
-        Ok(json!({ "ok": true }))
-    }
-
+    /// Terminal handler for a job: `kin_job_done` / `kin_job_error`.
     async fn complete_job(
         &self,
         job_id: &str,
-        fallback: String,
+        error: String,
         is_error: bool,
         stop_reason: &str,
         usage: Value,
@@ -838,115 +474,48 @@ impl Runtime {
             .ok_or(KernelError::ContinuationLost)?;
         if is_error {
             if let Some(sink) = self.sinks.lock().await.get(job_id).cloned() {
-                sink.set_terminal(Terminal::Failed(KernelError::Provider(fallback)));
+                sink.set_terminal(Terminal::Failed(KernelError::Provider(error)));
             }
-            self.abort_terminal_job(job_id).await;
+            // kin_job_error already released the slot on the CLI side.
+            self.abort_terminal_job(job_id, false).await;
             return Ok(());
         }
-        if self.cfg.execution_mode.is_native() {
-            let (content, assembled_stop, assembled_usage) = self
-                .stream_assemblers
-                .lock()
-                .await
-                .remove(job_id)
-                .map(StreamAssembler::parts)
-                .unwrap_or_else(|| {
-                    (
-                        Vec::new(),
-                        native_stop_reason(stop_reason),
-                        Usage::default(),
-                    )
-                });
-            let usage_value = if usage.is_null() { json!({}) } else { usage };
-            let usage = if usage_value == json!({}) {
-                assembled_usage
-            } else {
-                usage_from_value(&usage_value)
-            };
-            let stop_reason = if stop_reason.is_empty() {
-                assembled_stop
-            } else {
-                native_stop_reason(stop_reason)
-            };
-            let response = MessageResponse {
-                id: format!("msg_{}", self.pid.load(Ordering::Relaxed)),
-                r#type: "message",
-                role: "assistant",
-                model: job.request.model.clone(),
-                content,
-                stop_reason,
-                usage,
-            };
-            if self.emit(job_id, StreamItem::Finished(response)).await != EmitResult::Sent {
-                self.abort_terminal_job(job_id).await;
-                return Ok(());
-            }
-            return Ok(());
-        }
-        if !self.wait_tap_drain(job_id, Duration::from_secs(2)).await {
-            self.note_tap_incomplete(job_id).await;
-            if fail_if_upstream_poisoned(self, job_id).await {
-                self.abort_terminal_job(job_id).await;
-                return Ok(());
-            }
-        }
-        // Deferred arbitration: if the tap never produced a body this turn,
-        // the stdout frames held back in the arbiter are the user's body —
-        // release them before finishing.
-        let deferred = {
-            let mut arbiters = self.arbiters.lock().await;
-            match arbiters.get_mut(job_id) {
-                Some(arbiter) => arbiter.take_deferred(),
-                None => Vec::new(),
-            }
+        let (content, assembled_stop, assembled_usage) = self
+            .stream_assemblers
+            .lock()
+            .await
+            .remove(job_id)
+            .map(StreamAssembler::parts)
+            .unwrap_or_else(|| {
+                (
+                    Vec::new(),
+                    native_stop_reason(stop_reason),
+                    Usage::default(),
+                )
+            });
+        let usage_value = if usage.is_null() { json!({}) } else { usage };
+        let usage = if usage_value == json!({}) {
+            assembled_usage
+        } else {
+            usage_from_value(&usage_value)
         };
-        self.mark_delivered_text(job_id, &deferred).await;
-        for event in deferred {
-            if self.emit(job_id, StreamItem::Event(event)).await == EmitResult::Failed {
-                self.abort_terminal_job(job_id).await;
-                return Ok(());
-            }
-        }
-        let (fallback_events, finish_events, response) = {
-            let mut streams = self.job_streams.lock().await;
-            let stream = streams
-                .entry(job_id.to_string())
-                .or_insert_with(JobStream::new);
-            let mut arbiters = self.arbiters.lock().await;
-            let arbiter = arbiters.get_mut(job_id);
-            let finish = finish_body(arbiter, stream, &fallback, usage);
-            self.record_digest_mismatch(job_id, arbiters.get(job_id), &stream.text, &fallback);
-            let fallback_events = stream.fallback_text(&fallback);
-            let finish_events = stream.finish(stop_reason, finish.usage.clone());
-            let response = MessageResponse {
-                id: format!("msg_{}", self.pid.load(Ordering::Relaxed)),
-                r#type: "message",
-                role: "assistant",
-                model: job.request.model.clone(),
-                content: vec![ContentBlock::Text {
-                    text: finish.text.clone(),
-                    cache_control: None,
-                }],
-                stop_reason: StopReason::EndTurn,
-                usage: usage_from_value(&finish.usage),
-            };
-            (fallback_events, finish_events, response)
+        let stop_reason = if stop_reason.is_empty() {
+            assembled_stop
+        } else {
+            native_stop_reason(stop_reason)
         };
-        for event in fallback_events {
-            if self.emit(job_id, StreamItem::Event(event)).await == EmitResult::Failed {
-                self.abort_terminal_job(job_id).await;
-                return Ok(());
-            }
-        }
-        for event in finish_events {
-            if self.emit(job_id, StreamItem::Event(event)).await == EmitResult::Failed {
-                self.abort_terminal_job(job_id).await;
-                return Ok(());
-            }
-        }
+        let response = MessageResponse {
+            id: format!("msg_{}", self.pid.load(Ordering::Relaxed)),
+            r#type: "message",
+            role: "assistant",
+            model: job.request.model.clone(),
+            content,
+            stop_reason,
+            usage,
+        };
         if self.emit(job_id, StreamItem::Finished(response)).await != EmitResult::Sent {
-            self.abort_terminal_job(job_id).await;
-            return Ok(());
+            // kin_job_done arrived; only client delivery failed.
+            self.abort_terminal_job(job_id, false).await;
         }
         Ok(())
     }
@@ -955,13 +524,12 @@ impl Runtime {
         if let Some(sink) = self.sinks.lock().await.get(job_id).cloned()
             && !sink.set_terminal(Terminal::Done)
         {
-            self.abort_terminal_job(job_id).await;
+            self.abort_terminal_job(job_id, false).await;
             return;
         }
         let job = self.jobs.lock().await.remove(job_id);
         let slot_id = job.as_ref().map(|job| job.slot_id.clone());
         self.sinks.lock().await.remove(job_id);
-        self.job_streams.lock().await.remove(job_id);
         self.stream_assemblers.lock().await.remove(job_id);
         self.running
             .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
@@ -971,35 +539,30 @@ impl Runtime {
         if let Some(size) = self.job_sizes.lock().await.remove(job_id) {
             self.memory.end(size);
         }
-        self.streamed.lock().await.remove(job_id);
-        self.drop_job_tap(job_id).await;
         let retire = if let Some(job) = job {
             let mut slots = self.slots.lock().await;
             if let Some(slot) = slots.iter_mut().find(|slot| slot.id == job.slot_id) {
                 slot.jobs_completed = slot.jobs_completed.saturating_add(1);
-                self.cfg.retire_after_turn
-                    || slot.should_retire(
-                        self.cfg.max_jobs_per_slot,
-                        self.cfg.slot_max_lifetime,
-                        self.cfg.session_idle_ttl,
-                    )
+                slot.should_retire(
+                    self.cfg.max_jobs_per_slot,
+                    self.cfg.slot_max_lifetime,
+                    self.cfg.session_idle_ttl,
+                )
             } else {
                 false
             }
         } else {
             false
         };
-        if retire {
-            if let Some(slot_id) = slot_id {
+        if let Some(slot_id) = slot_id {
+            if retire {
                 self.retire_slot(&slot_id).await;
-            }
-        } else if self.cfg.execution_mode.is_native() {
-            // Native jobs are always fully retired here regardless of
-            // stop_reason (including ToolUse): continuation never resumes
-            // this job_id, it always starts a fresh one via resume()'s
-            // submit() delegation (design.md §5.2), so the slot is free
-            // the moment this job's terminal frame has been delivered.
-            if let Some(slot_id) = slot_id {
+            } else {
+                // A job is always fully retired here regardless of
+                // stop_reason (including ToolUse): continuation never resumes
+                // this job_id, it always starts a fresh one via resume()'s
+                // submit() delegation (design.md §5.2), so the slot is free
+                // the moment this job's terminal frame has been delivered.
                 self.register_native_ready(slot_id).await;
             }
         }
@@ -1034,102 +597,14 @@ impl Runtime {
             }
         }
         self.sched.lock().await.forget(slot_id);
-        let mut pending = self.pending.lock().await;
-        let _ = pending.wake_slot(slot_id, SlotWaitPayload::Retire);
-    }
-
-    async fn register_or_get_slot(&self, hinted: Option<String>) -> String {
-        let mut slots = self.slots.lock().await;
-        if let Some(id) = hinted.as_ref()
-            && let Some(slot) = slots.iter().find(|slot| slot.id == *id)
-            && slot.phase != SlotPhase::Dead
-            && slot.phase != SlotPhase::Draining
-        {
-            return id.clone();
-        }
-        let id = hinted.unwrap_or_else(|| new_id("slot"));
-        let mut slot = Slot::new(&id);
-        if let Some(parent) = self.unassigned_parents.lock().await.pop_front() {
-            slot.parent_tool_use_id = Some(parent.clone());
-            self.parents.lock().await.insert(parent, id.clone());
-        }
-        slots.push(slot);
-        id
-    }
-
-    pub async fn note_agent_spawn(&self, tool_use_id: String) {
-        let mut slots = self.slots.lock().await;
-        if let Some(slot) = slots
-            .iter_mut()
-            .find(|slot| slot.parent_tool_use_id.is_none() && slot.phase != SlotPhase::Dead)
-        {
-            slot.parent_tool_use_id = Some(tool_use_id.clone());
-            self.parents
-                .lock()
-                .await
-                .insert(tool_use_id, slot.id.clone());
-            return;
-        }
-        drop(slots);
-        self.unassigned_parents.lock().await.push_back(tool_use_id);
     }
 
     pub async fn handle_cli_frame(&self, frame: Value) {
-        if let Some(native) = native_protocol::decode_stdout_value(&frame) {
-            self.handle_native_frame(native).await;
+        let Some(native) = native_protocol::decode_stdout_value(&frame) else {
+            tracing::debug!(?frame, "unrecognised cli frame");
             return;
-        }
-        match stream_decoder::decode(&frame) {
-            stream_decoder::Decoded::AgentSpawn { tool_use_id } => {
-                self.note_agent_spawn(tool_use_id).await;
-            }
-            stream_decoder::Decoded::Routed {
-                parent_tool_use_id, ..
-            } => {
-                // The spawn-order pairing of parent_tool_use_id to slot is a
-                // heuristic that mispairs under concurrent boot (the 20-way
-                // crosstalk). The slot_wait tool_result the CLI replays on
-                // stdout carries the authoritative job/slot for this parent —
-                // learn it before routing anything.
-                if let Some((job_id, slot_id)) = slot_wait_job_binding(&frame) {
-                    self.learn_parent_binding(&parent_tool_use_id, &job_id, &slot_id)
-                        .await;
-                }
-                let slot_id = self.parents.lock().await.get(&parent_tool_use_id).cloned();
-                let Some(slot_id) = slot_id else {
-                    return;
-                };
-                let job_id = {
-                    let slots = self.slots.lock().await;
-                    slots
-                        .iter()
-                        .find(|slot| slot.id == slot_id)
-                        .and_then(|slot| slot.job_id.clone())
-                };
-                let Some(job_id) = job_id else {
-                    return;
-                };
-                let events = {
-                    let mut streams = self.job_streams.lock().await;
-                    match streams.get_mut(&job_id) {
-                        Some(stream) => stream.ingest(&frame),
-                        None => Vec::new(),
-                    }
-                };
-                let events = {
-                    let mut arbiters = self.arbiters.lock().await;
-                    match arbiters.get_mut(&job_id) {
-                        Some(arbiter) => arbiter.filter_stdout(events),
-                        None => events,
-                    }
-                };
-                self.mark_delivered_text(&job_id, &events).await;
-                for event in events {
-                    self.emit(&job_id, StreamItem::Event(event)).await;
-                }
-            }
-            stream_decoder::Decoded::Root => {}
-        }
+        };
+        self.handle_native_frame(native).await;
     }
 
     async fn handle_native_frame(&self, frame: native_protocol::KinStdout) {
@@ -1200,8 +675,6 @@ impl Runtime {
                     );
                     return;
                 }
-                self.mark_delivered_text(&job_id, std::slice::from_ref(&event))
-                    .await;
                 let model = self
                     .jobs
                     .lock()
@@ -1339,51 +812,6 @@ impl Runtime {
             .map_err(|err| KernelError::Provider(err.to_string()))
     }
 
-    /// Mark the job's body as streamed only for events that survived
-    /// arbitration. Marking at ingest time meant a suppressed/deferred stdout
-    /// block still counted as delivered, so the kin_done fallback stayed
-    /// silent and the client got an empty 200.
-    async fn mark_delivered_text(&self, job_id: &str, events: &[Value]) {
-        if !events.iter().any(is_nonempty_text_delta) {
-            return;
-        }
-        if let Some(stream) = self.job_streams.lock().await.get_mut(job_id) {
-            stream.streamed_text = true;
-        }
-    }
-
-    /// Rebind a parent_tool_use_id to the slot/job the kernel actually
-    /// assigned, as proven by the slot_wait tool_result replayed on stdout.
-    async fn learn_parent_binding(&self, parent: &str, job_id: &str, slot_id: &str) {
-        let valid = self
-            .jobs
-            .lock()
-            .await
-            .get(job_id)
-            .map(|job| job.slot_id == slot_id)
-            .unwrap_or(false);
-        if !valid {
-            return;
-        }
-        {
-            let mut parents = self.parents.lock().await;
-            // A stale heuristic pairing may point another parent at this
-            // slot; it would steal these frames. Drop it — its own binding
-            // is re-learned from its own slot_wait result.
-            parents.retain(|other, bound| !(bound == slot_id && other != parent));
-            parents.insert(parent.to_string(), slot_id.to_string());
-        }
-        let mut slots = self.slots.lock().await;
-        for slot in slots.iter_mut() {
-            if slot.parent_tool_use_id.as_deref() == Some(parent) && slot.id != slot_id {
-                slot.parent_tool_use_id = None;
-            }
-        }
-        if let Some(slot) = slots.iter_mut().find(|slot| slot.id == slot_id) {
-            slot.parent_tool_use_id = Some(parent.to_string());
-        }
-    }
-
     async fn emit(&self, job_id: &str, item: StreamItem) -> EmitResult {
         let lossless_delta = is_lossless_delta(&item);
         let sink = self.sinks.lock().await.get(job_id).cloned();
@@ -1391,12 +819,7 @@ impl Runtime {
             return EmitResult::Missing;
         };
         match sink.try_push(item) {
-            Ok(()) => {
-                if lossless_delta {
-                    self.streamed.lock().await.insert(job_id.to_string());
-                }
-                EmitResult::Sent
-            }
+            Ok(()) => EmitResult::Sent,
             Err(SinkPushError::Full) => {
                 if lossless_delta {
                     sink.set_terminal(Terminal::Overflow);
@@ -1414,15 +837,6 @@ impl Runtime {
 
     async fn start_job_sink(self: &Arc<Self>, job_id: String, tx: StreamTx) {
         let (sink, data_rx) = JobSink::new(tx);
-        let index_allocator = Arc::new(AtomicUsize::new(0));
-        self.tap_index_allocators
-            .lock()
-            .await
-            .insert(job_id.clone(), Arc::clone(&index_allocator));
-        self.job_streams.lock().await.insert(
-            job_id.clone(),
-            JobStream::with_index_allocator(Arc::clone(&index_allocator)),
-        );
         self.sinks.lock().await.insert(job_id.clone(), sink.clone());
         tokio::spawn(job_egress(
             Arc::downgrade(self),
@@ -1431,204 +845,20 @@ impl Runtime {
             sink,
             self.cfg.client_stall_timeout,
         ));
-        self.start_tap_forwarder(job_id).await;
     }
 
-    async fn start_tap_forwarder(self: &Arc<Self>, job_id: String) {
-        if self.cfg.relay_mode == RelayMode::Off {
-            return;
-        }
-        let (tap_tx, tap_rx) = mpsc::channel(256);
-        let poisoned = Arc::new(AtomicBool::new(false));
-        self.tap_senders.lock().await.insert(job_id.clone(), tap_tx);
-        self.tap_poisoned.lock().await.insert(
-            job_id.clone(),
-            TapPoisonState {
-                turn_id: 0,
-                poisoned: Arc::clone(&poisoned),
-            },
-        );
-        self.tap_drains.lock().await.insert(
-            job_id.clone(),
-            TapDrainState {
-                active: 0,
-                notify: Arc::new(Notify::new()),
-            },
-        );
-        self.tap_turns.lock().await.insert(job_id.clone(), 0);
-        self.arbiters
-            .lock()
-            .await
-            .insert(job_id.clone(), SourceArbiter::new(self.cfg.relay_mode));
-        let runtime = Arc::downgrade(self);
-        tokio::spawn(async move {
-            job_tap_forwarder(runtime, job_id, tap_rx).await;
-        });
-    }
-
-    pub(crate) async fn tap_binding(&self, job_id: &str) -> Option<relay::sse_tap::TapBinding> {
-        let events = self.tap_senders.lock().await.get(job_id).cloned()?;
-        let index_allocator = self
-            .tap_index_allocators
-            .lock()
-            .await
-            .get(job_id)
-            .cloned()
-            .unwrap_or_else(|| Arc::new(AtomicUsize::new(0)));
-        let turn_id = self
-            .tap_turns
-            .lock()
-            .await
-            .get(job_id)
-            .copied()
-            .unwrap_or(0);
-        let poisoned = self
-            .tap_poisoned
-            .lock()
-            .await
-            .get(job_id)
-            .filter(|state| state.turn_id == turn_id)
-            .map(|state| Arc::clone(&state.poisoned));
-        Some(relay::sse_tap::TapBinding {
-            events,
-            poisoned,
-            index_allocator,
-            turn_id,
-        })
-    }
-
-    pub fn relay_snapshot(&self) -> Value {
-        let (healthy, dropped, mismatch, hit, miss, ambiguous, started) = match self.relay.get() {
-            Some(handle) => (
-                handle.healthy(),
-                handle.metrics.tap_dropped.load(Ordering::Relaxed),
-                handle.metrics.digest_mismatch.load(Ordering::Relaxed),
-                handle.metrics.correlate_hit.load(Ordering::Relaxed),
-                handle.metrics.correlate_miss.load(Ordering::Relaxed),
-                handle.metrics.correlate_ambiguous.load(Ordering::Relaxed),
-                handle.metrics.tap_response_started.load(Ordering::Relaxed),
-            ),
-            None => (false, 0, 0, 0, 0, 0, 0),
-        };
-        json!({
-            "relay_mode": self.cfg.relay_mode.as_str(),
-            "relay_healthy": healthy,
-            "tap_dropped": dropped,
-            "digest_mismatch": mismatch,
-            "correlate_hit": hit,
-            "correlate_miss": miss,
-            "correlate_ambiguous": ambiguous,
-            "tap_response_started": started,
-        })
-    }
-
-    fn record_digest_mismatch(
-        &self,
-        job_id: &str,
-        arbiter: Option<&SourceArbiter>,
-        stdout: &str,
-        fallback: &str,
-    ) {
-        let Some(arbiter) = arbiter else {
-            return;
-        };
-        let stdout = if stdout.is_empty() { fallback } else { stdout };
-        let Some((upstream, stdout)) = arbiter.mismatch_digests(stdout) else {
-            return;
-        };
-        if let Some(handle) = self.relay.get() {
-            handle.metrics.inc_digest_mismatch();
-        }
-        tracing::warn!(
-            job_id,
-            upstream = %upstream,
-            stdout = %stdout,
-            "relay digest mismatch"
-        );
-    }
-
-    async fn drop_job_tap(&self, job_id: &str) {
-        self.arbiters.lock().await.remove(job_id);
-        self.tap_senders.lock().await.remove(job_id);
-        self.tap_poisoned.lock().await.remove(job_id);
-        self.tap_index_allocators.lock().await.remove(job_id);
-        self.tap_drains.lock().await.remove(job_id);
-        self.tap_turns.lock().await.remove(job_id);
-    }
-
-    pub(crate) async fn register_tap_response(&self, job_id: &str) {
-        if let Some(arbiter) = self.arbiters.lock().await.get_mut(job_id) {
-            arbiter.set_tap_attached();
-        }
-        let mut drains = self.tap_drains.lock().await;
-        let state = drains
-            .entry(job_id.to_string())
-            .or_insert_with(|| TapDrainState {
-                active: 0,
-                notify: Arc::new(Notify::new()),
-            });
-        state.active = state.active.saturating_add(1);
-    }
-
-    async fn note_tap_drained(&self, job_id: &str) {
-        let notify = {
-            let mut drains = self.tap_drains.lock().await;
-            let Some(state) = drains.get_mut(job_id) else {
-                return;
-            };
-            state.active = state.active.saturating_sub(1);
-            if state.active == 0 {
-                Some(Arc::clone(&state.notify))
-            } else {
-                None
-            }
-        };
-        if let Some(notify) = notify {
-            notify.notify_waiters();
-        }
-    }
-
-    async fn wait_tap_drain(&self, job_id: &str, timeout: Duration) -> bool {
-        loop {
-            let notify = {
-                let drains = self.tap_drains.lock().await;
-                let Some(state) = drains.get(job_id) else {
-                    return true;
-                };
-                if state.active == 0 {
-                    return true;
-                }
-                Arc::clone(&state.notify)
-            };
-            let notified = notify.notified();
-            if tokio::time::timeout(timeout, notified).await.is_err() {
-                return false;
-            }
-        }
-    }
-
-    async fn note_tap_incomplete(&self, job_id: &str) {
-        if let Some(poisoned) = self
-            .tap_poisoned
-            .lock()
-            .await
-            .get(job_id)
-            .map(|state| Arc::clone(&state.poisoned))
-            && !poisoned.swap(true, Ordering::Relaxed)
-            && let Some(handle) = self.relay.get()
-        {
-            handle.metrics.inc_tap_dropped();
-        }
-    }
-
-    async fn abort_terminal_job(&self, job_id: &str) {
+    /// Tear down a job that will not complete normally.
+    ///
+    /// `cli_owns_job` decides who frees the slot. The CLI drops its slot back
+    /// to idle the moment it emits `kin_job_done`/`kin_job_error`, and its
+    /// `kin_cancel` handler returns silently for a job it no longer owns — so
+    /// cancelling after a CLI-side terminal frame gets no `kin_cancel_ack`
+    /// and would leak the slot forever. Pass `false` in that case and
+    /// re-register locally; pass `true` only while the CLI is still running
+    /// the job (client gone / overflow / stall), where the ack is the
+    /// authoritative release.
+    async fn abort_terminal_job(&self, job_id: &str, cli_owns_job: bool) {
         let sink = self.sinks.lock().await.get(job_id).cloned();
-        let reason = sink
-            .as_ref()
-            .and_then(|sink| sink.terminal.get())
-            .map(Terminal::error)
-            .unwrap_or_else(|| KernelError::Provider("job stream aborted".into()));
-        let message = reason.to_string();
         if let Some(sink) = &sink
             && let Some(terminal) = sink.terminal.get()
             && terminal.is_failure()
@@ -1637,34 +867,26 @@ impl Runtime {
         }
         let job = self.jobs.lock().await.remove(job_id);
         self.sinks.lock().await.remove(job_id);
-        self.job_streams.lock().await.remove(job_id);
-        self.streamed.lock().await.remove(job_id);
         self.stream_assemblers.lock().await.remove(job_id);
-        self.drop_job_tap(job_id).await;
         if let Some(size) = self.job_sizes.lock().await.remove(job_id) {
             self.memory.end(size);
         }
-        self.pending
-            .lock()
-            .await
-            .abort_client_tools(job_id, &message);
-        self.pending.lock().await.drop_job(job_id);
         if let Some(job) = job {
             self.running
                 .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
                     Some(n.saturating_sub(1))
                 })
                 .ok();
-            if self.cfg.execution_mode.is_native() {
-                let frame = native_protocol::KinStdin::Cancel {
-                    job_id: job.job_id.clone(),
-                    slot_id: Some(job.slot_id.clone()),
-                };
-                if self.write_cli_stdin(frame).await.is_err() {
-                    self.register_native_ready(job.slot_id).await;
-                }
-            } else {
-                self.retire_slot(&job.slot_id).await;
+            if !cli_owns_job {
+                self.register_native_ready(job.slot_id).await;
+                return;
+            }
+            let frame = native_protocol::KinStdin::Cancel {
+                job_id: job.job_id.clone(),
+                slot_id: Some(job.slot_id.clone()),
+            };
+            if self.write_cli_stdin(frame).await.is_err() {
+                self.register_native_ready(job.slot_id).await;
             }
         }
     }
@@ -1694,7 +916,6 @@ impl Runtime {
         let request_bytes = serde_json::to_vec(&request).map(|v| v.len()).unwrap_or(0);
         self.memory.admit(request_bytes)?;
         self.retire_idle().await;
-        let generation = self.process_generation.load(Ordering::Relaxed);
         // A slot that just finished a job is briefly neither Running nor back
         // in slot_wait (ReadyBlocked). A burst of submissions can hit that
         // re-entry gap and see NoCapacity even though the pool is not full,
@@ -1735,10 +956,7 @@ impl Runtime {
         };
         let job = Job {
             job_id: job_id.clone(),
-            tenant_id: context.tenant_id,
-            session_id: context.session_id,
             slot_id: slot_id.clone(),
-            generation,
             request,
         };
         self.jobs.lock().await.insert(job_id.clone(), job.clone());
@@ -1750,26 +968,13 @@ impl Runtime {
         self.memory.begin(request_bytes);
         let n = self.running.fetch_add(1, Ordering::Relaxed) + 1;
         self.peak_running.fetch_max(n, Ordering::Relaxed);
-        if self.cfg.execution_mode.is_native() {
-            let request = serde_json::to_value(&job.request).unwrap_or_else(|_| json!({}));
-            self.write_cli_stdin(native_protocol::KinStdin::JobStart {
-                job_id: job_id.clone(),
-                slot_id: slot_id.clone(),
-                request,
-            })
-            .await?;
-            return Ok(());
-        }
-        let msg_id = format!("msg_{job_id}");
-        self.emit(
-            &job_id,
-            StreamItem::Event(JobStream::message_start(&job.request.model, &msg_id)),
-        )
-        .await;
-        self.pending
-            .lock()
-            .await
-            .wake_slot(&slot_id, SlotWaitPayload::Job(Box::new(job)))?;
+        let request = serde_json::to_value(&job.request).unwrap_or_else(|_| json!({}));
+        self.write_cli_stdin(native_protocol::KinStdin::JobStart {
+            job_id,
+            slot_id,
+            request,
+        })
+        .await?;
         Ok(())
     }
 
@@ -1779,100 +984,18 @@ impl Runtime {
         context: ExecutionContext,
         tx: StreamTx,
     ) -> Result<(), KernelError> {
-        if self.cfg.execution_mode.is_native() {
-            // native_slot/native_messages hold no cross-job state in the CLI.
-            // Continuation + tenant + tool_use_id-subset validation and the
-            // full message-history merge already happened one layer up
-            // (api.rs::ActiveTurn::begin -> session.rs::SessionDirectory::resume)
-            // by the time `context.resumed` is set here, so a "resume" is
-            // structurally a fresh job: new job_id, any idle slot (sticky
-            // preferred), fresh kin_job_start with the already-merged
-            // request. `park_native_job()` / `SlotPhase::WaitingTool` are
-            // not used in this mode (design.md §5.2).
-            let context = ExecutionContext {
-                resumed: false,
-                ..context
-            };
-            return self.submit_fresh(request, context, tx).await;
-        }
-        let generation = self.process_generation.load(Ordering::Relaxed);
-        let slots = self.slots.lock().await;
-        let slot = slots
-            .iter()
-            .find(|slot| slot.session_id.as_deref() == Some(context.session_id.as_str()))
-            .ok_or(KernelError::ContinuationLost)?;
-        if slot.phase != SlotPhase::WaitingTool {
-            return Err(KernelError::ContinuationLost);
-        }
-        let job_id = slot.job_id.clone().ok_or(KernelError::ContinuationLost)?;
-        drop(slots);
-        let job = self
-            .jobs
-            .lock()
-            .await
-            .get(&job_id)
-            .cloned()
-            .ok_or(KernelError::ContinuationLost)?;
-        if job.generation != generation || job.tenant_id != context.tenant_id {
-            return Err(KernelError::ContinuationLost);
-        }
-        let sink = self
-            .sinks
-            .lock()
-            .await
-            .get(&job_id)
-            .cloned()
-            .ok_or(KernelError::ContinuationLost)?;
-        if sink.terminal_failed() {
-            return Err(KernelError::ContinuationLost);
-        }
-        sink.replace_client(tx).await;
-        let index_allocator = self
-            .tap_index_allocators
-            .lock()
-            .await
-            .get(&job_id)
-            .cloned()
-            .unwrap_or_else(|| Arc::new(AtomicUsize::new(0)));
-        self.job_streams.lock().await.insert(
-            job_id.clone(),
-            JobStream::with_index_allocator(index_allocator),
-        );
-        let turn_id = {
-            let mut turns = self.tap_turns.lock().await;
-            let turn = turns.entry(job_id.clone()).or_insert(0);
-            *turn = turn.saturating_add(1);
-            *turn
+        // The CLI holds no cross-job state. Continuation + tenant +
+        // tool_use_id-subset validation and the full message-history merge
+        // already happened one layer up (api.rs::ActiveTurn::begin ->
+        // session.rs::SessionDirectory::resume) by the time `context.resumed`
+        // is set here, so a "resume" is structurally a fresh job: new job_id,
+        // any idle slot (sticky preferred), fresh kin_job_start with the
+        // already-merged request (design.md §5.2).
+        let context = ExecutionContext {
+            resumed: false,
+            ..context
         };
-        self.tap_poisoned.lock().await.insert(
-            job_id.clone(),
-            TapPoisonState {
-                turn_id,
-                poisoned: Arc::new(AtomicBool::new(false)),
-            },
-        );
-        if let Some(drain) = self.tap_drains.lock().await.get_mut(&job_id) {
-            drain.active = 0;
-            drain.notify.notify_waiters();
-        }
-        if self.cfg.relay_mode != RelayMode::Off {
-            self.arbiters
-                .lock()
-                .await
-                .insert(job_id.clone(), SourceArbiter::new(self.cfg.relay_mode));
-        }
-        let msg_id = format!("msg_{job_id}");
-        self.emit(
-            &job_id,
-            StreamItem::Event(JobStream::message_start(&job.request.model, &msg_id)),
-        )
-        .await;
-        let results = tool_results(&request);
-        self.pending
-            .lock()
-            .await
-            .complete_client_tools(&job_id, results)?;
-        Ok(())
+        self.submit_fresh(request, context, tx).await
     }
 
     pub fn pid(&self) -> u32 {
@@ -1908,7 +1031,9 @@ async fn job_egress(
         {
             fail_client_stream(&sink, terminal).await;
             if let Some(runtime) = runtime.upgrade() {
-                runtime.abort_terminal_job(&job_id).await;
+                // The CLI is still streaming this job: cancel it and wait for
+                // kin_cancel_ack to free the slot.
+                runtime.abort_terminal_job(&job_id, true).await;
             }
             break;
         }
@@ -1921,23 +1046,11 @@ async fn job_egress(
             break;
         };
         sink.budget.release(envelope.bytes);
-        let native_mode = runtime
-            .upgrade()
-            .map(|runtime| runtime.cfg.execution_mode.is_native())
-            .unwrap_or(false);
+        // Every terminal frame ends the job, `tool_use` included: the client
+        // resumes through a brand-new job, never back into this one.
         let final_response = match &envelope.item {
-            StreamItem::Finished(response)
-                if native_mode || !matches!(response.stop_reason, StopReason::ToolUse) =>
-            {
-                Some(response.clone())
-            }
-            _ => None,
-        };
-        let tool_response = match &envelope.item {
-            StreamItem::Finished(response) => {
-                !native_mode && matches!(response.stop_reason, StopReason::ToolUse)
-            }
-            StreamItem::Event(_) => false,
+            StreamItem::Finished(response) => Some(response.clone()),
+            StreamItem::Event(_) => None,
         };
         let Some(tx) = sink.client_tx.lock().await.clone() else {
             sink.set_terminal(Terminal::ClientGone);
@@ -1962,14 +1075,12 @@ async fn job_egress(
             }
         };
         match sent {
-            Ok(()) if final_response.is_some() || tool_response => {
+            Ok(()) if final_response.is_some() => {
                 sink.client_tx.lock().await.take();
-                if final_response.is_some() {
-                    if let Some(runtime) = runtime.upgrade() {
-                        runtime.finish_sent_job(&job_id).await;
-                    }
-                    break;
+                if let Some(runtime) = runtime.upgrade() {
+                    runtime.finish_sent_job(&job_id).await;
                 }
+                break;
             }
             Ok(()) => {}
             Err(terminal) => {
@@ -2011,47 +1122,6 @@ fn is_lossless_delta(item: &StreamItem) -> bool {
     )
 }
 
-#[cfg(test)]
-fn response_text(response: &MessageResponse) -> String {
-    let mut out = String::new();
-    for block in &response.content {
-        if let ContentBlock::Text { text, .. } = block {
-            out.push_str(text);
-        }
-    }
-    out
-}
-
-struct JobFinish {
-    text: String,
-    usage: Value,
-}
-
-fn finish_body(
-    arbiter: Option<&mut SourceArbiter>,
-    stream: &mut JobStream,
-    fallback: &str,
-    usage: Value,
-) -> JobFinish {
-    if let Some(arbiter) = arbiter {
-        if arbiter.upstream_authoritative() {
-            stream.streamed_text = true;
-        }
-        arbiter.on_kin_done();
-        let usage = arbiter.usage().unwrap_or(usage);
-        return JobFinish {
-            text: arbiter.final_text(&stream.text, fallback),
-            usage,
-        };
-    }
-    let text = if stream.text.is_empty() {
-        fallback.to_string()
-    } else {
-        stream.text.clone()
-    };
-    JobFinish { text, usage }
-}
-
 fn native_stop_reason(reason: &str) -> StopReason {
     match reason {
         "tool_use" => StopReason::ToolUse,
@@ -2074,167 +1144,6 @@ fn usage_from_value(value: &Value) -> Usage {
             .and_then(Value::as_u64)
             .unwrap_or(0),
     }
-}
-
-async fn job_tap_forwarder(
-    runtime: Weak<Runtime>,
-    job_id: String,
-    mut rx: mpsc::Receiver<TapEvent>,
-) {
-    while let Some(event) = rx.recv().await {
-        let Some(runtime) = runtime.upgrade() else {
-            return;
-        };
-        if apply_tap_event(&runtime, &job_id, event).await {
-            return;
-        }
-    }
-}
-
-async fn apply_tap_event(runtime: &Runtime, job_id: &str, event: TapEvent) -> bool {
-    let current_turn = runtime
-        .tap_turns
-        .lock()
-        .await
-        .get(job_id)
-        .copied()
-        .unwrap_or(0);
-    if event.turn_id != current_turn {
-        return false;
-    }
-    if event.is_drained() {
-        runtime.note_tap_drained(job_id).await;
-        return false;
-    }
-    if event.is_poisoned() {
-        return fail_if_upstream_poisoned(runtime, job_id).await;
-    }
-    if let Some(usage) = event.usage_value() {
-        if let Some(arbiter) = runtime.arbiters.lock().await.get_mut(job_id) {
-            arbiter.note_usage(usage);
-        }
-        return false;
-    }
-    let effect = {
-        let mut arbiters = runtime.arbiters.lock().await;
-        match arbiters.get_mut(job_id) {
-            Some(arbiter) => arbiter.on_upstream(&event.event),
-            None => ArbiterEffect::Ignore,
-        }
-    };
-    match effect {
-        ArbiterEffect::Forward => {
-            let mapped = {
-                let mut streams = runtime.job_streams.lock().await;
-                streams
-                    .get_mut(job_id)
-                    .map(|stream| stream.adopt_tap_event(event.event))
-            };
-            if let Some(event) = mapped {
-                runtime.emit(job_id, StreamItem::Event(event)).await;
-            }
-            false
-        }
-        ArbiterEffect::FailJob => fail_tap_job(runtime, job_id).await,
-        ArbiterEffect::Suppress | ArbiterEffect::Ignore => false,
-    }
-}
-
-async fn fail_if_upstream_poisoned(runtime: &Runtime, job_id: &str) -> bool {
-    let effect = {
-        let mut arbiters = runtime.arbiters.lock().await;
-        match arbiters.get_mut(job_id) {
-            Some(arbiter) => arbiter.on_tap_poisoned(),
-            None => ArbiterEffect::Ignore,
-        }
-    };
-    if effect == ArbiterEffect::FailJob {
-        return fail_tap_job(runtime, job_id).await;
-    }
-    false
-}
-
-async fn fail_tap_job(runtime: &Runtime, job_id: &str) -> bool {
-    if let Some(sink) = runtime.sinks.lock().await.get(job_id).cloned() {
-        sink.set_terminal(Terminal::Failed(KernelError::Provider(
-            "relay tap overflow".into(),
-        )));
-    }
-    true
-}
-
-/// True for a content_block_delta whose text_delta carries visible text.
-fn is_nonempty_text_delta(event: &Value) -> bool {
-    event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta")
-        && event
-            .pointer("/delta/text")
-            .and_then(Value::as_str)
-            .is_some_and(|text| !text.is_empty())
-}
-
-/// Extract the (job_id, slot_id) a replayed slot_wait tool_result proves for
-/// this parent. The CLI forwards subagent `user` frames whose tool_result
-/// content is the JSON payload mcp_slot_wait returned (`{"type":"job",...}`),
-/// possibly nested in a `[{type:"text",text:...}]` wrapper.
-fn slot_wait_job_binding(frame: &Value) -> Option<(String, String)> {
-    if frame.get("type").and_then(Value::as_str) != Some("user") {
-        return None;
-    }
-    let blocks = frame.pointer("/message/content")?.as_array()?;
-    for block in blocks {
-        if block.get("type").and_then(Value::as_str) != Some("tool_result") {
-            continue;
-        }
-        let texts: Vec<&str> = match block.get("content") {
-            Some(Value::String(text)) => vec![text.as_str()],
-            Some(Value::Array(items)) => items
-                .iter()
-                .filter_map(|item| item.get("text").and_then(Value::as_str))
-                .collect(),
-            _ => Vec::new(),
-        };
-        for text in texts {
-            let Ok(payload) = serde_json::from_str::<Value>(text) else {
-                continue;
-            };
-            if payload.get("type").and_then(Value::as_str) != Some("job") {
-                continue;
-            }
-            if let (Some(job_id), Some(slot_id)) = (
-                payload.get("job_id").and_then(Value::as_str),
-                payload.get("slot_id").and_then(Value::as_str),
-            ) {
-                return Some((job_id.to_string(), slot_id.to_string()));
-            }
-        }
-    }
-    None
-}
-
-fn tool_results(request: &MessageRequest) -> Vec<(String, Value)> {
-    let mut out = Vec::new();
-    for message in &request.messages {
-        if let MessageContent::Blocks(blocks) = &message.content {
-            for block in blocks {
-                if let ContentBlock::ToolResult {
-                    tool_use_id,
-                    content,
-                    is_error,
-                } = block
-                {
-                    out.push((
-                        tool_use_id.clone(),
-                        json!({
-                            "tool_use_id": tool_use_id,
-                            "content": content,
-                            "is_error": is_error
-                        }),
-                    ));
-                }
-            }
-        }
-    }
-    out
 }
 
 fn latest_text(request: &MessageRequest) -> String {
@@ -2260,119 +1169,226 @@ fn latest_text(request: &MessageRequest) -> String {
     String::new()
 }
 
-fn rand_byte() -> u8 {
-    Uuid::new_v4().as_bytes()[0]
-}
-
-async fn simulate_worker(runtime: Arc<Runtime>, parent: String) {
-    runtime.note_agent_spawn(parent.clone()).await;
-    let slot_id = runtime.register_or_get_slot(None).await;
-    runtime
-        .parents
-        .lock()
-        .await
-        .insert(parent.clone(), slot_id.clone());
-    {
-        let mut slots = runtime.slots.lock().await;
-        if let Some(slot) = slots.iter_mut().find(|slot| slot.id == slot_id) {
-            slot.parent_tool_use_id = Some(parent.clone());
-        }
+/// In-memory stand-in for the Claude CLI child. It speaks exactly the `kin_*`
+/// protocol the real CLI speaks, so tests exercise `write_cli_stdin`,
+/// `decode_stdout` and `handle_native_frame` instead of a bespoke fake.
+///
+/// The request text selects the reply shape: `[use_tool:NAME]` ends the turn
+/// on `tool_use`, `[web_search]` emits server tool blocks, anything else
+/// answers with a single text block.
+///
+/// Cancel semantics mirror the real runner: a `kin_cancel` for a job the CLI
+/// no longer owns is dropped **without** an ack, because the CLI releases its
+/// slot as soon as it emits a terminal frame.
+async fn simulated_cli(
+    reader: impl tokio::io::AsyncRead + Unpin,
+    writer: impl tokio::io::AsyncWrite + Unpin + Send + 'static,
+    slots: usize,
+    latency: Duration,
+    config_hash: Option<String>,
+) {
+    use tokio::io::{AsyncBufReadExt, BufReader};
+    let writer = Arc::new(Mutex::new(writer));
+    let live: Arc<Mutex<HashSet<String>>> = Arc::new(Mutex::new(HashSet::new()));
+    let layout = envelope::load();
+    let ready = native_protocol::KinStdout::HostReady {
+        protocol_version: native_protocol::KIN_PROTOCOL_VERSION,
+        slots,
+        system_layout: layout.mode.as_str().to_string(),
+        timezone: layout.timezone.clone(),
+        capabilities: native_protocol::KIN_CAPABILITIES
+            .iter()
+            .map(|cap| (*cap).to_string())
+            .collect(),
+        config_hash,
+    };
+    if write_sim_frame(&writer, &ready).await.is_err() {
+        return;
     }
-    loop {
-        let payload = match runtime.mcp_slot_wait(json!({ "slot_id": slot_id })).await {
-            Ok(value) => value,
-            Err(_) => break,
-        };
-        if payload.get("type").and_then(Value::as_str) == Some("retire") {
-            break;
-        }
-        let job_id = payload
-            .get("job_id")
-            .and_then(Value::as_str)
-            .unwrap_or("")
-            .to_string();
-        let job = {
-            let jobs = runtime.jobs.lock().await;
-            jobs.get(&job_id).cloned()
-        };
-        let Some(job) = job else {
+    let mut lines = BufReader::new(reader).lines();
+    while let Ok(Some(line)) = lines.next_line().await {
+        let Ok(frame) = serde_json::from_str::<native_protocol::KinStdin>(&line) else {
             continue;
         };
-        let text = latest_text(&job.request);
-        tokio::time::sleep(runtime.cfg.simulate_latency).await;
-        if text.contains("[web_search]") {
-            let ws = json!({
-                "type": "assistant",
-                "parent_tool_use_id": parent,
-                "message": { "content": [{
-                    "type": "tool_use",
-                    "id": "toolu_ws_sim",
-                    "name": "WebSearch",
-                    "input": { "query": text }
-                }]}
-            });
-            runtime.handle_cli_frame(ws).await;
-            let result = json!({
-                "type": "user",
-                "parent_tool_use_id": parent,
-                "message": { "content": [{
-                    "type": "tool_result",
-                    "tool_use_id": "toolu_ws_sim",
-                    "content": "Web search results for query"
-                }]}
-            });
-            runtime.handle_cli_frame(result).await;
-            let answer = json!({
-                "type": "assistant",
-                "parent_tool_use_id": parent,
-                "message": { "content": [{ "type": "text", "text": "search-complete" }] }
-            });
-            runtime.handle_cli_frame(answer).await;
-            let _ = runtime
-                .mcp_kin_done(json!({
-                    "job_id": job.job_id,
-                    "stop_reason": "end_turn",
-                    "usage": { "web_search_requests": 1 },
-                    "fallback_content": "DUPLICATE_FROM_KIN_DONE"
-                }))
+        match frame {
+            native_protocol::KinStdin::JobStart {
+                job_id,
+                slot_id,
+                request,
+            } => {
+                let writer = Arc::clone(&writer);
+                let live = Arc::clone(&live);
+                live.lock().await.insert(job_id.clone());
+                tokio::spawn(async move {
+                    simulated_job(writer, job_id.clone(), slot_id, request, latency).await;
+                    live.lock().await.remove(&job_id);
+                });
+            }
+            native_protocol::KinStdin::Cancel { job_id, slot_id } => {
+                if !live.lock().await.remove(&job_id) {
+                    continue;
+                }
+                let slot_id = slot_id.unwrap_or_default();
+                let _ = write_sim_frame(
+                    &writer,
+                    &native_protocol::KinStdout::CancelAck { job_id, slot_id },
+                )
                 .await;
-        } else if let Some(tool) = text
-            .split("[use_tool:")
-            .nth(1)
-            .and_then(|part| part.split(']').next())
-        {
-            let _ = runtime
-                .mcp_client_tool(json!({
-                    "job_id": job.job_id,
-                    "name": tool,
-                    "input": { "echo": true }
-                }))
-                .await;
-            let _ = runtime
-                .mcp_kin_done(json!({
-                    "job_id": job.job_id,
-                    "text": format!("tool finished for {tool}")
-                }))
-                .await;
-        } else {
-            let reply = format!("slot {} :: {text}", &slot_id[..8.min(slot_id.len())]);
-            let frame = json!({
-                "type": "assistant",
-                "parent_tool_use_id": parent,
-                "message": { "role": "assistant", "content": [{ "type": "text", "text": reply }] }
-            });
-            runtime.handle_cli_frame(frame).await;
-            let _ = runtime
-                .mcp_kin_done(json!({
-                    "job_id": job.job_id,
-                    "stop_reason": "end_turn",
-                    "usage": { "output_tokens": 8 },
-                    "fallback_content": reply,
-                    "text": reply
-                }))
-                .await;
+            }
         }
     }
+}
+
+async fn write_sim_frame<W: tokio::io::AsyncWrite + Unpin>(
+    writer: &Arc<Mutex<W>>,
+    frame: &native_protocol::KinStdout,
+) -> Result<(), std::io::Error> {
+    use tokio::io::AsyncWriteExt;
+    let mut line = serde_json::to_vec(frame).unwrap_or_default();
+    line.push(b'\n');
+    let mut guard = writer.lock().await;
+    guard.write_all(&line).await?;
+    guard.flush().await
+}
+
+async fn simulated_job<W: tokio::io::AsyncWrite + Unpin>(
+    writer: Arc<Mutex<W>>,
+    job_id: String,
+    slot_id: String,
+    request: Value,
+    latency: Duration,
+) {
+    let request: MessageRequest = serde_json::from_value(request).unwrap_or_default();
+    let model = request.model.clone();
+    let text = latest_text(&request);
+    let event = |writer: &Arc<Mutex<W>>, event: Value| {
+        let writer = Arc::clone(writer);
+        let job_id = job_id.clone();
+        let slot_id = slot_id.clone();
+        async move {
+            write_sim_frame(
+                &writer,
+                &native_protocol::KinStdout::StreamEvent {
+                    job_id,
+                    slot_id,
+                    event,
+                },
+            )
+            .await
+        }
+    };
+    // message_start is not gated on the answer: a client must see the turn
+    // open before the model produces anything.
+    if event(
+        &writer,
+        json!({
+            "type": "message_start",
+            "message": { "id": format!("msg_{job_id}"), "model": model, "usage": {} }
+        }),
+    )
+    .await
+    .is_err()
+    {
+        return;
+    }
+    tokio::time::sleep(latency).await;
+    let (stop_reason, usage) = if let Some(tool) = text
+        .split("[use_tool:")
+        .nth(1)
+        .and_then(|part| part.split(']').next())
+    {
+        let tool_id = new_id("toolu");
+        let _ = event(
+            &writer,
+            json!({
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": { "type": "tool_use", "id": tool_id, "name": tool, "input": {} }
+            }),
+        )
+        .await;
+        let _ = event(
+            &writer,
+            json!({
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": { "type": "input_json_delta", "partial_json": "{\"echo\":true}" }
+            }),
+        )
+        .await;
+        let _ = event(&writer, json!({"type": "content_block_stop", "index": 0})).await;
+        ("tool_use", json!({ "output_tokens": 4 }))
+    } else if text.contains("[web_search]") {
+        for block in [
+            json!({ "type": "server_tool_use", "id": "srvtoolu_sim", "name": "web_search", "input": { "query": text } }),
+            json!({ "type": "web_search_tool_result", "tool_use_id": "srvtoolu_sim", "content": [] }),
+        ] {
+            let _ = event(
+                &writer,
+                json!({ "type": "content_block_start", "index": 0, "content_block": block }),
+            )
+            .await;
+            let _ = event(&writer, json!({"type": "content_block_stop", "index": 0})).await;
+        }
+        let _ = event(
+            &writer,
+            json!({
+                "type": "content_block_start",
+                "index": 1,
+                "content_block": { "type": "text", "text": "" }
+            }),
+        )
+        .await;
+        let _ = event(
+            &writer,
+            json!({
+                "type": "content_block_delta",
+                "index": 1,
+                "delta": { "type": "text_delta", "text": "search-complete" }
+            }),
+        )
+        .await;
+        let _ = event(&writer, json!({"type": "content_block_stop", "index": 1})).await;
+        ("end_turn", json!({ "web_search_requests": 1 }))
+    } else {
+        let reply = format!("slot {slot_id} :: {text}");
+        let _ = event(
+            &writer,
+            json!({
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": { "type": "text", "text": "" }
+            }),
+        )
+        .await;
+        let _ = event(
+            &writer,
+            json!({
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": { "type": "text_delta", "text": reply }
+            }),
+        )
+        .await;
+        let _ = event(&writer, json!({"type": "content_block_stop", "index": 0})).await;
+        ("end_turn", json!({ "output_tokens": 8 }))
+    };
+    let _ = event(
+        &writer,
+        json!({ "type": "message_delta", "delta": { "stop_reason": stop_reason }, "usage": usage }),
+    )
+    .await;
+    let _ = event(&writer, json!({ "type": "message_stop" })).await;
+    let _ = write_sim_frame(
+        &writer,
+        &native_protocol::KinStdout::JobDone {
+            job_id,
+            slot_id,
+            stop_reason: stop_reason.to_string(),
+            usage,
+        },
+    )
+    .await;
 }
 
 fn ensure_socks_http_bridge() -> Result<(), KernelError> {
@@ -2432,15 +1448,14 @@ fn http_to_socks_script() -> PathBuf {
     manifest.join("../../scripts/http_to_socks.py")
 }
 
-/// Charges `line_len` bytes against `key`'s running total in `job_bytes` and
-/// reports whether that job has now exceeded `MAX_JOB_BYTES`. Metering is
-/// per-`key` (job_id, or its `parent_tool_use_id` for mcp_slot's nested
-/// frames) so one runaway job's stdout can't starve other concurrent jobs
-/// sharing the same CLI PID.
+/// Charges `line_len` bytes against `job_id`'s running total in `job_bytes`
+/// and reports whether that job has now exceeded `MAX_JOB_BYTES`, so one
+/// runaway job's stdout can't starve other concurrent jobs sharing the same
+/// CLI process.
 fn charge_job_bytes(job_bytes: &mut HashMap<String, usize>, key: &str, line_len: usize) -> bool {
     let used = job_bytes.entry(key.to_string()).or_insert(0);
     *used = used.saturating_add(line_len);
-    *used > stream_decoder::MAX_JOB_BYTES
+    *used > native_protocol::MAX_JOB_BYTES
 }
 
 async fn decode_stdout(runtime: Arc<Runtime>, stdout: impl tokio::io::AsyncRead + Unpin) {
@@ -2459,15 +1474,13 @@ async fn decode_stdout(runtime: Arc<Runtime>, stdout: impl tokio::io::AsyncRead 
             let _ = file.write_all(line.as_bytes()).await;
             let _ = file.write_all(b"\n").await;
         }
-        if line.len() > stream_decoder::MAX_LINE_BYTES {
+        if line.len() > native_protocol::MAX_LINE_BYTES {
             continue;
         }
         let Ok(frame) = serde_json::from_str::<Value>(&line) else {
             continue;
         };
-        let metering_key = stream_decoder::parent_id(&frame)
-            .or_else(|| frame.get("job_id").and_then(Value::as_str));
-        if let Some(key) = metering_key
+        if let Some(key) = frame.get("job_id").and_then(Value::as_str)
             && charge_job_bytes(&mut job_bytes, key, line.len())
         {
             continue;
@@ -2498,7 +1511,6 @@ impl MultiplexCliProvider {
                 bin: PathBuf::from("simulated"),
                 mock_bin: true,
                 model: "claude-sonnet-5".into(),
-                retire_after_turn: false,
                 max_jobs_per_slot: 32,
                 slot_max_lifetime: Duration::from_secs(1800),
                 session_idle_ttl: Duration::from_secs(600),
@@ -2506,10 +1518,6 @@ impl MultiplexCliProvider {
                 continuation_ttl_secs: 600,
                 client_stall_timeout: Duration::from_secs(crate::config::DEFAULT_CLIENT_STALL_SECS),
                 submit_wait: Duration::from_millis(200),
-                relay_mode: RelayMode::Off,
-                relay_addr: "127.0.0.1:0".parse().unwrap(),
-                relay_upstream: "https://api.anthropic.com".into(),
-                execution_mode: ExecutionMode::McpSlot,
                 desired_config_hash: None,
             },
             runtime: OnceCell::new(),
@@ -2525,7 +1533,6 @@ impl MultiplexCliProvider {
                     bin: self.cfg.bin.clone(),
                     mock_bin: self.cfg.mock_bin,
                     model: self.cfg.model.clone(),
-                    retire_after_turn: self.cfg.retire_after_turn,
                     max_jobs_per_slot: self.cfg.max_jobs_per_slot,
                     slot_max_lifetime: self.cfg.slot_max_lifetime,
                     session_idle_ttl: self.cfg.session_idle_ttl,
@@ -2533,10 +1540,6 @@ impl MultiplexCliProvider {
                     continuation_ttl_secs: self.cfg.continuation_ttl_secs,
                     client_stall_timeout: self.cfg.client_stall_timeout,
                     submit_wait: self.cfg.submit_wait,
-                    relay_mode: self.cfg.relay_mode,
-                    relay_addr: self.cfg.relay_addr,
-                    relay_upstream: self.cfg.relay_upstream.clone(),
-                    execution_mode: self.cfg.execution_mode,
                     desired_config_hash: self.cfg.desired_config_hash.clone(),
                 });
                 runtime.start().await?;
@@ -2601,22 +1604,6 @@ impl Provider for MultiplexCliProvider {
         })
     }
 
-    fn relay_snapshot(&self) -> Option<serde_json::Value> {
-        Some(match self.runtime.get() {
-            Some(runtime) => runtime.relay_snapshot(),
-            None => json!({
-                "relay_mode": self.cfg.relay_mode.as_str(),
-                "relay_healthy": false,
-                "tap_dropped": 0,
-                "digest_mismatch": 0,
-                "correlate_hit": 0,
-                "correlate_miss": 0,
-                "correlate_ambiguous": 0,
-                "tap_response_started": 0,
-            }),
-        })
-    }
-
     async fn execute_stream(
         &self,
         request: &MessageRequest,
@@ -2634,7 +1621,7 @@ mod tests {
     use super::*;
     use crate::model::{Message, ToolDefinition};
     use crate::provider::stream_channel;
-    use tokio::{net::TcpListener, time::timeout};
+    use tokio::time::timeout;
 
     fn ctx(session: &str, resumed: bool) -> ExecutionContext {
         ExecutionContext {
@@ -2676,7 +1663,6 @@ mod tests {
             bin: PathBuf::from("simulated"),
             mock_bin: true,
             model: "claude-sonnet-5".into(),
-            retire_after_turn: false,
             max_jobs_per_slot: 32,
             slot_max_lifetime: Duration::from_secs(1800),
             session_idle_ttl: Duration::from_secs(600),
@@ -2684,18 +1670,8 @@ mod tests {
             continuation_ttl_secs: 600,
             client_stall_timeout: stall,
             submit_wait: Duration::from_millis(200),
-            relay_mode: RelayMode::Off,
-            relay_addr: "127.0.0.1:0".parse().unwrap(),
-            relay_upstream: "https://api.anthropic.com".into(),
-            execution_mode: ExecutionMode::McpSlot,
             desired_config_hash: None,
         }
-    }
-
-    fn relay_cfg(stall: Duration) -> MultiplexConfig {
-        let mut cfg = test_cfg(stall);
-        cfg.relay_mode = RelayMode::Authoritative;
-        cfg
     }
 
     fn delta(text: &str) -> StreamItem {
@@ -2753,26 +1729,6 @@ mod tests {
     ) -> Result<MessageResponse, KernelError> {
         let rx = provider.execute_stream(&request, &context).await?;
         crate::provider::collect_stream(rx).await
-    }
-
-    async fn insert_test_job(runtime: &Arc<Runtime>, job_id: &str, slot_id: &str, session: &str) {
-        runtime.jobs.lock().await.insert(
-            job_id.to_string(),
-            Job {
-                job_id: job_id.to_string(),
-                tenant_id: "demo".into(),
-                session_id: session.to_string(),
-                slot_id: slot_id.to_string(),
-                generation: runtime.process_generation.load(Ordering::Relaxed),
-                request: text_request("hello"),
-            },
-        );
-        let mut slot = Slot::new(slot_id);
-        slot.phase = SlotPhase::WaitingTool;
-        slot.job_id = Some(job_id.to_string());
-        slot.session_id = Some(session.to_string());
-        slot.tenant_id = Some("demo".into());
-        runtime.slots.lock().await.push(slot);
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -2955,304 +1911,6 @@ mod tests {
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn kin_done_waits_for_tap_drain_before_finishing() {
-        let runtime = Runtime::new(relay_cfg(Duration::from_secs(1)));
-        let (tx, mut rx) = mpsc::channel(64);
-        runtime.start_job_sink("job-drain".into(), tx).await;
-        insert_test_job(&runtime, "job-drain", "slot-drain", "sess-drain").await;
-        runtime.register_tap_response("job-drain").await;
-        let binding = runtime.tap_binding("job-drain").await.unwrap();
-        let tap = relay::sse_tap::TapQueue::spawn(
-            "job-drain".into(),
-            binding.events,
-            Arc::new(relay::metrics::RelayMetrics::default()),
-            binding.poisoned,
-            binding.index_allocator,
-            binding.turn_id,
-        );
-        tap.offer(axum::body::Bytes::from(
-            [
-                "event: message\ndata: {\"type\":\"message_start\",\"message\":{\"usage\":{\"input_tokens\":7}}}\n\n",
-                "event: message\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}}\n\n",
-                "event: message\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"last token\"}}\n\n",
-                "event: message\ndata: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":3}}\n\n",
-            ]
-            .concat(),
-        ));
-        drop(tap);
-
-        runtime
-            .mcp_kin_done(json!({
-                "job_id": "job-drain",
-                "stop_reason": "end_turn",
-                "usage": {},
-                "fallback_content": ""
-            }))
-            .await
-            .unwrap();
-
-        let mut text = String::new();
-        let mut usage = Usage::default();
-        let mut finished = false;
-        while let Some(item) = timeout(Duration::from_secs(1), rx.recv())
-            .await
-            .expect("stream")
-        {
-            match item.unwrap() {
-                StreamItem::Event(event) => {
-                    if event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta") {
-                        text.push_str(event["delta"]["text"].as_str().unwrap_or(""));
-                    }
-                    if event.get("type").and_then(Value::as_str) == Some("message_delta") {
-                        usage = usage_from_value(&event["usage"]);
-                    }
-                }
-                StreamItem::Finished(response) => {
-                    assert_eq!(response.usage.input_tokens, 7);
-                    assert_eq!(response.usage.output_tokens, 3);
-                    finished = true;
-                    break;
-                }
-            }
-        }
-        assert_eq!(text, "last token");
-        assert_eq!(usage.input_tokens, 7);
-        assert_eq!(usage.output_tokens, 3);
-        assert!(finished);
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn resume_resets_turn_poison_without_resetting_index_base() {
-        let runtime = Runtime::new(relay_cfg(Duration::from_secs(1)));
-        let (tx1, _rx1) = mpsc::channel(8);
-        runtime.start_job_sink("job-resume".into(), tx1).await;
-        insert_test_job(&runtime, "job-resume", "slot-resume", "sess-resume").await;
-        let _tool_rx = runtime
-            .pending
-            .lock()
-            .await
-            .register_client_tool("job-resume", None);
-        if let Some(state) = runtime.tap_poisoned.lock().await.get("job-resume") {
-            state.poisoned.store(true, Ordering::Relaxed);
-        }
-        if let Some(arbiter) = runtime.arbiters.lock().await.get_mut("job-resume") {
-            let _ = arbiter.on_upstream(&json!({
-                "type": "content_block_delta",
-                "index": 0,
-                "delta": { "type": "text_delta", "text": "bad" }
-            }));
-            assert_eq!(arbiter.on_tap_poisoned(), ArbiterEffect::FailJob);
-        }
-        runtime
-            .tap_index_allocators
-            .lock()
-            .await
-            .get("job-resume")
-            .unwrap()
-            .store(4, Ordering::Relaxed);
-
-        let (tx2, _rx2) = mpsc::channel(8);
-        let mut request = text_request("resume");
-        request.messages[0].content = MessageContent::Blocks(vec![ContentBlock::ToolResult {
-            tool_use_id: "toolu_resume".into(),
-            content: json!("ok"),
-            is_error: false,
-        }]);
-        runtime
-            .submit(request, ctx("sess-resume", true), tx2)
-            .await
-            .unwrap();
-
-        assert!(
-            !runtime
-                .tap_poisoned
-                .lock()
-                .await
-                .get("job-resume")
-                .unwrap()
-                .poisoned
-                .load(Ordering::Relaxed)
-        );
-        let state = runtime
-            .arbiters
-            .lock()
-            .await
-            .get("job-resume")
-            .unwrap()
-            .state();
-        assert_eq!(state, relay::arbiter::BodyState::NoBody);
-        assert_eq!(
-            runtime.tap_turns.lock().await.get("job-resume").copied(),
-            Some(1)
-        );
-        let stale = TapEvent {
-            job_id: "job-resume".into(),
-            turn_id: 0,
-            event: json!({
-                "type": "content_block_delta",
-                "index": 0,
-                "delta": { "type": "text_delta", "text": "stale" }
-            }),
-        };
-        assert!(!apply_tap_event(&runtime, "job-resume", stale).await);
-        assert_eq!(
-            runtime
-                .arbiters
-                .lock()
-                .await
-                .get("job-resume")
-                .unwrap()
-                .state(),
-            relay::arbiter::BodyState::NoBody
-        );
-        let mut stream = runtime.job_streams.lock().await;
-        let event = stream
-            .get_mut("job-resume")
-            .unwrap()
-            .adopt_tap_event(json!({
-                "type": "content_block_start",
-                "index": 4,
-                "content_block": { "type": "text", "text": "" }
-            }));
-        assert_eq!(event["index"], 4);
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn stale_tap_queue_poison_after_resume_does_not_fail_new_turn() {
-        let runtime = Runtime::new(relay_cfg(Duration::from_secs(1)));
-        let (tx1, _rx1) = mpsc::channel(8);
-        runtime.start_job_sink("job-stale-poison".into(), tx1).await;
-        insert_test_job(
-            &runtime,
-            "job-stale-poison",
-            "slot-stale-poison",
-            "sess-stale-poison",
-        )
-        .await;
-        let _tool_rx = runtime
-            .pending
-            .lock()
-            .await
-            .register_client_tool("job-stale-poison", None);
-        runtime.register_tap_response("job-stale-poison").await;
-        let old_binding = runtime.tap_binding("job-stale-poison").await.unwrap();
-        let old_tap = relay::sse_tap::TapQueue::spawn(
-            "job-stale-poison".into(),
-            old_binding.events,
-            Arc::new(relay::metrics::RelayMetrics::default()),
-            old_binding.poisoned,
-            old_binding.index_allocator,
-            old_binding.turn_id,
-        );
-
-        let (tx2, mut rx2) = mpsc::channel(8);
-        let mut request = text_request("resume");
-        request.messages[0].content = MessageContent::Blocks(vec![ContentBlock::ToolResult {
-            tool_use_id: "toolu_resume".into(),
-            content: json!("ok"),
-            is_error: false,
-        }]);
-        runtime
-            .submit(request, ctx("sess-stale-poison", true), tx2)
-            .await
-            .unwrap();
-        assert_eq!(
-            runtime
-                .tap_turns
-                .lock()
-                .await
-                .get("job-stale-poison")
-                .copied(),
-            Some(1)
-        );
-
-        let current = TapEvent {
-            job_id: "job-stale-poison".into(),
-            turn_id: 1,
-            event: json!({
-                "type": "content_block_delta",
-                "index": 0,
-                "delta": { "type": "text_delta", "text": "current" }
-            }),
-        };
-        assert!(!apply_tap_event(&runtime, "job-stale-poison", current).await);
-        old_tap.poison();
-        tokio::task::yield_now().await;
-        tokio::task::yield_now().await;
-
-        let sink = runtime
-            .sinks
-            .lock()
-            .await
-            .get("job-stale-poison")
-            .cloned()
-            .unwrap();
-        assert!(!sink.terminal_failed());
-        assert!(
-            !runtime
-                .tap_poisoned
-                .lock()
-                .await
-                .get("job-stale-poison")
-                .unwrap()
-                .poisoned
-                .load(Ordering::Relaxed)
-        );
-        assert!(
-            !runtime
-                .arbiters
-                .lock()
-                .await
-                .get("job-stale-poison")
-                .unwrap()
-                .failed()
-        );
-
-        runtime
-            .mcp_kin_done(json!({
-                "job_id": "job-stale-poison",
-                "stop_reason": "end_turn",
-                "usage": {},
-                "fallback_content": "fallback"
-            }))
-            .await
-            .unwrap();
-
-        let mut finished = None;
-        while let Some(item) = timeout(Duration::from_secs(1), rx2.recv())
-            .await
-            .expect("stream item")
-        {
-            if let StreamItem::Finished(response) = item.unwrap() {
-                finished = Some(response);
-                break;
-            }
-        }
-        let response = finished.expect("finished response");
-        assert_eq!(response_text(&response), "current");
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn start_claude_preflight_failure_returns_before_cli_spawn() {
-        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let upstream_addr = listener.local_addr().unwrap();
-        drop(listener);
-        let mut cfg = relay_cfg(Duration::from_secs(1));
-        cfg.simulate = false;
-        cfg.bin = PathBuf::from("must-not-be-spawned");
-        cfg.mock_bin = false;
-        cfg.relay_upstream = format!("http://{upstream_addr}");
-        let runtime = Runtime::new(cfg);
-
-        let err = runtime.start_claude().await.unwrap_err();
-        assert!(
-            err.to_string().contains("relay upstream preflight"),
-            "{err}"
-        );
-        assert_eq!(runtime.pid(), 0);
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn submit_retries_through_slot_reentry_gap() {
         // FAIL-3 in the 20-way live test: a burst submission can land in the
         // window where a slot has finished its job but has not yet re-entered
@@ -3287,135 +1945,6 @@ mod tests {
         assert!(matches!(second.stop_reason, StopReason::EndTurn));
     }
 
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn replayed_slot_wait_result_rebinds_mispaired_parent() {
-        // FAIL-2 in the 20-way live test: spawn-order pairing bound parent A
-        // to slot B, teeing B's job into A's stream. The replayed slot_wait
-        // tool_result names the authoritative job/slot; routing must relearn
-        // the binding from it before delivering any frames.
-        let runtime = Runtime::new(test_cfg(Duration::from_secs(1)));
-        insert_test_job(&runtime, "job-a", "slot-a", "sess-a").await;
-        insert_test_job(&runtime, "job-b", "slot-b", "sess-b").await;
-        {
-            // Heuristic mispairing: parent-1 got bound to slot-b.
-            let mut parents = runtime.parents.lock().await;
-            parents.insert("parent-1".into(), "slot-b".into());
-            let mut slots = runtime.slots.lock().await;
-            if let Some(slot) = slots.iter_mut().find(|slot| slot.id == "slot-b") {
-                slot.parent_tool_use_id = Some("parent-1".into());
-            }
-        }
-        let (tx_a, mut rx_a) = mpsc::channel(64);
-        runtime.start_job_sink("job-a".into(), tx_a).await;
-        let (tx_b, mut rx_b) = mpsc::channel(64);
-        runtime.start_job_sink("job-b".into(), tx_b).await;
-        // parent-1's subagent replays the slot_wait result proving it runs
-        // job-a on slot-a, then streams its answer.
-        let payload = json!({
-            "type": "job", "job_id": "job-a", "slot_id": "slot-a"
-        })
-        .to_string();
-        runtime
-            .handle_cli_frame(json!({
-                "type": "user",
-                "parent_tool_use_id": "parent-1",
-                "message": { "content": [{
-                    "type": "tool_result",
-                    "tool_use_id": "toolu_sw",
-                    "content": [{ "type": "text", "text": payload }]
-                }]}
-            }))
-            .await;
-        runtime
-            .handle_cli_frame(json!({
-                "type": "assistant",
-                "parent_tool_use_id": "parent-1",
-                "message": { "content": [{ "type": "text", "text": "answer for a" }] }
-            }))
-            .await;
-        // job-a received the text; job-b received nothing.
-        let mut got_a = String::new();
-        while let Ok(Some(item)) =
-            tokio::time::timeout(Duration::from_millis(100), rx_a.recv()).await
-        {
-            if let StreamItem::Event(event) = item.unwrap()
-                && event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta")
-            {
-                got_a.push_str(event["delta"]["text"].as_str().unwrap_or(""));
-            }
-        }
-        assert_eq!(got_a, "answer for a");
-        assert!(
-            tokio::time::timeout(Duration::from_millis(50), rx_b.recv())
-                .await
-                .is_err(),
-            "job-b must not receive parent-1's frames"
-        );
-        assert_eq!(
-            runtime.parents.lock().await.get("parent-1"),
-            Some(&"slot-a".to_string())
-        );
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn suppressed_stdout_body_still_allows_kin_done_fallback() {
-        // The empty-200 failure: authoritative mode deferred/suppressed the
-        // stdout body, no upstream text ever arrived, and streamed_text had
-        // already been set at ingest — so the kin_done fallback stayed silent.
-        let runtime = Runtime::new(relay_cfg(Duration::from_secs(1)));
-        let (tx, mut rx) = mpsc::channel(64);
-        runtime.start_job_sink("job-empty".into(), tx).await;
-        insert_test_job(&runtime, "job-empty", "slot-empty", "sess-empty").await;
-        runtime.register_tap_response("job-empty").await;
-        {
-            let mut parents = runtime.parents.lock().await;
-            parents.insert("parent-e".into(), "slot-empty".into());
-        }
-        // Whole-block stdout body arrives; with a tap attached it is deferred.
-        runtime
-            .handle_cli_frame(json!({
-                "type": "assistant",
-                "parent_tool_use_id": "parent-e",
-                "message": { "content": [{ "type": "text", "text": "the answer" }] }
-            }))
-            .await;
-        runtime
-            .mcp_kin_done(json!({
-                "job_id": "job-empty",
-                "stop_reason": "end_turn",
-                "usage": {},
-                "text": "the answer"
-            }))
-            .await
-            .unwrap();
-        let mut text = String::new();
-        let mut finished = false;
-        while let Some(item) = timeout(Duration::from_secs(1), rx.recv())
-            .await
-            .expect("stream")
-        {
-            match item.unwrap() {
-                StreamItem::Event(event) => {
-                    if event.pointer("/delta/type").and_then(Value::as_str) == Some("text_delta") {
-                        text.push_str(event["delta"]["text"].as_str().unwrap_or(""));
-                    }
-                }
-                StreamItem::Finished(response) => {
-                    if let ContentBlock::Text { text, .. } = &response.content[0] {
-                        assert_eq!(text, "the answer");
-                    }
-                    finished = true;
-                    break;
-                }
-            }
-        }
-        assert_eq!(
-            text, "the answer",
-            "body must reach the client exactly once"
-        );
-        assert!(finished);
-    }
-
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
     async fn one_pid_five_parallel_slots() {
         let shared = MultiplexCliProvider::simulated(5);
@@ -3447,17 +1976,11 @@ mod tests {
         }
         assert_eq!(texts.len(), 5);
         assert!(shared.runtime.get().unwrap().peak_running() >= 2);
-        let parents: Vec<_> = shared
-            .runtime
-            .get()
-            .unwrap()
-            .snapshots()
-            .await
-            .into_iter()
-            .filter_map(|slot| slot.parent_tool_use_id)
-            .collect();
-        let unique: std::collections::HashSet<_> = parents.iter().cloned().collect();
-        assert_eq!(unique.len(), 5);
+        assert_eq!(
+            shared.runtime.get().unwrap().snapshots().await.len(),
+            5,
+            "each job must land on its own slot"
+        );
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
@@ -3514,23 +2037,6 @@ mod tests {
         assert!(matches!(b.stop_reason, StopReason::EndTurn));
     }
 
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn stale_generation_is_continuation_lost() {
-        let provider = MultiplexCliProvider::simulated(1);
-        let _ = collect(
-            &provider,
-            text_request("please [use_tool:echo] now"),
-            ctx("sess-gen", false),
-        )
-        .await
-        .unwrap();
-        provider.runtime.get().unwrap().bump_generation();
-        let err = collect(&provider, text_request("ignored"), ctx("sess-gen", true))
-            .await
-            .unwrap_err();
-        assert!(matches!(err, KernelError::ContinuationLost));
-    }
-
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
     async fn one_pid_twenty_parallel_slots() {
         let shared = MultiplexCliProvider::simulated(20);
@@ -3569,17 +2075,8 @@ mod tests {
             "20 slots should overlap, elapsed={elapsed:?}"
         );
         assert!(shared.runtime.get().unwrap().peak_running() >= 10);
-        let parents: Vec<_> = shared
-            .runtime
-            .get()
-            .unwrap()
-            .snapshots()
-            .await
-            .into_iter()
-            .filter_map(|slot| slot.parent_tool_use_id)
-            .collect();
-        let unique_parents: std::collections::HashSet<_> = parents.iter().cloned().collect();
-        assert_eq!(unique_parents.len(), 20);
+        let slots = shared.runtime.get().unwrap().snapshots().await;
+        assert_eq!(slots.len(), 20, "20 slots must stay distinct");
     }
 
     #[tokio::test]
@@ -3711,7 +2208,7 @@ mod tests {
         assert!(!charge_job_bytes(
             &mut job_bytes,
             "job-big",
-            stream_decoder::MAX_JOB_BYTES - 100
+            native_protocol::MAX_JOB_BYTES - 100
         ));
         // A concurrent job on the same PID has its own independent budget.
         assert!(!charge_job_bytes(&mut job_bytes, "job-small", 50));
@@ -3723,42 +2220,6 @@ mod tests {
 
         // "small" is completely unaffected by "big" having been truncated.
         assert!(!charge_job_bytes(&mut job_bytes, "job-small", 50));
-    }
-
-    #[test]
-    fn relay_context_generation_respects_mode() {
-        let off = Runtime::new(test_cfg(Duration::from_secs(1)));
-        let job = Job {
-            job_id: "job-ctx".into(),
-            tenant_id: "demo".into(),
-            session_id: "session".into(),
-            slot_id: "slot-ctx".into(),
-            generation: 1,
-            request: MessageRequest::default(),
-        };
-        assert!(off.issue_relay_context(&job).unwrap().is_none());
-
-        let mut cfg = test_cfg(Duration::from_secs(1));
-        cfg.relay_mode = RelayMode::Observe;
-        let observe = Runtime::new(cfg);
-        let encoded = observe.issue_relay_context(&job).unwrap().unwrap();
-        let decoded = relay::correlate::RelayContextToken::decode(&encoded, observe.secret())
-            .expect("relay context");
-        assert_eq!(decoded.job_id, "job-ctx");
-        assert_eq!(decoded.slot_id, "slot-ctx");
-        assert_eq!(decoded.generation, 1);
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn simulated_off_mode_does_not_start_relay() {
-        let provider = MultiplexCliProvider::simulated(1);
-        provider.runtime().await.expect("start");
-        let snap = provider.relay_snapshot().expect("snapshot");
-        assert_eq!(snap["relay_mode"], "off");
-        assert_eq!(snap["relay_healthy"], false);
-        assert_eq!(snap["tap_dropped"], 0);
-        assert_eq!(snap["digest_mismatch"], 0);
-        assert!(provider.runtime.get().unwrap().relay.get().is_none());
     }
 
     #[test]
@@ -3800,12 +2261,6 @@ mod tests {
             .expect("matching config_hash must be accepted");
     }
 
-    fn native_cfg(stall: Duration) -> MultiplexConfig {
-        let mut cfg = test_cfg(stall);
-        cfg.execution_mode = ExecutionMode::NativeMessages;
-        cfg
-    }
-
     /// AC3: a native_messages job that ends on `tool_use` must assemble the
     /// correct `ContentBlock::ToolUse` from `kin_stream_event` frames alone
     /// (CLI sends empty `stop_reason`/`usage` in `kin_job_done`, per
@@ -3817,7 +2272,7 @@ mod tests {
     /// process for `write_cli_stdin()`) — see APPLY.md for the scope note.
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn native_messages_tool_use_resume_round_trip() {
-        let runtime = Runtime::new(native_cfg(Duration::from_secs(1)));
+        let runtime = Runtime::new(test_cfg(Duration::from_secs(1)));
         let slot_id = "s00".to_string();
         runtime.register_native_ready(slot_id.clone()).await;
 
@@ -3827,10 +2282,7 @@ mod tests {
             job_id_1.clone(),
             Job {
                 job_id: job_id_1.clone(),
-                tenant_id: "demo".into(),
-                session_id: "sess-ac3".into(),
                 slot_id: slot_id.clone(),
-                generation: runtime.process_generation.load(Ordering::Relaxed),
                 request: text_request("please call echo"),
             },
         );
@@ -3964,10 +2416,7 @@ mod tests {
             job_id_2.clone(),
             Job {
                 job_id: job_id_2.clone(),
-                tenant_id: "demo".into(),
-                session_id: "sess-ac3".into(),
                 slot_id: slot_id.clone(),
-                generation: runtime.process_generation.load(Ordering::Relaxed),
                 request: request_2,
             },
         );
@@ -4044,7 +2493,7 @@ mod tests {
     /// slot_id` guards), rather than applying it to the wrong job's state.
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn handle_cli_frame_discards_slot_id_mismatch() {
-        let runtime = Runtime::new(native_cfg(Duration::from_secs(1)));
+        let runtime = Runtime::new(test_cfg(Duration::from_secs(1)));
         let real_slot = "s00".to_string();
         let wrong_slot = "s99".to_string();
         runtime.register_native_ready(real_slot.clone()).await;
@@ -4054,10 +2503,7 @@ mod tests {
             job_id.clone(),
             Job {
                 job_id: job_id.clone(),
-                tenant_id: "demo".into(),
-                session_id: "sess-ac17".into(),
                 slot_id: real_slot.clone(),
-                generation: runtime.process_generation.load(Ordering::Relaxed),
                 request: text_request("hello"),
             },
         );
@@ -4167,7 +2613,7 @@ mod tests {
     /// already gone) is allowed to free the slot immediately as a fallback.
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn abort_terminal_job_waits_for_cancel_ack_before_freeing_slot() {
-        let runtime = Runtime::new(native_cfg(Duration::from_secs(1)));
+        let runtime = Runtime::new(test_cfg(Duration::from_secs(1)));
         let slot_id = "s00".to_string();
         runtime.register_native_ready(slot_id.clone()).await;
 
@@ -4176,10 +2622,7 @@ mod tests {
             job_id.clone(),
             Job {
                 job_id: job_id.clone(),
-                tenant_id: "demo".into(),
-                session_id: "sess-ac17-cancel".into(),
                 slot_id: slot_id.clone(),
-                generation: runtime.process_generation.load(Ordering::Relaxed),
                 request: text_request("hello"),
             },
         );
@@ -4191,7 +2634,7 @@ mod tests {
         // fails exactly like a dead/never-started CLI process would — this
         // exercises abort_terminal_job's documented fallback branch, and is
         // the only branch a unit test (without a real ChildStdin) can drive.
-        runtime.abort_terminal_job(&job_id).await;
+        runtime.abort_terminal_job(&job_id, true).await;
 
         assert!(
             !runtime.jobs.lock().await.contains_key(&job_id),
@@ -4224,6 +2667,68 @@ mod tests {
                 .iter()
                 .any(|slot| slot.id == slot_id && slot.phase == SlotPhase::ReadyBlocked),
             "a late cancel_ack must remain a no-op once the slot is already ready"
+        );
+    }
+
+    /// A CLI-side terminal frame (`kin_job_error` here) already released the
+    /// slot inside the CLI, and the CLI drops a `kin_cancel` for a job it no
+    /// longer owns **without** acking it. Sending cancel on this path
+    /// therefore leaked the slot forever (observed live: two failed jobs took
+    /// a 2-slot runtime to `no_capacity`). The slot must come back
+    /// immediately instead.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn cli_side_job_error_frees_the_slot_without_a_cancel_ack() {
+        let runtime = Runtime::new(test_cfg(Duration::from_secs(1)));
+        runtime.start_simulated().await.expect("simulated cli");
+        let slot_id = native_protocol::slot_id(0);
+
+        let job_id = "job-cli-error".to_string();
+        runtime.jobs.lock().await.insert(
+            job_id.clone(),
+            Job {
+                job_id: job_id.clone(),
+                slot_id: slot_id.clone(),
+                request: text_request("hello"),
+            },
+        );
+        let (tx, _rx) = mpsc::channel(64);
+        runtime.start_job_sink(job_id.clone(), tx).await;
+        runtime.running.fetch_add(1, Ordering::Relaxed);
+        {
+            let mut slots = runtime.slots.lock().await;
+            let slot = slots
+                .iter_mut()
+                .find(|slot| slot.id == slot_id)
+                .expect("registered slot");
+            assert!(slot.bind_job("demo", "sess-cli-error", &job_id));
+        }
+
+        runtime
+            .handle_cli_frame(json!({
+                "type": "kin_job_error",
+                "job_id": job_id,
+                "slot_id": slot_id,
+                "error": "API Error: 400 invalid_request_error"
+            }))
+            .await;
+
+        assert!(
+            !runtime.jobs.lock().await.contains_key(&job_id),
+            "the failed job must be torn down"
+        );
+        assert!(
+            runtime
+                .slots
+                .lock()
+                .await
+                .iter()
+                .any(|slot| slot.id == slot_id && slot.phase == SlotPhase::ReadyBlocked),
+            "slot must be reusable right after a CLI-side error, not wait for an ack that never comes"
+        );
+        assert_eq!(
+            runtime.ready_slots(),
+            1,
+            "the freed slot must be schedulable"
         );
     }
 }

@@ -30,7 +30,7 @@ flowchart TB
 | [service/kernel/src/scheduler.rs](../kernel/src/scheduler.rs) | Rust | sticky + P2C，active / waiting_tool 容量 |
 | [service/kernel/src/session.rs](../kernel/src/session.rs) | Rust | continuation token、tenant/session CAS |
 | [service/kernel/src/stream.rs](../kernel/src/stream.rs) | Rust | 官方 SSE / stream_event 拼装 |
-| [service/kernel/src/provider/local_cli.rs](../kernel/src/provider/local_cli.rs) | Rust | 真 Claude Code：spawn、stdin 驱动、session 隔离 |
+| [service/kernel/src/provider/multiplex_cli/](../kernel/src/provider/multiplex_cli/) | Rust | 真 Claude Code：spawn、`kin_*` stdin/stdout 协议、20 slot 调度 |
 | [service/kernel/src/provider/anthropic.rs](../kernel/src/provider/anthropic.rs) | Rust | 官方 Messages API，出站强制 `stream:true` |
 | [service/kernel/src/provider/mock.rs](../kernel/src/provider/mock.rs) | Rust | 契约测试，合成 Anthropic 事件 |
 | [service/control/cmd/kin-control/main.go](../control/cmd/kin-control/main.go) | Go | 控制面入口 |
@@ -73,41 +73,42 @@ Provider 由 `KIN_PROVIDER` 选择：`mock` | `anthropic_api` | `local_cli`。
 
 ### 3.3 调度与 slot
 
-一个 kernel 进程 = 一个调度器。默认 `KIN_ISOLATION=subagent-pool`：
+一个 kernel 进程 = 一个调度器：
 
 - `KIN_WORKER_COUNT=1`（一个 runtime）
 - `KIN_SLOTS_PER_WORKER=20`（逻辑并发上限，对应现网 `--max-procs=20`）
 
-Stock Claude CLI **不能**把多条 HTTP 请求写进同一个 stdin。stdin 属于 Root Agent 主会话，消息会排队。并行来自：
+Stock Claude CLI **不能**把多条 HTTP 请求写进同一个 stdin。并行来自 patch 后的
+CLI 自己托管 N 个无状态 slot：
 
-> **1 个 Claude OS 进程 + N 个后台 `kin-slot` Subagent + Rust Streamable HTTP MCP**。每个 Slot 阻塞在 `slot_wait()`；请求到达后 Rust 唤醒空闲 Slot。分流靠 stream-json 的 `parent_tool_use_id`。默认 POC 为 5 Slot。
+> **1 个 patched Claude 进程 + N 个 stateless slot**。内核把 `kin_job_start` 写进
+> stdin，CLI 用 `kin_stream_event` / `kin_job_done` 回报，帧自带 `job_id` /
+> `slot_id`，不需要 `parent_tool_use_id` 关联，也没有模型可见的 slot 工具。
 
-源码：[`kernel/src/provider/multiplex_cli/`](../kernel/src/provider/multiplex_cli/)。`KIN_ISOLATION=process` 仍走旧的每请求子进程。
-
-| `KIN_ISOLATION` | 行为 |
-|---|---|
-| `process` | 每 turn 新进程，end_turn 退休 |
-| `session-reset` | 同 session 复用，非 resume 先 `/clear` |
-| `subagent-pool` | session 表保活，默认 1×20 |
+源码：[`kernel/src/provider/multiplex_cli/`](../kernel/src/provider/multiplex_cli/)。
+每请求子进程（`process` / `session-reset`）与 MCP slot 路线均已删除，
+`KIN_ISOLATION` / `KIN_EXECUTION_MODE` 不再存在。
 
 Sticky：同一 session 优先回到上次 worker。P2C 在兼容候选里比 utilization / latency EWMA / error EWMA。
 
-tool_use 时 worker 从 `active` 转到 `waiting_tool`，容量仍被占住，直到 continuation 消费或 TTL 回收。
+tool_use 时 worker 从 `active` 转到 `waiting_tool`，容量仍被占住，直到 continuation 消费或 TTL 回收；
+slot 本身不 park——continuation 会作为**新 job** 重新落到任意空闲 slot。
 
-### 3.4 local_cli 出站
-
-`spawn_parked` 参数（[local_cli.rs](../kernel/src/provider/local_cli.rs)）：
+### 3.4 CLI 出站参数
 
 ```
 claude -p
   --output-format stream-json
-  --input-format stream-json
-  --verbose --include-partial-messages --replay-user-messages
+  --verbose --include-partial-messages
   --permission-mode acceptEdits
   --no-session-persistence
-  --session-id <uuid>
+  --strict-mcp-config
   --model <request.model>
 ```
+
+（`supervisor::native_cli_args`，另加 `CLAUDE_CODE_KIN_NATIVE_SLOTS` /
+`CLAUDE_CODE_SYSTEM_LAYOUT` / `CLAUDE_CODE_TIMEZONE` /
+`CLAUDE_CODE_KIN_CONFIG_HASH` 环境变量。）
 
 工作目录 = `CLAUDE_CONFIG_DIR` = `/tmp/kin-cli/<tenant>/<cli-session-uuid>/`，写入 `.credentials.json`（0600）。
 
@@ -124,7 +125,7 @@ claude -p
 
 **setup-token**（`claude setup-token`，inference-only）：设 `CLAUDE_CODE_OAUTH_TOKEN` / `KIN_CLAUDE_CODE_OAUTH_TOKEN`，或把 `kind=setup-token` 的 JSON 放进 `KIN_CLAUDE_AI_OAUTH_JSON`。无 refresh。两种模式都不设 `ANTHROPIC_API_KEY`、不加 `--bare`。
 
-CLI 读 stdin NDJSON `{"type":"user","session_id":"...","message":{...}}`，stdout 吐 `stream_event`（内嵌官方 SSE）→ `assistant` → `result`。内核把 `stream_event.event` 立刻推给 HTTP 客户端。
+CLI 读 stdin NDJSON `{"type":"kin_job_start","job_id":...,"slot_id":...,"request":{...}}`，stdout 吐 `kin_stream_event`（内嵌官方 SSE）→ `kin_job_done`。内核把 `kin_stream_event.event` 原样推给 HTTP 客户端，并用 `StreamAssembler` 拼出非流式响应。
 
 ### 3.5 代理
 
@@ -218,7 +219,7 @@ scope=user:profile user:inference user:sessions:claude_code user:mcp_servers use
 | 现网 | 本仓库 |
 |---|---|
 | portunex-server 粘性/P2C | `scheduler.rs` |
-| isthmus stream-json 驱动 CLI | `local_cli.rs` |
+| isthmus stream-json 驱动 CLI | `multiplex_cli/` |
 | `--max-procs=20` 逻辑槽 | `KIN_SLOTS_PER_WORKER=20` |
 | `--single-process-subagents` 一进程 20 loop | **stock CLI 做不到**；改为每 session 一进程，上限 20 |
 | `--no-strict-isolation` 共用 session | **已改**：每请求独立 `--session-id` |
@@ -238,7 +239,6 @@ python3 service/scripts/http_to_socks.py
 
 # 内核
 export KIN_PROVIDER=local_cli
-export KIN_ISOLATION=subagent-pool
 export KIN_WORKER_COUNT=1
 export KIN_SLOTS_PER_WORKER=20
 export KIN_CLAUDE_BIN=/path/to/claude

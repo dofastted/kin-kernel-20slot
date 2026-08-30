@@ -1,6 +1,5 @@
 pub mod anthropic;
 pub mod cli_auth;
-pub mod local_cli;
 pub mod mock;
 pub mod multiplex_cli;
 
@@ -82,10 +81,6 @@ pub trait Provider: Send + Sync {
     }
 
     fn memory_snapshot(&self) -> Option<serde_json::Value> {
-        None
-    }
-
-    fn relay_snapshot(&self) -> Option<serde_json::Value> {
         None
     }
 

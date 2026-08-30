@@ -1,1 +1,7 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/kernel/index.md", "reason": "kernel 层规范总入口，删除路线需遵守既有分层约定"}
+{"file": ".trellis/spec/kernel/multiplex-cli-subsystem.md", "reason": "relay/mcp_slot/execution_mode 的权威描述，S6 需按实现同步删章节"}
+{"file": ".trellis/spec/kernel/provider-adapters.md", "reason": "local_cli 与 provider 分发约定，S5 删除时须对齐"}
+{"file": ".trellis/spec/kernel/scheduling-and-sessions.md", "reason": "SlotPhase/Phase::WaitingTool 状态机契约，S3 判定 OQ1 依据"}
+{"file": ".trellis/spec/kernel/api-and-schema.md", "reason": "/healthz /readyz 字段与 config_hash 契约，S2/S4 改动面"}
+{"file": ".trellis/spec/control/store-and-reconcile.md", "reason": "Go 侧 desired/applied 与 config_hash 三方校验，闸门 B 依据"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "拆分 sse_tap 时判断保留/删除边界"}

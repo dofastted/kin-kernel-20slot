@@ -2,7 +2,13 @@
 
 Rust 数据面 + Go 控制面。对照现网：`portunex-server` 的粘性/P2C 进 Rust；`isthmus` 的「驱动本机 Claude Code、把 agent loop 伪装成无状态 API」进 `local_cli` provider。
 
-**先读 [docs/SOURCE_AND_PRINCIPLES.md](docs/SOURCE_AND_PRINCIPLES.md)**（as-built 源码地图）。设计对照：[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+**先读 [service/docs/SOURCE_AND_PRINCIPLES.md](kin-kernel-20slot/service/docs/SOURCE_AND_PRINCIPLES.md)**（as-built 源码地图）。设计对照：[service/docs/ARCHITECTURE.md](kin-kernel-20slot/service/docs/ARCHITECTURE.md)。运行说明以 [service/README.md](kin-kernel-20slot/service/README.md) 为准。
+
+执行路径只有一条：patched Claude CLI + `kin_*` stdin/stdout 协议（`native_messages`）。
+`KIN_EXECUTION_MODE` / `KIN_RELAY_MODE` / `KIN_ISOLATION` / `KIN_ALLOW_NATIVE_AGENT`
+已随 relay / mcp_slot / native_agent / 每请求子进程四条旧路线一起删除，见
+[patches/claude-code/APPLY.md](kin-kernel-20slot/patches/claude-code/APPLY.md) 的
+"Consolidation" 段。
 
 ## 组件
 
@@ -47,7 +53,6 @@ cd control && go run ./cmd/kin-control
 
 ```bash
 export KIN_PROVIDER=local_cli
-export KIN_ISOLATION=subagent-pool
 export KIN_WORKER_COUNT=1
 export KIN_SLOTS_PER_WORKER=20
 export KIN_CLAUDE_BIN=/path/to/claude

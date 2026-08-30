@@ -47,7 +47,6 @@ cd control && go run ./cmd/kin-control
 
 ```bash
 export KIN_PROVIDER=local_cli
-export KIN_ISOLATION=subagent-pool
 export KIN_WORKER_COUNT=1
 export KIN_SLOTS_PER_WORKER=20
 export KIN_CLAUDE_BIN=/path/to/claude

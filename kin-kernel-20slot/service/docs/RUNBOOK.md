@@ -39,19 +39,22 @@
 - 禁止在每个 kernel 本地新建互不一致的 sticky mapping；
 - 恢复后运行 reservation reconciliation。
 
-## 4.1 Messages Relay（`KIN_RELAY_MODE`）
+## 4.1 CLI 数据面（patch 单一路线）
 
-灰度顺序固定为 `off → observe → authoritative`；每档验证通过再切下一档。
+CLI 自己发起上游 TLS，内核只读它的 stdout。没有 relay、没有 tap、没有
+`ANTHROPIC_BASE_URL` 改写，`KIN_RELAY_MODE` / `KIN_EXECUTION_MODE` /
+`KIN_ISOLATION` 已随代码删除。
 
 | 场景 | 处置 |
 |---|---|
-| 内核起不来且日志含 `relay healthz` | Relay 未就绪时 CLI 不会启动（预期行为）。检查 `KIN_RELAY_ADDR` 端口占用与 `KIN_RELAY_UPSTREAM` 可达性；无法立刻修复则改回 `off` 重启 |
-| `KIN_RELAY_MODE` 拼写错误 | 启动即退出（预期，禁止静默降级）；修正后重启 |
-| `/healthz` 的 `relay.tap_dropped` 增长 | 某些 turn 的用户 tap 溢出；对应用户流会收到显式错误而非缺字成功。CLI 支路不受影响。持续增长说明客户端消费过慢或事件突发过大 |
-| `relay.digest_mismatch` 非零 | upstream 正文与 stdout/`kin_done` 摘要不一致；observe 阶段出现说明关联或过滤有 bug，**不要切 authoritative**，带 digest（无正文）开工单 |
-| 回滚 | 设 `KIN_RELAY_MODE=off` 并重启 kernel。CLI 启动后无法动态撤销已注入的 `ANTHROPIC_BASE_URL`，必须重启 |
+| `/readyz` 返回 `config_hash_mismatch` | CLI 上报的 `kin_host_ready.config_hash` 与 `KIN_DESIRED_CONFIG_HASH` 不一致，多为 CLI 进程用旧 profile 启动。对齐控制面 `GET /api/v1/runtime-profile` 的 hash 后 drain + 重启，禁止把校验关掉 |
+| `/readyz` 长时间 `booting` | CLI 没有发出 `kin_host_ready` 或 slot 数不符。查 `/tmp/kin-live/claude.multiplex.stderr.log`，确认 `CLAUDE_CODE_KIN_NATIVE_SLOTS` 与 `KIN_SLOTS_PER_WORKER` 一致 |
+| 某个 job 卡住不出 token | 该 job 的 stdout 超过 `MAX_JOB_BYTES` 后会停止解码（按 job_id 独立计量，不影响其他 slot）。查该 job_id 的 stdout 体量与客户端消费速度 |
+| 客户端收到显式错误而非缺字成功 | 预期行为：sink 溢出/客户端过慢会设置 terminal 并报错，不会静默截断 |
+| 回滚 | 旧路线已物理删除，环境变量无法退回 relay/mcp_slot；需要回退走 git revert 对应批次 commit |
 
-日志纪律：Relay 不记录 authorization/x-api-key/OAuth token/请求或响应正文；排障只用 job_id/slot_id/generation/digest。
+日志纪律：不记录 authorization/x-api-key/OAuth token/请求或响应正文；排障只用
+job_id/slot_id/config_hash。
 
 ## 5. Control plane 故障
 

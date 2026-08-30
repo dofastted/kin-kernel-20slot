@@ -7,7 +7,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -278,34 +277,19 @@ func validateRuntimeProfile(profile model.RuntimeProfile) error {
 	return nil
 }
 
-// nativeAgentOptIn and nativeAgentOptInValue mirror the Rust kernel's
-// KIN_ALLOW_NATIVE_AGENT gate (execution_mode.rs). Both layers must agree, so
-// a profile the console accepts is one the kernel will also boot.
-const (
-	nativeAgentOptIn      = "KIN_ALLOW_NATIVE_AGENT"
-	nativeAgentOptInValue = "i-understand-host-tools-are-exposed"
-)
+// executionMode is the only mode the kernel implements (patch-only
+// consolidation). It stays a profile field because `config_hash` is computed
+// over the whole RuntimeProfile and compared across console, kernel, and CLI.
+const executionMode = "native_messages"
 
-// validateExecutionMode rejects modes the kernel cannot parse, and gates
-// native_slot/native_agent behind an explicit opt-in: that mode exposes the
-// full host tool set with permissions unconditionally allowed (P0-5), so
-// naming it must not be enough to select it.
+// validateExecutionMode rejects anything the kernel cannot run. mcp_slot and
+// native_slot were deleted along with their code paths, so naming them must
+// fail here rather than produce a kernel that refuses to boot.
 func validateExecutionMode(mode string) error {
-	switch strings.ToLower(strings.TrimSpace(mode)) {
-	case "mcp", "mcp_slot", "agent", "native_messages":
+	if strings.ToLower(strings.TrimSpace(mode)) == executionMode {
 		return nil
-	case "native", "native_slot", "native_agent", "host":
-		if strings.TrimSpace(os.Getenv(nativeAgentOptIn)) == nativeAgentOptInValue {
-			return nil
-		}
-		return fmt.Errorf(
-			"execution_mode %q exposes host tools with permissions unconditionally allowed "+
-				"and is not exposed by default; set %s=%s to acknowledge that risk",
-			mode, nativeAgentOptIn, nativeAgentOptInValue,
-		)
-	default:
-		return fmt.Errorf("execution_mode %q must be mcp_slot, native_slot, or native_messages", mode)
 	}
+	return fmt.Errorf("execution_mode %q must be %s", mode, executionMode)
 }
 
 func validName(value string) bool {

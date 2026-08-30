@@ -5,7 +5,7 @@
 ```
 kin-kernel-20slot/service/kernel/src/
 ├── main.rs              # entry point: Config -> Scheduler/SessionDirectory -> provider select -> axum::serve
-├── config.rs             # Config::from_env(), IsolationMode enum + FromStr, tunable constants
+├── config.rs             # Config::from_env(), tunable constants
 ├── state.rs               # AppState{config, scheduler, sessions, provider} — axum State payload
 ├── error.rs                # KernelError enum + IntoResponse (HTTP status/code/retryable mapping)
 ├── model.rs                  # MessageRequest/MessageResponse/ContentBlock/StopReason + OpenAI Chat* family
@@ -17,20 +17,16 @@ kin-kernel-20slot/service/kernel/src/
     ├── mod.rs                        # Provider trait, boot()/collect_stream() shared helpers
     ├── mock.rs                        # MockProvider — deterministic, no external calls
     ├── anthropic.rs                    # AnthropicProvider — official Messages API, forces stream:true upstream
-    ├── local_cli.rs                     # LocalCliProvider — blocking one-child-per-session CLI driver
-    └── multiplex_cli/                    # subagent-pool isolation: one CLI process, up to 20 MCP-blocked slots
-        ├── mod.rs                          # MultiplexCliProvider, Runtime, simulate_worker(), decode_stdout()
-        ├── slot.rs                          # Slot state machine (SlotPhase, cas(), bind_job())
-        ├── memory_guard.rs                   # RSS admission bands (Allow/AllowSmall/Drain/Reject)
-        ├── continuation.rs                    # ContinuationToken — signed, hand-rolled MAC (see multiplex-cli-subsystem.md)
-        ├── mcp_server.rs                       # HTTP/SSE MCP JSON-RPC server (slot_wait/client_tool/kin_done/kin_fail)
-        ├── scheduler.rs                         # SlotScheduler — sticky + ready-queue picker, distinct from top-level scheduler.rs
-        ├── supervisor.rs                         # spawns the Claude CLI child, writes .credentials.json + mcp.json
-        ├── bootstrap.rs                           # writes the root "spawn N kin-slot agents" prompt, waits for ready slots
-        ├── job_stream.rs                           # CLI NDJSON frame -> Anthropic SSE event translation (no fake chunking)
-        ├── stream_decoder.rs                       # routes NDJSON frames by parent_tool_use_id (root vs. subagent)
-        ├── pending_call.rs                          # oneshot-channel registries: slot_wait / client_tool / done
-        └── replay.rs                                # offline NDJSON trace replay for load/soak testing (no live CLI)
+    └── multiplex_cli/                    # the only CLI path: one patched CLI process, up to 20 stateless slots
+        ├── mod.rs                          # MultiplexCliProvider, Runtime, simulated_cli(), decode_stdout()
+        ├── native_protocol.rs                # kin_* stdin/stdout frames + stdout byte caps
+        ├── job.rs                             # Job{job_id, slot_id, request} + new_id()
+        ├── slot.rs                             # Slot state machine (SlotPhase, bind_job(), should_retire())
+        ├── memory_guard.rs                       # RSS admission bands (Allow/AllowSmall/Drain/Reject)
+        ├── scheduler.rs                           # SlotScheduler — sticky + ready-queue picker, distinct from top-level scheduler.rs
+        ├── supervisor.rs                            # spawns the patched CLI child, writes .credentials.json, proxy env
+        ├── bootstrap.rs                              # wait_ready(): polls ready_slots() until the CLI registered N slots
+        └── envelope.rs                                # console-managed system layout + timezone envelope
 ```
 
 ## Module Organization Rule
@@ -47,11 +43,10 @@ protocol quirks (e.g. multiplex's signed continuation tokens vs. `session.rs`'s 
 ## Naming Conventions
 
 - Provider structs are named `<Name>Provider` (`MockProvider`, `AnthropicProvider`,
-  `LocalCliProvider`, `MultiplexCliProvider`) and all report a `name()` string that
-  matches the `KIN_PROVIDER` value that selects them — note that both `LocalCliProvider`
-  and `MultiplexCliProvider` report `"local_cli"`; they are disambiguated only by
-  `KIN_ISOLATION` in `main.rs` (`Multiplexed` -> `MultiplexCliProvider`, anything else
-  -> `LocalCliProvider`).
+  `MultiplexCliProvider`) and all report a `name()` string that matches the
+  `KIN_PROVIDER` value that selects them — `MultiplexCliProvider` reports
+  `"local_cli"` because that is still the operator-facing value for "drive the local
+  Claude CLI"; the per-turn-process provider that used to share the name is gone.
 - Errors are constructed via `KernelError` variants, never `anyhow`/`Box<dyn Error>`,
   inside request-handling code (see `error-handling.md`).
 
@@ -62,7 +57,7 @@ protocol quirks (e.g. multiplex's signed continuation tokens vs. `session.rs`'s 
   so unknown fields still round-trip.
 - New provider-agnostic scheduling policy: `scheduler.rs`.
 - New provider-agnostic session/continuation behavior: `session.rs`.
-- Anything only relevant to driving the local Claude CLI in multiplex mode: under
-  `provider/multiplex_cli/`, not `provider/local_cli.rs` — the two providers are
-  intentionally independent implementations (see `provider-adapters.md` for why they
-  are not merged despite sharing patterns like credential-file writing).
+- Anything only relevant to driving the local Claude CLI: under
+  `provider/multiplex_cli/`. Anything that would need Rust to originate an upstream
+  request or re-decode the CLI's stream belongs in the CLI patch instead
+  (`patches/claude-code/`), not in a second in-kernel data plane.

@@ -13,6 +13,12 @@ use serde_json::Value;
 pub const KIN_PROTOCOL_VERSION: u32 = 2;
 pub const KIN_CAPABILITIES: &[&str] = &["multi_slot", "native_sse", "stateless"];
 
+/// Hard caps on CLI stdout: a single line longer than this is dropped, and a
+/// job whose cumulative stdout exceeds `MAX_JOB_BYTES` stops being decoded so
+/// one runaway job cannot starve the others sharing the CLI process.
+pub const MAX_LINE_BYTES: usize = 2 * 1024 * 1024;
+pub const MAX_JOB_BYTES: usize = 32 * 1024 * 1024;
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
 pub enum KinStdin {

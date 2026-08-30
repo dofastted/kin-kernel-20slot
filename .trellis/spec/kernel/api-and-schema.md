@@ -86,14 +86,15 @@ Anthropic-shaped SSE events into a `MessageResponse`. It is used by:
 - `provider/anthropic.rs`'s `pump_anthropic_sse()` — dual-purpose: forwards live
   events to the client channel **and** feeds them through `assembler.apply_event()`,
   then `assembler.finish(request)` produces the terminal response.
-- `provider/local_cli.rs`'s blocking NDJSON reader.
+- `multiplex_cli/mod.rs`'s `handle_native_frame()` — forwards each
+  `kin_stream_event.event` to the client verbatim **and** feeds it to a per-job
+  `StreamAssembler`, whose `parts()` builds the terminal response in
+  `complete_job()`.
 
-`multiplex_cli/job_stream.rs`'s `JobStream` is a **separate, simpler** forward-only
-demuxer used only inside the multiplex subsystem — it does not build a full
-`MessageResponse`, it just re-emits already-well-formed frames as SSE. Do not
-conflate the two: if new code needs to accumulate a complete response from a stream
-of deltas, use `StreamAssembler`; if it only needs to relay/demux already-complete
-frames, follow `JobStream`'s model instead of adding accumulation logic to it.
+There is exactly one accumulation primitive: `StreamAssembler`. The old
+`multiplex_cli/job_stream.rs` demuxer (index remapping + internal-tool swallowing for
+MCP-shaped frames) was deleted with the MCP path — do not reintroduce a second
+event-translation layer; the CLI already emits well-formed Anthropic SSE.
 
 `apply_event()` handles `content_block_start` (text/thinking/image/tool_use/
 server_tool_use/web_search_tool_result variants), `content_block_delta`

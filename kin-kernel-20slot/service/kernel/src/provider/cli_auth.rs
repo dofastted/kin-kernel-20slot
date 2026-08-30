@@ -30,24 +30,8 @@ pub struct ResolvedCliAuth {
 }
 
 impl ResolvedCliAuth {
-    pub fn apply_std(&self, cmd: &mut std::process::Command) {
-        apply_std(cmd, self.setup_token.as_deref());
-    }
-
     pub fn apply_tokio(&self, cmd: &mut tokio::process::Command) {
         apply_tokio(cmd, self.setup_token.as_deref());
-    }
-}
-
-fn apply_std(cmd: &mut std::process::Command, setup: Option<&str>) {
-    cmd.env_remove("ANTHROPIC_API_KEY");
-    match setup {
-        Some(token) if !token.is_empty() => {
-            cmd.env("CLAUDE_CODE_OAUTH_TOKEN", token);
-        }
-        _ => {
-            cmd.env_remove("CLAUDE_CODE_OAUTH_TOKEN");
-        }
     }
 }
 

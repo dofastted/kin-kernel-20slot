@@ -173,24 +173,17 @@ func TestSessionKeyExchangeGone(t *testing.T) {
 	}
 }
 
-// AC18: native_slot/native_agent exposes the full host tool set with
-// permissions unconditionally allowed (P0-5). The console must refuse it
-// unless the operator has explicitly acknowledged that risk, mirroring the
-// kernel's KIN_ALLOW_NATIVE_AGENT gate.
-func TestValidateExecutionModeGatesNativeAgent(t *testing.T) {
-	for _, mode := range []string{"native", "native_slot", "native_agent", "host", "NATIVE_SLOT", " native_slot "} {
-		if err := validateExecutionMode(mode); err == nil {
-			t.Fatalf("execution_mode %q must be gated", mode)
-		} else if !strings.Contains(err.Error(), nativeAgentOptIn) {
-			t.Fatalf("execution_mode %q error should name the gate, got %v", mode, err)
+// The kernel implements exactly one execution mode after the patch-only
+// consolidation; the console must not accept a profile the kernel cannot boot.
+func TestValidateExecutionModeAcceptsOnlyNativeMessages(t *testing.T) {
+	for _, mode := range []string{"native_messages", "NATIVE_MESSAGES", " native_messages "} {
+		if err := validateExecutionMode(mode); err != nil {
+			t.Fatalf("execution_mode %q must be accepted, got %v", mode, err)
 		}
 	}
-}
-
-func TestValidateExecutionModeAllowsUngatedModes(t *testing.T) {
-	for _, mode := range []string{"mcp", "mcp_slot", "agent", "native_messages", "NATIVE_MESSAGES"} {
-		if err := validateExecutionMode(mode); err != nil {
-			t.Fatalf("execution_mode %q must stay ungated, got %v", mode, err)
+	for _, mode := range []string{"mcp", "mcp_slot", "agent", "native", "native_slot", "native_agent", "host"} {
+		if err := validateExecutionMode(mode); err == nil {
+			t.Fatalf("deleted execution_mode %q must be rejected", mode)
 		}
 	}
 }
@@ -198,22 +191,5 @@ func TestValidateExecutionModeAllowsUngatedModes(t *testing.T) {
 func TestValidateExecutionModeRejectsUnknown(t *testing.T) {
 	if err := validateExecutionMode("bogus"); err == nil {
 		t.Fatal("unknown execution_mode must be rejected")
-	}
-}
-
-func TestValidateExecutionModeAcceptsNativeAgentWithOptIn(t *testing.T) {
-	// Not parallel: mutates process env.
-	t.Setenv(nativeAgentOptIn, nativeAgentOptInValue)
-	if err := validateExecutionMode("native_slot"); err != nil {
-		t.Fatalf("opt-in must unlock native_slot, got %v", err)
-	}
-}
-
-func TestValidateExecutionModeRejectsTruthyOptInValues(t *testing.T) {
-	for _, value := range []string{"1", "true", "yes", ""} {
-		t.Setenv(nativeAgentOptIn, value)
-		if err := validateExecutionMode("native_slot"); err == nil {
-			t.Fatalf("opt-in value %q must not unlock native_slot", value)
-		}
 	}
 }

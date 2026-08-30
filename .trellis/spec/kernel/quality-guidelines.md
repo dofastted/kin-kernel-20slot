@@ -22,19 +22,21 @@ kernel. Examples already in the codebase:
 - `kernel/src/stream.rs`: `concatenates_text_deltas`, `parses_sse_data_block` —
   assert `StreamAssembler` behavior directly against synthetic SSE JSON, not against
   a live provider.
-- `kernel/src/provider/multiplex_cli/mod.rs`: 8 tests covering concurrency isolation,
-  resume independence, stale-generation rejection, 20-parallel-slot uniqueness,
-  memory-guard rejection, `message_start` latency decoupling, no-fake-chunking
-  guarantee, and web-search sentinel-leak prevention. `MultiplexCliProvider::simulated(slot_count)`
-  exists specifically so these tests never spawn a real Claude CLI process.
-- `kernel/src/provider/multiplex_cli/continuation.rs`: one round-trip + tamper +
-  generation-mismatch test for the signed token.
-- `kernel/src/provider/multiplex_cli/memory_guard.rs`: two tests confirming exact RSS
+- `kernel/src/provider/multiplex_cli/mod.rs`: tests covering concurrency isolation,
+  tool_use resume independence, 5- and 20-parallel-slot behavior, memory-guard
+  rejection, `message_start` latency decoupling, no-fake-chunking, web-search frame
+  forwarding, per-job stdout metering, sink overflow/stall terminals and
+  `kin_host_ready` config_hash validation. `MultiplexCliProvider::simulated(slot_count)`
+  drives `simulated_cli()` over an in-memory pipe so these tests exercise the real
+  `kin_*` protocol without spawning a Claude CLI process.
+- `kernel/src/provider/multiplex_cli/native_protocol.rs`: frame round-trip and
+  handshake tests for the stdin/stdout contract.
+- `kernel/src/provider/multiplex_cli/memory_guard.rs`: tests confirming exact RSS
   admission-band boundaries.
 
 **Pattern to follow**: when adding provider or protocol behavior, add a synthetic,
 no-network, no-subprocess unit test in the same file, following the
-`simulate_worker()` / `MultiplexCliProvider::simulated()` model — do not require a
+`simulated_cli()` / `MultiplexCliProvider::simulated()` model — do not require a
 live Claude CLI binary or live Anthropic API key for `cargo test` to pass.
 
 ## Forbidden Patterns
@@ -46,17 +48,15 @@ live Claude CLI binary or live Anthropic API key for `cargo test` to pass.
   style for *provider*-controlled JSON (frames from the CLI/API are read
   defensively with `unwrap_or` defaults, never `unwrap()`, because provider output
   is not a fully trusted contract either).
-- **No blocking I/O on the async runtime** outside of `spawn_blocking`.
-  `provider/local_cli.rs` deliberately drives `std::process::Child` inside
-  `tokio::task::spawn_blocking` rather than switching everything to
-  `tokio::process` — follow that pattern for any new blocking-API integration rather
-  than blocking the shared Tokio executor.
-- **No rolling your own crypto without saying so.** `provider/multiplex_cli/continuation.rs`'s
-  `mac()` is a hand-rolled, non-standard mixing function (not HMAC). If you touch it,
-  keep the doc-comment explicit that it is not a standard MAC and that its security
-  depends entirely on `secret` being non-empty and unpredictable (`mac()` returns an
-  all-zero MAC if `secret.is_empty()` — never let that config path go unchecked in
-  production).
+- **No blocking I/O on the async runtime** outside of `spawn_blocking`. The CLI child
+  is driven through `tokio::process` + `tokio::io`; if you integrate a blocking API,
+  wrap it in `tokio::task::spawn_blocking` rather than blocking the shared executor.
+- **No rolling your own crypto.** The kernel currently signs nothing: the signed
+  multiplex continuation token and its HMAC module were deleted with the MCP path
+  (`session.rs`'s opaque `cont_<uuid>` + server-side lookup is the whole protocol).
+  If a future feature needs authenticated tokens, add one HMAC-SHA256 module with
+  domain separation and a hard failure on an empty secret — never a hand-rolled MAC,
+  never a per-module helper.
 - **No provider-name branching outside `main.rs` and the provider's own module.**
   `api.rs` calls `provider.execute_stream(...)` through the `Provider` trait; it does
   not match on `provider.name()`.

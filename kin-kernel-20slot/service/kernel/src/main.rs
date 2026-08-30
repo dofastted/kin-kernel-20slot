@@ -16,9 +16,7 @@ use tracing_subscriber::EnvFilter;
 
 use crate::{
     config::Config,
-    provider::{
-        Provider, anthropic::AnthropicProvider, local_cli::LocalCliProvider, mock::MockProvider,
-    },
+    provider::{Provider, anthropic::AnthropicProvider, mock::MockProvider},
     scheduler::Scheduler,
     session::SessionDirectory,
     state::AppState,
@@ -44,12 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let provider: Arc<dyn Provider> = match config.provider.as_str() {
         "mock" => Arc::new(MockProvider),
         "anthropic_api" => Arc::new(AnthropicProvider::from_env()?),
-        "local_cli" => match config.isolation {
-            crate::config::IsolationMode::Multiplexed => {
-                Arc::new(provider::multiplex_cli::MultiplexCliProvider::from_env()?)
-            }
-            _ => Arc::new(LocalCliProvider::from_env(config.isolation)?),
-        },
+        "local_cli" => Arc::new(provider::multiplex_cli::MultiplexCliProvider::from_env()?),
         other => return Err(format!("unsupported KIN_PROVIDER: {other}").into()),
     };
     let cleanup_scheduler = Arc::clone(&scheduler);
@@ -73,7 +66,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         address = %config.listen_addr,
         workers = config.worker_count,
         slots_per_worker = config.slots_per_worker,
-        isolation = %config.isolation,
         provider = %config.provider,
         "kin-kernel listening"
     );

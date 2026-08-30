@@ -3,7 +3,7 @@
   "name": "patch-only-consolidation",
   "title": "移除 relay/mcp_slot 旧路线，收敛为 patch 单一路线",
   "description": "",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
