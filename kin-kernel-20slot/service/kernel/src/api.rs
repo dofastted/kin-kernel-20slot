@@ -37,20 +37,11 @@ use crate::{
     stream::{StreamItem, openai_chunk},
 };
 
-/// Execution mode as reported by `/healthz` and `/readyz`. Derived from the
-/// same `ExecutionMode` default as the boot path so the two can never drift
-/// (a mismatch would break the three-way `config_hash` check). A set but
-/// invalid value is echoed back verbatim instead of being masked.
-fn reported_execution_mode() -> String {
-    use crate::provider::multiplex_cli::execution_mode::ExecutionMode;
-    match std::env::var("KIN_EXECUTION_MODE") {
-        Ok(raw) => raw
-            .parse::<ExecutionMode>()
-            .map(|mode| mode.as_str().to_string())
-            .unwrap_or(raw),
-        Err(_) => ExecutionMode::default().as_str().to_string(),
-    }
-}
+/// Execution mode as reported by `/healthz` and `/readyz`, and the only mode
+/// the kernel implements. It stays in the payload (and in the Go control
+/// plane's `RuntimeProfile`, hence in `config_hash`) because the three-way
+/// check compares this exact string across kernel, console, and CLI.
+const EXECUTION_MODE: &str = "native_messages";
 
 pub fn router(state: AppState) -> Router {
     let max_body_bytes = state.config.max_body_bytes;
@@ -79,7 +70,7 @@ async fn health(State(state): State<AppState>) -> Json<serde_json::Value> {
         "workers": state.config.worker_count,
         "slots_per_worker": state.config.slots_per_worker,
         "memory": state.provider.memory_snapshot(),
-        "execution_mode": reported_execution_mode(),
+        "execution_mode": EXECUTION_MODE,
         "config_hash": state.config.desired_config_hash,
         "envelope": crate::provider::multiplex_cli::envelope::load(),
         "limits": {
@@ -147,7 +138,7 @@ async fn envelope_get() -> Json<serde_json::Value> {
         "timezone": cfg.timezone,
         "path": crate::provider::multiplex_cli::envelope::config_path(),
         "identity": crate::provider::multiplex_cli::envelope::IDENTITY,
-        "execution_mode": reported_execution_mode(),
+        "execution_mode": EXECUTION_MODE,
         "notes": {
             "zero": "official sentence lives in billing prompt_version; no identity block",
             "identity": "official sentence is a standalone system block",
@@ -916,5 +907,18 @@ mod tests {
         let response = ready(State(state)).await;
         assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
         assert_eq!(response_json(response).await["reason"], "boot_failed");
+    }
+
+    /// AC19 survives the collapse of `ExecutionMode`: the kernel still
+    /// reports `native_messages`, which is also the value the Go control
+    /// plane's `RuntimeProfile` hashes into `config_hash`. Drifting this
+    /// string breaks the three-way check.
+    #[tokio::test]
+    async fn healthz_reports_the_only_execution_mode() {
+        let state = test_state();
+        state.mark_provider_ready();
+
+        let body = response_json(health(State(state)).await.into_response()).await;
+        assert_eq!(body["execution_mode"], "native_messages");
     }
 }

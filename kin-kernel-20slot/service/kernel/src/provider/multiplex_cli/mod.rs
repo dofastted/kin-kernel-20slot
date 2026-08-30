@@ -6,7 +6,6 @@
 
 pub mod bootstrap;
 pub mod envelope;
-pub mod execution_mode;
 pub mod job;
 pub mod memory_guard;
 pub mod native_protocol;
@@ -38,7 +37,6 @@ use crate::{
 };
 
 use self::{
-    execution_mode::ExecutionMode,
     job::{Job, new_id},
     memory_guard::MemoryGuard,
     scheduler::SlotScheduler,
@@ -61,7 +59,6 @@ pub struct MultiplexConfig {
     pub client_stall_timeout: Duration,
     /// Bounded wait for a slot to re-enter slot_wait before returning 503.
     pub submit_wait: Duration,
-    pub execution_mode: ExecutionMode,
     /// Go control-plane's computed `RuntimeProfile` hash (design.md §6),
     /// mirrors `crate::config::Config::desired_config_hash`. Read once at
     /// startup; `None` skips three-way config_hash validation.
@@ -124,7 +121,6 @@ impl MultiplexConfig {
                     .and_then(|value| value.parse().ok())
                     .unwrap_or(2000),
             ),
-            execution_mode: ExecutionMode::from_env()?,
             desired_config_hash: env::var("KIN_DESIRED_CONFIG_HASH").ok(),
         })
     }
@@ -1499,7 +1495,6 @@ impl MultiplexCliProvider {
                 continuation_ttl_secs: 600,
                 client_stall_timeout: Duration::from_secs(crate::config::DEFAULT_CLIENT_STALL_SECS),
                 submit_wait: Duration::from_millis(200),
-                execution_mode: ExecutionMode::NativeMessages,
                 desired_config_hash: None,
             },
             runtime: OnceCell::new(),
@@ -1523,7 +1518,6 @@ impl MultiplexCliProvider {
                     continuation_ttl_secs: self.cfg.continuation_ttl_secs,
                     client_stall_timeout: self.cfg.client_stall_timeout,
                     submit_wait: self.cfg.submit_wait,
-                    execution_mode: self.cfg.execution_mode,
                     desired_config_hash: self.cfg.desired_config_hash.clone(),
                 });
                 runtime.start().await?;
@@ -1655,7 +1649,6 @@ mod tests {
             continuation_ttl_secs: 600,
             client_stall_timeout: stall,
             submit_wait: Duration::from_millis(200),
-            execution_mode: ExecutionMode::NativeMessages,
             desired_config_hash: None,
         }
     }
