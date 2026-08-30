@@ -5,6 +5,11 @@
 > `Provider` implementations (`mock`, `anthropic_api`, and `local_cli` =
 > `MultiplexCliProvider`).
 
+The same binary also serves a second launch mode — `--gateway-worker --config
+<path>`, the per-slot data-plane worker in `src/gateway_worker/` (see
+`service/docs/GATEWAY_PARITY_API.md`); default argv still selects the public HTTP
+kernel described here.
+
 This directory documents the kernel **as it is implemented today**. For the
 as-built vs. aspirational split, see
 `kin-kernel-20slot/service/docs/SOURCE_AND_PRINCIPLES.md` (as-built) vs.

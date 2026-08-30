@@ -4,7 +4,7 @@
 
 ```
 kin-kernel-20slot/service/kernel/src/
-├── main.rs              # entry point: Config -> Scheduler/SessionDirectory -> provider select -> axum::serve
+├── main.rs              # entry point: argv -> LaunchMode {PublicHttp | GatewayWorker}, then Config -> Scheduler/SessionDirectory -> provider select -> axum::serve
 ├── config.rs             # Config::from_env(), tunable constants
 ├── state.rs               # AppState{config, scheduler, sessions, provider} — axum State payload
 ├── error.rs                # KernelError enum + IntoResponse (HTTP status/code/retryable mapping)
@@ -13,6 +13,15 @@ kin-kernel-20slot/service/kernel/src/
 ├── scheduler.rs                  # P2C Scheduler, Worker, WorkerLease (top-level; NOT the multiplex-internal one)
 ├── session.rs                     # SessionDirectory, SessionRecord, the simple continuation-token protocol
 ├── api.rs                          # axum router, /v1/messages + /v1/chat/completions handlers, SSE encoding
+├── gateway_worker/       # second launch mode: `--gateway-worker --config <path>` runs a per-slot
+│   │                     #   data-plane worker instead of the public HTTP server
+│   ├── mod.rs             # LaunchMode parsing + run()
+│   ├── config.rs           # worker config file loading
+│   ├── credential.rs        # credential resolution for the worker
+│   ├── hop.rs                # the upstream request hop
+│   ├── server.rs              # the worker's HTTP surface
+│   ├── sse.rs                  # upstream SSE pumping + usage merging
+│   └── error.rs                 # worker-local error mapping
 └── provider/
     ├── mod.rs                        # Provider trait, boot()/collect_stream() shared helpers
     ├── mock.rs                        # MockProvider — deterministic, no external calls
@@ -28,6 +37,16 @@ kin-kernel-20slot/service/kernel/src/
         ├── bootstrap.rs                              # wait_ready(): polls ready_slots() until the CLI registered N slots
         └── envelope.rs                                # console-managed system layout + timezone envelope
 ```
+
+## Two Launch Modes, One Binary
+
+`main.rs` dispatches on argv before touching `Config`: default argv is the public
+HTTP kernel (`api.rs` router + provider), `--gateway-worker --config <path>` is the
+per-slot data-plane worker in `gateway_worker/` (see
+`service/docs/GATEWAY_PARITY_API.md`). They share `model.rs`, `stream.rs` (usage
+merging lives there, not in the worker) and `error.rs`; everything else in
+`gateway_worker/` is worker-local. Keep it that way: shared plumbing goes in the
+crate root, worker-only logic stays inside `gateway_worker/`.
 
 ## Module Organization Rule
 
