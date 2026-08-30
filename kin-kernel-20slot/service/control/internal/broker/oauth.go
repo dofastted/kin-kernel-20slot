@@ -74,14 +74,14 @@ var Alignment = []map[string]string{
 }
 
 type ExchangeRequest struct {
-	SessionKey   string `json:"session_key"`
+	SessionKey    string `json:"session_key"`
 	SessionKeyAlt string `json:"sessionKey"`
-	Cookie       string `json:"cookie"`
-	Socks5       string `json:"socks5"`
-	SecretRef    string `json:"secret_ref"`
-	RefreshToken string `json:"refresh_token"`
-	AccessToken  string `json:"access_token"`
-	Scopes       string `json:"scope"`
+	Cookie        string `json:"cookie"`
+	Socks5        string `json:"socks5"`
+	SecretRef     string `json:"secret_ref"`
+	RefreshToken  string `json:"refresh_token"`
+	AccessToken   string `json:"access_token"`
+	Scopes        string `json:"scope"`
 }
 
 type ClaudeAiOauth struct {
@@ -94,15 +94,15 @@ type ClaudeAiOauth struct {
 }
 
 type RefreshResult struct {
-	OK      bool          `json:"ok"`
-	AuthMode string       `json:"authMode"`
-	Socks5  string        `json:"socks5"`
-	Oauth   ClaudeAiOauth `json:"-"`
-	ExpiresIn int         `json:"expires_in"`
-	HasRefresh bool       `json:"has_refresh"`
-	AccessFP string       `json:"access_token_fp"`
-	RefreshFP string      `json:"refresh_token_fp"`
-	Scope   string        `json:"scope"`
+	OK         bool          `json:"ok"`
+	AuthMode   string        `json:"authMode"`
+	Socks5     string        `json:"socks5"`
+	Oauth      ClaudeAiOauth `json:"-"`
+	ExpiresIn  int           `json:"expires_in"`
+	HasRefresh bool          `json:"has_refresh"`
+	AccessFP   string        `json:"access_token_fp"`
+	RefreshFP  string        `json:"refresh_token_fp"`
+	Scope      string        `json:"scope"`
 }
 
 type Refresher struct {
@@ -289,14 +289,14 @@ func (r *Refresher) Refresh(ctx context.Context, refreshToken, scope, socks5 str
 		socksDisplay = "socks5h://••••"
 	}
 	return &RefreshResult{
-		OK:       true,
-		AuthMode: "claude_ai_oauth",
-		Socks5:   socksDisplay,
-		ExpiresIn: payload.ExpiresIn,
+		OK:         true,
+		AuthMode:   "claude_ai_oauth",
+		Socks5:     socksDisplay,
+		ExpiresIn:  payload.ExpiresIn,
 		HasRefresh: payload.RefreshToken != "",
-		AccessFP: Redact(payload.AccessToken),
-		RefreshFP: Redact(payload.RefreshToken),
-		Scope:    payload.Scope,
+		AccessFP:   Redact(payload.AccessToken),
+		RefreshFP:  Redact(payload.RefreshToken),
+		Scope:      payload.Scope,
 		Oauth: ClaudeAiOauth{
 			AccessToken:  payload.AccessToken,
 			RefreshToken: payload.RefreshToken,
