@@ -11,6 +11,8 @@ use crate::stream::{event_model, event_stop_reason, event_usage, merge_usage};
 #[derive(Debug, Clone)]
 pub struct PumpOptions {
     pub max_event_bytes: usize,
+    pub max_response_bytes: usize,
+    pub capture_body: bool,
     pub first_byte: Duration,
     pub idle: Duration,
     pub shutdown: CancellationToken,
@@ -48,6 +50,7 @@ pub enum PumpError {
     FirstByte,
     Idle,
     EventTooLarge,
+    ResponseTooLarge(usize),
     Decode(String),
     Shutdown,
     Observe(String),
@@ -61,6 +64,7 @@ impl std::fmt::Display for PumpError {
             Self::FirstByte => write!(f, "stream first-byte timeout"),
             Self::Idle => write!(f, "stream idle timeout"),
             Self::EventTooLarge => write!(f, "SSE event exceeds limit"),
+            Self::ResponseTooLarge(max) => write!(f, "stream response exceeds {max} bytes"),
             Self::Shutdown => write!(f, "worker shutting down"),
             Self::Decode(msg) | Self::Observe(msg) | Self::Emit(msg) | Self::Read(msg) => {
                 write!(f, "{msg}")
@@ -73,6 +77,7 @@ struct Tracker {
     started: bool,
     terminal: bool,
     count: i64,
+    capture_body: bool,
     usage: Map<String, Value>,
     model: String,
     stop_reason: String,
@@ -80,11 +85,12 @@ struct Tracker {
 }
 
 impl Tracker {
-    fn new() -> Self {
+    fn new(capture_body: bool) -> Self {
         Self {
             started: false,
             terminal: false,
             count: 0,
+            capture_body,
             usage: Map::new(),
             model: String::new(),
             stop_reason: String::new(),
@@ -94,7 +100,9 @@ impl Tracker {
 
     fn observe(&mut self, event: &SseEvent) -> Result<(), PumpError> {
         self.count += 1;
-        self.body.extend_from_slice(&event.raw);
+        if self.capture_body {
+            self.body.extend_from_slice(&event.raw);
+        }
         if self.terminal {
             return Err(PumpError::Observe(
                 "SSE event received after message_stop".into(),
@@ -108,10 +116,7 @@ impl Tracker {
                 self.started = true;
             }
             "error" => {
-                return Err(PumpError::Observe(format!(
-                    "upstream SSE error: {}",
-                    truncate_raw(&event.raw)
-                )));
+                return Err(PumpError::Observe("upstream SSE error event".into()));
             }
             "message_stop" => {
                 if !self.started {
@@ -157,7 +162,8 @@ where
     Fut: Future<Output = Result<(), PumpError>>,
 {
     let mut buf = Vec::new();
-    let mut tracker = Tracker::new();
+    let mut tracker = Tracker::new(options.capture_body);
+    let mut response_bytes = 0usize;
     let mut first = true;
     loop {
         if let Some(outcome) =
@@ -204,7 +210,16 @@ where
             Ok(Some(Err(err))) => return fail(tracker.result(), PumpError::Read(err.to_string())),
             Ok(Some(Ok(chunk))) => {
                 first = false;
-                buf.extend_from_slice(chunk.as_ref());
+                let chunk = chunk.as_ref();
+                let next_response_bytes = response_bytes.saturating_add(chunk.len());
+                if next_response_bytes > options.max_response_bytes {
+                    return fail(
+                        tracker.result(),
+                        PumpError::ResponseTooLarge(options.max_response_bytes),
+                    );
+                }
+                response_bytes = next_response_bytes;
+                buf.extend_from_slice(chunk);
                 if buf.len() > options.max_event_bytes && find_delim(&buf).is_none() {
                     return fail(tracker.result(), PumpError::EventTooLarge);
                 }
@@ -364,15 +379,6 @@ fn parse_event(raw: &[u8]) -> Result<SseEvent, PumpError> {
     Ok(event)
 }
 
-fn truncate_raw(raw: &[u8]) -> String {
-    let text = String::from_utf8_lossy(raw);
-    if text.len() <= 300 {
-        text.into_owned()
-    } else {
-        text.chars().take(300).collect()
-    }
-}
-
 /// Canned upstream SSE used only by the gateway_worker tests.
 #[cfg(test)]
 pub fn usage_sse_fixture() -> bytes::Bytes {
@@ -395,6 +401,8 @@ mod tests {
             stream,
             PumpOptions {
                 max_event_bytes: 32 << 20,
+                max_response_bytes: 64 << 20,
+                capture_body: true,
                 first_byte: Duration::from_secs(1),
                 idle: Duration::from_secs(1),
                 shutdown: CancellationToken::new(),
@@ -430,6 +438,8 @@ data: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_d
             stream,
             PumpOptions {
                 max_event_bytes: 1024,
+                max_response_bytes: 64 << 20,
+                capture_body: true,
                 first_byte: Duration::from_secs(1),
                 idle: Duration::from_secs(1),
                 shutdown: CancellationToken::new(),
@@ -445,6 +455,55 @@ data: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_d
                 .contains("message_stop"),
             "{:?}",
             outcome.error
+        );
+    }
+
+    #[tokio::test]
+    async fn pump_redacts_upstream_error_event() {
+        let body = Bytes::from_static(
+            b"data: {\"type\":\"message_start\",\"message\":{}}\n\n\
+data: {\"type\":\"error\",\"error\":{\"message\":\"secret-token\"}}\n\n",
+        );
+        let stream = futures_util::stream::iter(vec![Ok::<Bytes, String>(body)]);
+        let outcome = pump(
+            stream,
+            PumpOptions {
+                max_event_bytes: 1024,
+                max_response_bytes: 64 << 20,
+                capture_body: true,
+                first_byte: Duration::from_secs(1),
+                idle: Duration::from_secs(1),
+                shutdown: CancellationToken::new(),
+            },
+            |_event| async { Ok(()) },
+        )
+        .await;
+        assert_eq!(outcome.error.as_deref(), Some("upstream SSE error event"));
+    }
+
+    #[tokio::test]
+    async fn pump_counts_trimmed_bytes_toward_response_limit() {
+        let body = Bytes::from(format!(
+            "{}data: {{\"type\":\"message_start\",\"message\":{{}}}}\n\ndata: {{\"type\":\"message_stop\"}}\n\n",
+            " ".repeat(200)
+        ));
+        let stream = futures_util::stream::iter(vec![Ok::<Bytes, String>(body)]);
+        let outcome = pump(
+            stream,
+            PumpOptions {
+                max_event_bytes: 1024,
+                max_response_bytes: 100,
+                capture_body: true,
+                first_byte: Duration::from_secs(1),
+                idle: Duration::from_secs(1),
+                shutdown: CancellationToken::new(),
+            },
+            |_event| async { Ok(()) },
+        )
+        .await;
+        assert_eq!(
+            outcome.error.as_deref(),
+            Some("stream response exceeds 100 bytes")
         );
     }
 }

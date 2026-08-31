@@ -233,10 +233,9 @@ async fn verified_stream(
     config: &WorkerConfig,
     shutdown: CancellationToken,
 ) -> Result<Response, WorkerError> {
-    let max = usize::try_from(config.max_response_bytes.max(1)).unwrap_or(usize::MAX);
     let outcome = pump(
         upstream.body.bytes_stream(),
-        pump_options(config, shutdown),
+        pump_options(config, shutdown, true),
         |_event| async { Ok(()) },
     )
     .await;
@@ -245,13 +244,6 @@ async fn verified_stream(
             StatusCode::BAD_GATEWAY,
             "upstream_terminal_invalid",
             error,
-        ));
-    }
-    if outcome.result.body.len() > max {
-        return Err(WorkerError::new(
-            StatusCode::BAD_GATEWAY,
-            "upstream_terminal_invalid",
-            "verified stream exceeds response limit",
         ));
     }
     let mut headers = upstream.headers;
@@ -273,7 +265,7 @@ fn realtime_stream(
     shutdown: CancellationToken,
 ) -> Response {
     let (tx, rx) = mpsc::channel::<Result<Frame<RawBytes>, std::io::Error>>(16);
-    let options = pump_options(config, shutdown);
+    let options = pump_options(config, shutdown, false);
     tokio::spawn(async move {
         pump_realtime(upstream.body, options, tx).await;
     });
@@ -370,9 +362,15 @@ fn apply_stream_meta(headers: &mut HeaderMap, result: &PumpResult) {
     }
 }
 
-fn pump_options(config: &WorkerConfig, shutdown: CancellationToken) -> PumpOptions {
+fn pump_options(
+    config: &WorkerConfig,
+    shutdown: CancellationToken,
+    capture_body: bool,
+) -> PumpOptions {
     PumpOptions {
         max_event_bytes: config.max_event_bytes(),
+        max_response_bytes: config.max_response_usize(),
+        capture_body,
         first_byte: config.first_byte(),
         idle: config.idle(),
         shutdown,
@@ -400,10 +398,14 @@ async fn forward_upstream_error(
     Ok((upstream.status, headers, data).into_response())
 }
 
-async fn read_limited(response: reqwest::Response, max: i64) -> Result<Bytes, WorkerError> {
-    let max = if max <= 0 { 64 << 20 } else { max as u64 };
+async fn read_limited(mut response: reqwest::Response, max: i64) -> Result<Bytes, WorkerError> {
+    let max = if max <= 0 {
+        64usize << 20
+    } else {
+        usize::try_from(max).unwrap_or(usize::MAX)
+    };
     if let Some(len) = response.content_length()
-        && len > max
+        && len > max as u64
     {
         return Err(WorkerError::new(
             StatusCode::BAD_GATEWAY,
@@ -411,21 +413,29 @@ async fn read_limited(response: reqwest::Response, max: i64) -> Result<Bytes, Wo
             format!("response exceeds {max} bytes"),
         ));
     }
-    let data = response.bytes().await.map_err(|err| {
+    let capacity = response
+        .content_length()
+        .and_then(|len| usize::try_from(len).ok())
+        .unwrap_or(0)
+        .min(max);
+    let mut data = Vec::with_capacity(capacity);
+    while let Some(chunk) = response.chunk().await.map_err(|err| {
         WorkerError::new(
             StatusCode::BAD_GATEWAY,
             "upstream_response_invalid",
             err.to_string(),
         )
-    })?;
-    if data.len() as u64 > max {
-        return Err(WorkerError::new(
-            StatusCode::BAD_GATEWAY,
-            "upstream_response_invalid",
-            format!("response exceeds {max} bytes"),
-        ));
+    })? {
+        if chunk.len() > max.saturating_sub(data.len()) {
+            return Err(WorkerError::new(
+                StatusCode::BAD_GATEWAY,
+                "upstream_response_invalid",
+                format!("response exceeds {max} bytes"),
+            ));
+        }
+        data.extend_from_slice(&chunk);
     }
-    Ok(data)
+    Ok(Bytes::from(data))
 }
 
 fn validate_message_json(data: &[u8]) -> Result<(), WorkerError> {
@@ -908,6 +918,60 @@ mod tests {
             .and_then(|t| t.get("x-kin-terminal-state"))
             .and_then(|v| v.to_str().ok());
         assert_eq!(state, Some("incomplete"));
+    }
+
+    #[tokio::test]
+    async fn realtime_enforces_total_response_limit() {
+        let env = build_env(MockMode::UsageSse, 4_102_444_800_000).await;
+        let mut config = (*env.state.config).clone();
+        config.max_response_bytes = 64;
+        let state = WorkerState {
+            config: Arc::new(config),
+            ..env.state.clone()
+        };
+        let (status, _, body, trailers) =
+            call(state, Some(TOKEN), Some(envelope(true, "realtime"))).await;
+        assert_eq!(status, StatusCode::OK);
+        let text = String::from_utf8_lossy(&body);
+        assert!(text.contains("response exceeds 64 bytes"), "{text}");
+        let terminal = trailers
+            .as_ref()
+            .and_then(|values| values.get("x-kin-terminal-state"))
+            .and_then(|value| value.to_str().ok());
+        assert_eq!(terminal, Some("incomplete"));
+    }
+
+    #[tokio::test]
+    async fn read_limited_rejects_chunked_body_before_eof() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut request = [0u8; 1024];
+            let _ = socket.read(&mut request).await;
+            socket
+                .write_all(
+                    b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\n\r\n",
+                )
+                .await
+                .unwrap();
+            let chunk = vec![b'x'; 128];
+            socket.write_all(b"80\r\n").await.unwrap();
+            socket.write_all(&chunk).await.unwrap();
+            socket.write_all(b"\r\n").await.unwrap();
+            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+        });
+        let response = reqwest::get(format!("http://{address}")).await.unwrap();
+        let result = tokio::time::timeout(
+            std::time::Duration::from_millis(500),
+            read_limited(response, 64),
+        )
+        .await;
+        let error = result
+            .expect("response limit waited for upstream EOF")
+            .unwrap_err();
+        assert!(error.message.contains("response exceeds 64 bytes"));
+        server.abort();
     }
 
     #[tokio::test]
