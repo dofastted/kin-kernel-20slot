@@ -9,13 +9,27 @@ Rust 数据面 + Go 控制面。对照现网：`portunex-server` 的粘性/P2C �
 | 目录 | 作用 |
 |---|---|
 | `kernel/` | Rust 热路径：Messages/Chat、P2C、continuation、mock / Anthropic API / local_cli |
-| `control/` | Go：kernel 注册、心跳、drain、route snapshot、`refresh_token` 换票 |
+| `control/` | Go：kernel 注册、心跳、drain、typed 配置（routing/model/slot/proxy）、SQLite、`refresh_token` 换票 |
 | `contracts/` | OpenAPI、配置 schema |
 | `deploy/` | Compose / Kubernetes 基线 |
 | `scripts/` | smoke、静态校验、HTTP CONNECT → SOCKS5 桥 |
 | `docs/` | 架构与运维 |
 
 默认 `KIN_PROVIDER=mock`，不碰真实凭据。`local_cli` 订阅票写隔离 `.credentials.json`（`claudeAiOauth`）；setup-token 另走 `CLAUDE_CODE_OAUTH_TOKEN`。Go 对 sessionKey 换票固定 410。
+
+## 与现网网关
+
+现网 kin-gateway 默认仍是 Node 控制面 + 槽内 Go worker。本仓组件需显式打开：
+
+| 开关 | 默认 | 打开方式 |
+|---|---|---|
+| panel 写 Go control | 关 | Node 同时设 `KIN_CONTROL_URL` + `KIN_CONTROL_INTERNAL_TOKEN` |
+| Rust hop | 关 | `routing.inference.engine=rust` 或槽 `inference_engine=rust`，且存在 `KIN_KERNEL_BIN` |
+| control 内部鉴权 | 关（旧 demo） | 设 `KIN_CONTROL_INTERNAL_TOKEN` |
+| 代理密文 | fail-closed | 设 `KIN_DB_SECRET`；缺省拒绝写入/reveal |
+
+`DefaultRouting().Inference.Engine` 为 `go`，`FallbackToGo` 为 true。compose / k8s 不强制密钥；k8s secret 为 `optional: true`，数据盘用 emptyDir。
+
 
 ```mermaid
 flowchart TB
@@ -41,6 +55,7 @@ make smoke
 ```bash
 cd kernel && cargo run          # mock
 cd control && go run ./cmd/kin-control
+# KIN_CONTROL_INTERNAL_TOKEN / KIN_DB_SECRET / KIN_DB_PATH 均可空
 ```
 
 订阅 CLI（真 Claude Code）：
@@ -84,7 +99,7 @@ See [patches/claude-code/APPLY.md](../patches/claude-code/APPLY.md).
 | 服务 | 默认地址 | 用途 |
 |---|---|---|
 | Rust kernel | `0.0.0.0:8080` | `/v1/messages`、`/v1/chat/completions`、健康检查 |
-| Go control | `0.0.0.0:9090` | 注册、心跳、drain、策略、`/api/v1/credentials/refresh` |
+| Go control | `0.0.0.0:9090` | 注册、心跳、drain、typed 配置、`/api/v1/credentials/refresh` |
 | CONNECT 桥 | `127.0.0.1:18080` | CLI `HTTPS_PROXY` → 同一条 SOCKS5 |
 
 `stream: true` 返回官方 SSE；`stream: false` 仍出站流式，内核拼完整 JSON。

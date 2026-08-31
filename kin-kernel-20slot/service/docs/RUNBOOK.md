@@ -12,6 +12,19 @@
 
 `healthz` 不代表可接流量；负载均衡器应使用 `readyz`。
 
+## 1.1 Control 启动
+
+| 变量 | 缺省 | 行为 |
+|---|---|---|
+| `KIN_CONTROL_ADDR` | `0.0.0.0:9090` | 监听地址 |
+| `KIN_CONTROL_INTERNAL_TOKEN` | 空 | 空：`/api/v1` 未鉴权（旧 demo）；非空：Bearer |
+| `KIN_DB_PATH` | `$KIN_DATA_DIR/kin.db` | SQLite |
+| `KIN_DB_SECRET` | 空 | 空：secret 操作 fail-closed，进程仍启动 |
+| `KIN_DATA_DIR` | `data` | 库目录 |
+
+compose 不再用 `${VAR:?required}`。k8s `secretKeyRef.optional=true`，数据盘 `emptyDir`。现网 Node 未配 `KIN_CONTROL_*` 时不会连本进程。
+
+
 ## 2. Drain
 
 1. 控制面把 kernel/slot group 标成 draining。

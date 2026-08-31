@@ -143,7 +143,15 @@ demo 控制面暴露：
 - `PUT /api/v1/route-policies/{name}`；
 - `GET /api/v1/route-policies/{name}`；
 - `GET /api/v1/snapshots/current`；
-- `POST /api/v1/reconcile`。
+- `POST /api/v1/reconcile`；
+- `GET/PUT /api/v1/config/routing`；
+- `GET/PUT /api/v1/config/model-policy`；
+- `GET/PATCH /api/v1/slots/{id}`、`POST /api/v1/slots/policy`；
+- `GET/PUT /api/v1/config/proxy-pool` 与 `/api/v1/proxies*`（密文 kind=`proxy-auth`）；
+- `GET/PUT /api/v1/migration/domains/{domain}`；
+- `POST /api/v1/operations`、claim、complete。
+
+`KIN_CONTROL_INTERNAL_TOKEN` 为空时 `/api/v1` 不鉴权（旧 demo）。非空则除 `/healthz` 外需要 `Authorization: Bearer`。`KIN_DB_SECRET` 为空时 secret 写入/reveal 返回 `secret_unavailable`。默认 `inference.engine=go`。
 
 生产 API 必须位于管理网络并使用 mTLS/RBAC；公开客户不能调用注册、drain 或快照接口。
 
