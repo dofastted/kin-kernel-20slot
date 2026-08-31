@@ -15,13 +15,22 @@ Rust 数据面 + Go 控制面。对照现网：`portunex-server` 的粘性/P2C �
 | 目录 | 作用 |
 |---|---|
 | `kernel/` | Rust 热路径：Messages/Chat、P2C、continuation、mock / Anthropic API / local_cli |
-| `control/` | Go：kernel 注册、心跳、drain、route snapshot、`refresh_token` 换票 |
+| `control/` | Go：kernel 注册、心跳、drain、typed 配置（routing/model/slot/proxy）、SQLite、`refresh_token` 换票 |
 | `contracts/` | OpenAPI、配置 schema |
 | `deploy/` | Compose / Kubernetes 基线 |
 | `scripts/` | smoke、静态校验、HTTP CONNECT → SOCKS5 桥 |
 | `docs/` | 架构与运维 |
 
 默认 `KIN_PROVIDER=mock`，不碰真实凭据。`local_cli` 写隔离 `CLAUDE_CONFIG_DIR/.credentials.json`（`claudeAiOauth`），不设 `CLAUDE_CODE_OAUTH_TOKEN`。Go 对 sessionKey 换票固定 410。
+
+## 与现网网关
+
+现网 [kin-gateway](https://github.com/dofastted/kin-gateway) 默认仍是 **Node 控制面 + 槽内 Go worker**。本仓 Rust kernel 与 `kin-control` 是可切换组件，不是默认路径。
+
+- Node 只有同时设置 `KIN_CONTROL_URL` 和 `KIN_CONTROL_INTERNAL_TOKEN` 才会把 panel 配置写到本仓 control。
+- 推理 hop 默认 `inference.engine=go`；显式 `rust` 才走 `kin-kernel --gateway-worker`。
+- `docker compose up` **不要求** token/secret。空 `KIN_CONTROL_INTERNAL_TOKEN` 时 `/healthz` 可用，`/api/v1` 保持旧 demo 未鉴权；配了 token 才启用内部 Bearer。空 `KIN_DB_SECRET` 时代理密文写入/reveal fail-closed。
+
 
 ```mermaid
 flowchart TB
@@ -47,6 +56,10 @@ make smoke
 ```bash
 cd kernel && cargo run          # mock
 cd control && go run ./cmd/kin-control
+# 可选：
+# KIN_CONTROL_INTERNAL_TOKEN=...  # 启用 /api/v1 Bearer
+# KIN_DB_SECRET=...               # 启用代理密文加解密
+# KIN_DB_PATH=/var/lib/kin/kin.db
 ```
 
 订阅 CLI（真 Claude Code）：
@@ -66,7 +79,7 @@ cargo run --manifest-path kernel/Cargo.toml
 | 服务 | 默认地址 | 用途 |
 |---|---|---|
 | Rust kernel | `0.0.0.0:8080` | `/v1/messages`、`/v1/chat/completions`、健康检查 |
-| Go control | `0.0.0.0:9090` | 注册、心跳、drain、策略、`/api/v1/credentials/refresh` |
+| Go control | `0.0.0.0:9090` | 注册、心跳、drain、typed 配置、`/api/v1/credentials/refresh` |
 | CONNECT 桥 | `127.0.0.1:18080` | CLI `HTTPS_PROXY` → 同一条 SOCKS5 |
 
 `stream: true` 返回官方 SSE；`stream: false` 仍出站流式，内核拼完整 JSON。

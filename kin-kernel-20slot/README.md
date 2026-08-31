@@ -9,13 +9,16 @@ Rust 数据面 + Go 控制面。对照现网：`portunex-server` 的粘性/P2C �
 | 目录 | 作用 |
 |---|---|
 | `kernel/` | Rust 热路径：Messages/Chat、P2C、continuation、mock / Anthropic API / local_cli |
-| `control/` | Go：kernel 注册、心跳、drain、route snapshot、`refresh_token` 换票 |
+| `control/` | Go：kernel 注册、心跳、drain、typed 配置、SQLite、`refresh_token` 换票 |
 | `contracts/` | OpenAPI、配置 schema |
 | `deploy/` | Compose / Kubernetes 基线 |
 | `scripts/` | smoke、静态校验、HTTP CONNECT → SOCKS5 桥 |
 | `docs/` | 架构与运维 |
 
 默认 `KIN_PROVIDER=mock`，不碰真实凭据。`local_cli` 写隔离 `CLAUDE_CONFIG_DIR/.credentials.json`（`claudeAiOauth`），不设 `CLAUDE_CODE_OAUTH_TOKEN`。Go 对 sessionKey 换票固定 410。
+
+运行说明以 [service/README.md](service/README.md) 为准。现网 kin-gateway 默认仍是 Node + Go worker；本仓 Rust hop 与 control BFF 均需显式打开。空 token 时 `kin-control` 仍可启动。
+
 
 ```mermaid
 flowchart TB

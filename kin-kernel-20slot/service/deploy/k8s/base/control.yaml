@@ -27,9 +27,25 @@ spec:
           envFrom:
             - configMapRef:
                 name: kin-control-config
+          env:
+            - name: KIN_CONTROL_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: kin-control-secrets
+                  key: internal-token
+                  optional: true
+            - name: KIN_DB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kin-control-secrets
+                  key: db-secret
+                  optional: true
           ports:
             - name: http
               containerPort: 9090
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/kin
           readinessProbe:
             httpGet:
               path: /healthz
@@ -54,6 +70,9 @@ spec:
             capabilities:
               drop: ["ALL"]
             readOnlyRootFilesystem: true
+      volumes:
+        - name: data
+          emptyDir: {}
       terminationGracePeriodSeconds: 30
 ---
 apiVersion: v1

@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -22,10 +24,26 @@ func main() {
 	heartbeatTimeout := envDurationSeconds("KIN_HEARTBEAT_TIMEOUT_SECONDS", 20*time.Second)
 	reconcileInterval := envDurationSeconds("KIN_RECONCILE_INTERVAL_SECONDS", 5*time.Second)
 	snapshotTTL := envDurationSeconds("KIN_SNAPSHOT_TTL_SECONDS", time.Hour)
-
-	memoryStore := store.NewMemory()
-	reconciler := reconcile.New(memoryStore, heartbeatTimeout, logger)
-	handler := api.New(memoryStore, reconciler, snapshotTTL, logger).Handler()
+	internalToken := strings.TrimSpace(os.Getenv("KIN_CONTROL_INTERNAL_TOKEN"))
+	if internalToken == "" {
+		logger.Warn("KIN_CONTROL_INTERNAL_TOKEN is empty; /api/v1 stays unauthenticated for legacy demo stacks")
+	}
+	dbPath := strings.TrimSpace(os.Getenv("KIN_DB_PATH"))
+	if dbPath == "" {
+		dbPath = filepath.Join(envString("KIN_DATA_DIR", "data"), "kin.db")
+	}
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0o750); err != nil {
+		logger.Error("control database directory initialization failed", "error", err)
+		os.Exit(1)
+	}
+	controlStore, err := store.OpenSQLite(dbPath, os.Getenv("KIN_DB_SECRET"))
+	if err != nil {
+		logger.Error("control database initialization failed", "error", err)
+		os.Exit(1)
+	}
+	defer controlStore.Close()
+	reconciler := reconcile.New(controlStore.Observed(), heartbeatTimeout, logger)
+	handler := api.New(controlStore, reconciler, snapshotTTL, logger, api.Options{InternalToken: internalToken}).Handler()
 
 	server := &http.Server{
 		Addr:              addr,

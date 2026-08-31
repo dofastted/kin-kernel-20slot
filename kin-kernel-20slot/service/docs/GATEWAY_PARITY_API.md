@@ -8,11 +8,12 @@
 
 | 能力域 | kernel 现状 | 终态（Rust 主驱动） |
 |---|---|---|
-| 推理入口 | 公网 HTTP `:8080` `/v1/messages`、`x-tenant-id` | 每槽 Unix socket + internal token + envelope hop（§8.2/§8.4） |
-| 凭证 | env `KIN_CLAUDE_AI_OAUTH_JSON` / setup-token；refresh 在 Go control | Rust 为**唯一 refresh owner**（文件、锁、generation、rotation） |
+| 推理入口 | 公网 HTTP `:8080` `/v1/messages`、`x-tenant-id`；网关侧默认仍 hop **Go worker** | 每槽 Unix socket + internal token + envelope hop（§8.2/§8.4），仅 `inference.engine=rust` 才切 |
+| 凭证 | env `KIN_CLAUDE_AI_OAUTH_JSON` / setup-token；refresh 在 Go control / 网关 Go worker | Rust 为**唯一 refresh owner**（文件、锁、generation、rotation）；M1 未切 |
 | 出站 | 全进程单一 `KIN_SOCKS5` / `KIN_HTTPS_PROXY` | 每槽独立 SOCKS5（认证 socks5h），host allowlist |
 | 调度 | P2C + session lease + continuation | 保留；网关粘性/配额/failover 仍在 Node，逐步下沉（P2） |
 | 槽服务 | 无 | health / identity / oauth usage probe / telemetry sidecar |
+| 配置 owner | 内存/SQLite typed 配置；Node BFF 默认关闭 | 配齐 `KIN_CONTROL_*` 后 routing/model/slot/proxy 由 Go control 拥有 |
 
 ---
 
@@ -144,6 +145,7 @@
 
 ## 兼容与切换（过渡期）
 
+- **现网默认 Go**：`routing.inference.engine` 与槽 `inference_engine` 缺省均为 `go`。Rust 只在显式配置且 `KIN_KERNEL_BIN` 可用时 hop；`fallback_to_go` 默认 true。
 - 网关侧有 engine 开关（全局 `routing.inference.engine` + 每槽覆盖），Go worker 与 Rust kernel 并行期共存于同一槽容器。
 - **凭证 owner 互斥**：每槽同一时刻只有一个 refresh owner。过渡期内核可运行「只读凭证」降级模式（读文件、临期返回 `needs_refresh` 交网关触发 Go ensure）；owner 切到 Rust 后 Go worker 降为只读或停用。两实现共享同一 lock/generation 协议兜底误配。
 - 回退路径永远保留：owner + engine 一次配置切回 Go。
