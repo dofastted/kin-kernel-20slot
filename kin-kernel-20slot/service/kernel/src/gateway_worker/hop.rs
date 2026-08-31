@@ -29,6 +29,9 @@ impl HopClient {
         if let Some(timeout) = config.request_timeout() {
             builder = builder.timeout(timeout);
         }
+        if config.proxy_url.trim().is_empty() && !config.test_endpoints {
+            return Err("slot proxy is required".into());
+        }
         if !config.proxy_url.trim().is_empty() {
             builder = builder.proxy(
                 Proxy::all(config.proxy_url.trim())
@@ -261,6 +264,16 @@ mod tests {
         assert!(allowed_header("anthropic-beta"));
         assert!(allowed_header("X-Stainless-Lang"));
         assert!(allowed_header("User-Agent"));
+    }
+
+    #[test]
+    fn rejects_missing_proxy_outside_test_mode() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("worker.json");
+        std::fs::write(&path, r#"{"vm_id":"vm-test","internal_token":"test"}"#).unwrap();
+        let config = WorkerConfig::load(&path).unwrap();
+        let error = HopClient::new(&config).err().unwrap();
+        assert!(error.contains("slot proxy is required"), "{error}");
     }
 
     #[test]

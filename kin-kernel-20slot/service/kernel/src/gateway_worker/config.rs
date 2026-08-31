@@ -162,6 +162,10 @@ impl WorkerConfig {
         usize::try_from(self.max_request_bytes.max(1)).unwrap_or(usize::MAX)
     }
 
+    pub fn max_response_usize(&self) -> usize {
+        usize::try_from(self.max_response_bytes.max(1)).unwrap_or(usize::MAX)
+    }
+
     pub fn socket_path(&self) -> PathBuf {
         PathBuf::from(&self.socket_path)
     }
