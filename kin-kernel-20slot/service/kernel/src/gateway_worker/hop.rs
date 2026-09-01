@@ -22,22 +22,7 @@ pub struct HopResponse {
 
 impl HopClient {
     pub fn new(config: &WorkerConfig) -> Result<Self, String> {
-        let mut builder = Client::builder()
-            .redirect(Policy::none())
-            .no_proxy()
-            .tcp_nodelay(true);
-        if let Some(timeout) = config.request_timeout() {
-            builder = builder.timeout(timeout);
-        }
-        if !config.proxy_url.trim().is_empty() {
-            builder = builder.proxy(
-                Proxy::all(config.proxy_url.trim())
-                    .map_err(|err| format!("invalid proxy_url: {err}"))?,
-            );
-        }
-        let http = builder
-            .build()
-            .map_err(|err| format!("build hop client: {err}"))?;
+        let http = build_client(config, config.request_timeout())?;
         let anthropic_base = Url::parse(&config.anthropic_base_url)
             .map_err(|err| format!("anthropic_base_url: {err}"))?;
         Ok(Self {
@@ -82,6 +67,64 @@ impl HopClient {
             body: response,
         })
     }
+
+    pub async fn get(
+        &self,
+        path: &str,
+        headers: &HashMap<String, String>,
+        credential: &Credential,
+    ) -> Result<HopResponse, WorkerError> {
+        let url = resolve(&self.anthropic_base, path)?;
+        let outbound = outbound_headers(headers, credential)?;
+        let request = self.http.get(url).headers(outbound);
+        let response = match tokio::time::timeout(self.first_byte, request.send()).await {
+            Ok(Ok(response)) => response,
+            Ok(Err(error)) => {
+                return Err(WorkerError::new(
+                    StatusCode::BAD_GATEWAY,
+                    "upstream_transport",
+                    sanitize_reqwest(&error),
+                ));
+            }
+            Err(_) => {
+                return Err(WorkerError::new(
+                    StatusCode::BAD_GATEWAY,
+                    "upstream_transport",
+                    "upstream first-byte timeout",
+                ));
+            }
+        };
+        let status =
+            StatusCode::from_u16(response.status().as_u16()).unwrap_or(StatusCode::BAD_GATEWAY);
+        let headers = strip_sensitive(response.headers());
+        Ok(HopResponse {
+            status,
+            headers,
+            body: response,
+        })
+    }
+}
+
+pub(super) fn build_client(
+    config: &WorkerConfig,
+    timeout: Option<std::time::Duration>,
+) -> Result<Client, String> {
+    let mut builder = Client::builder()
+        .redirect(Policy::none())
+        .no_proxy()
+        .tcp_nodelay(true);
+    if let Some(timeout) = timeout {
+        builder = builder.timeout(timeout);
+    }
+    if !config.proxy_url.trim().is_empty() {
+        builder = builder.proxy(
+            Proxy::all(config.proxy_url.trim())
+                .map_err(|err| format!("invalid proxy_url: {err}"))?,
+        );
+    }
+    builder
+        .build()
+        .map_err(|err| format!("build slot HTTP client: {err}"))
 }
 
 pub fn allowed_header(key: &str) -> bool {
@@ -96,6 +139,7 @@ pub fn allowed_header(key: &str) -> bool {
             | "user-agent"
             | "x-app"
             | "x-claude-code-session-id"
+            | "x-service-name"
             | "x-client-request-id"
             | "x-stainless-arch"
             | "x-stainless-helper-method"

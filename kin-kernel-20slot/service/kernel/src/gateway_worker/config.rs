@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -46,6 +47,92 @@ pub struct WorkerConfig {
     pub test_endpoints: bool,
     #[serde(default)]
     pub runtime_kind: String,
+    #[serde(default)]
+    pub telemetry: TelemetryConfig,
+    #[serde(skip)]
+    pub config_path: PathBuf,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct TelemetryConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default)]
+    pub identity: TelemetryIdentity,
+    #[serde(default)]
+    pub headers: BTreeMap<String, String>,
+}
+
+impl TelemetryConfig {
+    pub fn effective(&self) -> bool {
+        self.enabled
+            && !self.identity.device_id.trim().is_empty()
+            && !self.identity.user_id.trim().is_empty()
+    }
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct TelemetryIdentity {
+    #[serde(default)]
+    pub device_id: String,
+    #[serde(default)]
+    pub user_id: String,
+    #[serde(default)]
+    pub account_uuid: String,
+    #[serde(default)]
+    pub org_uuid: String,
+    #[serde(default)]
+    pub email: String,
+    #[serde(default)]
+    pub session_id: String,
+    #[serde(default)]
+    pub subscription_type: String,
+    #[serde(default)]
+    pub platform: String,
+    #[serde(default)]
+    pub platform_raw: String,
+    #[serde(default)]
+    pub arch: String,
+    #[serde(default)]
+    pub node_version: String,
+    #[allow(dead_code)]
+    #[serde(default)]
+    pub locale: String,
+    #[serde(default)]
+    #[allow(dead_code)]
+    pub timezone: String,
+    #[serde(default)]
+    pub cli_version: String,
+    #[serde(default)]
+    pub entrypoint: String,
+    #[serde(default)]
+    pub terminal: String,
+    #[serde(default)]
+    pub package_managers: String,
+    #[serde(default)]
+    pub linux_distro_id: String,
+    #[serde(default)]
+    pub linux_distro_version: String,
+    #[serde(default)]
+    pub linux_kernel: String,
+    #[serde(default)]
+    pub process: TelemetryProcess,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct TelemetryProcess {
+    #[serde(default)]
+    pub constrained_memory: i64,
+    #[serde(default)]
+    pub rss_range: Vec<i64>,
+    #[serde(default)]
+    pub heap_total_range: Vec<i64>,
+    #[serde(default)]
+    pub heap_used_range: Vec<i64>,
+    #[serde(default)]
+    pub external_range: Vec<i64>,
+    #[serde(default)]
+    pub array_buffers_range: Vec<i64>,
 }
 
 impl WorkerConfig {
@@ -54,6 +141,7 @@ impl WorkerConfig {
         let mut config: Self =
             serde_json::from_slice(&data).map_err(|err| format!("decode worker config: {err}"))?;
         config.apply_defaults();
+        config.config_path = path.to_path_buf();
         config.validate()?;
         Ok(config)
     }

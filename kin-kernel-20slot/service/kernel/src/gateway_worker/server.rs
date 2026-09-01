@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use axum::body::{Body, Bytes};
-use axum::extract::{DefaultBodyLimit, State};
+use axum::extract::{DefaultBodyLimit, Query, State};
 use axum::http::{HeaderMap, HeaderName, HeaderValue, Request, StatusCode};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
@@ -20,10 +20,13 @@ use tokio_util::sync::CancellationToken;
 use tracing::info;
 
 use super::config::WorkerConfig;
-use super::credential::{Credential, now_ms};
+use super::credential::{CredentialImport, now_ms};
 use super::error::{WorkerError, truncate};
 use super::hop::{HopClient, HopResponse, copyable_response_header};
+use super::identity;
+use super::oauth::{CredentialFailure, CredentialManager};
 use super::sse::{PumpOptions, PumpResult, pump};
+use super::telemetry::TelemetryManager;
 
 const TRAILER_NAMES: &str =
     "X-Kin-Terminal-State, X-Kin-Event-Count, X-Kin-Usage, X-Kin-Model, X-Kin-Stop-Reason";
@@ -33,6 +36,8 @@ pub struct WorkerState {
     pub config: Arc<WorkerConfig>,
     pub hop: Arc<HopClient>,
     pub started: Instant,
+    pub credentials: Arc<CredentialManager>,
+    pub telemetry: Arc<TelemetryManager>,
     pub shutdown: CancellationToken,
 }
 
@@ -47,17 +52,28 @@ struct Envelope {
     delivery_mode: String,
 }
 
+#[derive(Debug, Default, Deserialize)]
+struct EnsureQuery {
+    #[serde(default)]
+    force: String,
+}
+
 pub async fn run(config_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
-    let config = WorkerConfig::load(config_path)?;
+    let config = Arc::new(WorkerConfig::load(config_path)?);
     let hop = HopClient::new(&config)?;
+    let credentials = Arc::new(CredentialManager::new(config.clone())?);
+    let telemetry = Arc::new(TelemetryManager::new(config.clone(), credentials.clone())?);
     let socket = config.socket_path();
     let shutdown = CancellationToken::new();
     let state = WorkerState {
-        config: Arc::new(config),
+        config,
         hop: Arc::new(hop),
+        credentials,
+        telemetry: telemetry.clone(),
         started: Instant::now(),
         shutdown: shutdown.clone(),
     };
+    telemetry.start(shutdown.clone());
     info!(
         vm_id = %state.config.vm_id,
         socket = %socket.display(),
@@ -81,6 +97,13 @@ pub fn router(state: WorkerState) -> Router {
     let limit = state.config.max_request_usize();
     Router::new()
         .route("/internal/health", get(health))
+        .route("/internal/identity", get(identity_status))
+        .route("/internal/credential/status", get(credential_status))
+        .route("/internal/credential/import", post(credential_import))
+        .route("/internal/credential/ensure", post(credential_ensure))
+        .route("/internal/oauth/usage", get(oauth_usage))
+        .route("/internal/telemetry/reload", post(telemetry_reload))
+        .route("/internal/telemetry/touch", post(telemetry_touch))
         .route("/internal/v1/messages", post(messages))
         .layer(middleware::from_fn_with_state(state.clone(), require_token))
         .layer(DefaultBodyLimit::max(limit))
@@ -111,29 +134,139 @@ async fn require_token(
     }
     next.run(request).await
 }
-
 async fn health(State(state): State<WorkerState>) -> Json<Value> {
-    let (ok, credential_state) = match Credential::load(Path::new(&state.config.credential_path)) {
-        Ok(cred) => {
-            let state_name = cred.state(now_ms(), state.config.refresh_skew_ms());
-            let ok = state_name != "missing" && state_name != "expired";
-            (ok, state_name)
-        }
-        Err(_) => (false, "missing"),
-    };
+    let credential = state.credentials.status().ok();
+    let credential_state = credential
+        .as_ref()
+        .map(|item| item.state(now_ms(), state.config.refresh_skew_ms()))
+        .unwrap_or("missing");
+    let ok = !matches!(credential_state, "missing" | "expired");
+    let telemetry = state.telemetry.status().await;
     Json(json!({
         "ok": ok,
+        "status": if ok { "ready" } else { "degraded" },
         "engine": "rust",
         "version": env!("CARGO_PKG_VERSION"),
         "worker_version": env!("CARGO_PKG_VERSION"),
         "vm_id": state.config.vm_id,
         "proxy_configured": !state.config.proxy_url.trim().is_empty(),
         "proxy_required": state.config.proxy_required,
+        "credential": credential.map(|item| item.public_value(now_ms(), state.config.refresh_skew_ms())),
         "credential_state": credential_state,
+        "telemetry": telemetry,
         "delivery_mode": state.config.delivery_mode,
         "runtime_kind": state.config.runtime_kind,
         "uptime_seconds": state.started.elapsed().as_secs(),
     }))
+}
+
+async fn identity_status(State(state): State<WorkerState>) -> Json<Value> {
+    Json(json!({
+        "ok": true,
+        "identity": identity::collect(&state.config.runtime_kind),
+    }))
+}
+
+async fn credential_status(State(state): State<WorkerState>) -> Response {
+    match state.credentials.status() {
+        Ok(credential) => Json(json!({
+            "ok": true,
+            "credential": credential.public_value(now_ms(), state.config.refresh_skew_ms()),
+        }))
+        .into_response(),
+        Err(error) => credential_error(error).into_response(),
+    }
+}
+
+async fn credential_import(
+    State(state): State<WorkerState>,
+    Json(payload): Json<CredentialImport>,
+) -> Response {
+    match state.credentials.import(payload).await {
+        Ok(credential) => Json(json!({
+            "ok": true,
+            "credential": credential.public_value(now_ms(), state.config.refresh_skew_ms()),
+        }))
+        .into_response(),
+        Err(error) => credential_error(error).into_response(),
+    }
+}
+
+async fn credential_ensure(
+    State(state): State<WorkerState>,
+    Query(query): Query<EnsureQuery>,
+) -> Response {
+    match state
+        .credentials
+        .ensure(matches!(query.force.as_str(), "1" | "true"))
+        .await
+    {
+        Ok(result) => Json(json!({
+            "ok": true,
+            "refreshed": result.refreshed,
+            "shared": result.shared,
+            "credential": result.credential.public_value(now_ms(), state.config.refresh_skew_ms()),
+        }))
+        .into_response(),
+        Err(error) => credential_error(error).into_response(),
+    }
+}
+
+async fn oauth_usage(State(state): State<WorkerState>) -> Response {
+    let credential = match state.credentials.ensure(false).await {
+        Ok(result) => result.credential,
+        Err(error) => return credential_error(error).into_response(),
+    };
+    if credential.is_api_key() {
+        return WorkerError::new(
+            StatusCode::BAD_REQUEST,
+            "usage_unsupported",
+            "console API key cannot call /api/oauth/usage",
+        )
+        .into_response();
+    }
+    let headers = HashMap::from([
+        ("accept".to_string(), "application/json".to_string()),
+        ("anthropic-beta".to_string(), "oauth-2025-04-20".to_string()),
+    ]);
+    match state
+        .hop
+        .get("/api/oauth/usage", &headers, &credential)
+        .await
+    {
+        Ok(upstream) => match buffer_generic(upstream, state.config.max_response_bytes).await {
+            Ok(response) => response,
+            Err(error) => error.into_response(),
+        },
+        Err(error) => error.into_response(),
+    }
+}
+
+async fn telemetry_reload(State(state): State<WorkerState>) -> Response {
+    match state.telemetry.reload().await {
+        Ok(telemetry) => Json(json!({"ok": true, "telemetry": telemetry})).into_response(),
+        Err(error) => WorkerError::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "telemetry_reload_failed",
+            error,
+        )
+        .into_response(),
+    }
+}
+
+async fn telemetry_touch(State(state): State<WorkerState>) -> Response {
+    match state.telemetry.touch() {
+        Ok(()) => {
+            let telemetry = state.telemetry.status().await;
+            Json(json!({"ok": true, "telemetry": telemetry})).into_response()
+        }
+        Err(error) => WorkerError::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "telemetry_touch_failed",
+            error,
+        )
+        .into_response(),
+    }
 }
 
 async fn messages(State(state): State<WorkerState>, body: Bytes) -> Response {
@@ -155,7 +288,12 @@ async fn process_messages(state: WorkerState, body: Bytes) -> Result<Response, W
         ));
     }
     let payload = apply_stream_flag(&envelope.body, envelope.stream);
-    let credential = load_live_credential(&state.config)?;
+    let credential = state
+        .credentials
+        .ensure(false)
+        .await
+        .map_err(credential_error)?
+        .credential;
     let upstream = state
         .hop
         .messages(&payload, &envelope.headers, &credential)
@@ -176,22 +314,8 @@ async fn process_messages(state: WorkerState, body: Bytes) -> Result<Response, W
     ))
 }
 
-fn load_live_credential(config: &WorkerConfig) -> Result<Credential, WorkerError> {
-    let credential = Credential::load(Path::new(&config.credential_path)).map_err(|_| {
-        WorkerError::new(
-            StatusCode::UNAUTHORIZED,
-            "needs_refresh",
-            "credential needs refresh",
-        )
-    })?;
-    if credential.needs_refresh(now_ms(), config.refresh_skew_ms()) {
-        return Err(WorkerError::new(
-            StatusCode::UNAUTHORIZED,
-            "needs_refresh",
-            "credential needs refresh",
-        ));
-    }
-    Ok(credential)
+fn credential_error(error: CredentialFailure) -> WorkerError {
+    WorkerError::new(error.status, error.code, error.message)
 }
 
 fn delivery_mode(envelope: &str, fallback: &str) -> String {
@@ -226,6 +350,14 @@ async fn buffer_json(
         HeaderValue::from_static("verified"),
     );
     Ok((upstream.status, headers, data).into_response())
+}
+
+async fn buffer_generic(
+    upstream: HopResponse,
+    max_response_bytes: i64,
+) -> Result<Response, WorkerError> {
+    let data = read_limited(upstream.body, max_response_bytes).await?;
+    Ok((upstream.status, upstream.headers, data).into_response())
 }
 
 async fn verified_stream(
@@ -608,11 +740,26 @@ mod tests {
                 Err(_) => return,
             }
         }
+        let raw = &buf[..used];
         hits.fetch_add(1, Ordering::SeqCst);
-        if let Some(headers) = parse_request_headers(&buf[..used]) {
+        if let Some(headers) = parse_request_headers(raw) {
             *last_headers.lock().unwrap_or_else(|err| err.into_inner()) = headers;
         }
+        let is_refresh = std::str::from_utf8(raw)
+            .ok()
+            .and_then(|text| text.lines().next())
+            .is_some_and(|line| line.starts_with("POST /v1/oauth/token "));
         let mut stream = stream;
+        if is_refresh {
+            write_http(
+                &mut stream,
+                200,
+                "application/json",
+                br#"{"access_token":"refreshed-access","refresh_token":"rotated-refresh","expires_in":3600}"#,
+            )
+            .await;
+            return;
+        }
         match mode {
             MockMode::Json => {
                 write_http(
@@ -720,14 +867,19 @@ mod tests {
             ),
         )
         .unwrap();
-        let config = WorkerConfig::load(&config_path).unwrap();
+        let config = Arc::new(WorkerConfig::load(&config_path).unwrap());
         let hop = HopClient::new(&config).unwrap();
+        let credentials = Arc::new(CredentialManager::new(config.clone()).unwrap());
+        let telemetry =
+            Arc::new(TelemetryManager::new(config.clone(), credentials.clone()).unwrap());
         TestEnv {
             _dir: dir,
             state: WorkerState {
-                config: Arc::new(config),
+                config,
                 hop: Arc::new(hop),
                 started: Instant::now(),
+                telemetry,
+                credentials,
                 shutdown: CancellationToken::new(),
             },
             hits,
@@ -776,6 +928,29 @@ mod tests {
         (status, headers, collected.to_bytes(), trailers)
     }
 
+    async fn call_route(
+        state: WorkerState,
+        method: axum::http::Method,
+        uri: &str,
+        body: Option<Value>,
+    ) -> (StatusCode, Value) {
+        let request = HttpRequest::builder()
+            .method(method)
+            .uri(uri)
+            .header("X-Kin-Internal-Token", TOKEN)
+            .header("content-type", "application/json")
+            .body(Body::from(
+                body.map(|value| serde_json::to_vec(&value).unwrap())
+                    .unwrap_or_default(),
+            ))
+            .unwrap();
+        let response = router(state).oneshot(request).await.unwrap();
+        let status = response.status();
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let value = serde_json::from_slice(&body).unwrap_or(Value::Null);
+        (status, value)
+    }
+
     #[tokio::test]
     async fn rejects_missing_and_wrong_token() {
         let env = build_env(MockMode::Json, 4_102_444_800_000).await;
@@ -793,32 +968,106 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn missing_credential_needs_refresh_without_outbound() {
+    async fn exposes_identity_credential_usage_and_telemetry_routes() {
+        let env = build_env(MockMode::Json, 4_102_444_800_000).await;
+        let (status, identity) = call_route(
+            env.state.clone(),
+            axum::http::Method::GET,
+            "/internal/identity",
+            None,
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(identity["ok"], true);
+        assert_eq!(identity["identity"]["runtime_kind"], "docker");
+
+        let (status, ensured) = call_route(
+            env.state.clone(),
+            axum::http::Method::POST,
+            "/internal/credential/ensure?force=1",
+            None,
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(ensured["refreshed"], true);
+        assert!(!ensured.to_string().contains("refreshed-access"));
+
+        let (status, usage) = call_route(
+            env.state.clone(),
+            axum::http::Method::GET,
+            "/internal/oauth/usage",
+            None,
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(usage["type"], "message");
+
+        for path in ["/internal/telemetry/touch", "/internal/telemetry/reload"] {
+            let (status, body) =
+                call_route(env.state.clone(), axum::http::Method::POST, path, None).await;
+            assert_eq!(status, StatusCode::OK);
+            assert_eq!(body["ok"], true);
+        }
+
+        let (status, imported) = call_route(
+            env.state.clone(),
+            axum::http::Method::POST,
+            "/internal/credential/import",
+            Some(json!({"type": "setup-token", "access_token": "setup-secret"})),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(imported["credential"]["type"], "setup-token");
+        assert!(!imported.to_string().contains("setup-secret"));
+
+        let (status, current) = call_route(
+            env.state,
+            axum::http::Method::GET,
+            "/internal/credential/status",
+            None,
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(current["credential"]["credential_state"], "fresh");
+    }
+    #[tokio::test]
+    async fn missing_credential_is_unavailable_without_outbound() {
         let env = build_env(MockMode::Json, 4_102_444_800_000).await;
         let mut config = (*env.state.config).clone();
         config.credential_path = env._dir.path().join("missing.json").display().to_string();
+        let config = Arc::new(config);
+        let credentials = Arc::new(CredentialManager::new(config.clone()).unwrap());
+        let telemetry =
+            Arc::new(TelemetryManager::new(config.clone(), credentials.clone()).unwrap());
         let state = WorkerState {
-            config: Arc::new(config),
+            config,
             hop: env.state.hop.clone(),
             started: Instant::now(),
+            credentials,
+            telemetry,
             shutdown: env.state.shutdown.clone(),
         };
         let (status, _, body, _) = call(state, Some(TOKEN), Some(envelope(true, "realtime"))).await;
-        assert_eq!(status, StatusCode::UNAUTHORIZED);
+        assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
         let json: Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(json["error"]["code"], "needs_refresh");
+        assert_eq!(json["error"]["code"], "credential_unavailable");
         assert_eq!(env.hits.load(Ordering::SeqCst), 0);
     }
 
     #[tokio::test]
-    async fn stale_credential_needs_refresh_without_outbound() {
+    async fn stale_credential_refreshes_before_inference() {
         let env = build_env(MockMode::Json, 1).await;
-        let (status, _, body, _) =
-            call(env.state, Some(TOKEN), Some(envelope(true, "realtime"))).await;
-        assert_eq!(status, StatusCode::UNAUTHORIZED);
-        let json: Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(json["error"]["code"], "needs_refresh");
-        assert_eq!(env.hits.load(Ordering::SeqCst), 0);
+        let (status, _, _, _) = call(
+            env.state.clone(),
+            Some(TOKEN),
+            Some(envelope(false, "realtime")),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(env.hits.load(Ordering::SeqCst), 2);
+        let credential = env.state.credentials.status().unwrap();
+        assert_eq!(credential.access_token, "refreshed-access");
+        assert_eq!(credential.refresh_token, "rotated-refresh");
     }
 
     #[tokio::test]

@@ -1,39 +1,49 @@
-# 交付成熟度与生产差距
+# Gateway Worker 交付状态
 
-完整架构 + 可运行参考实现。公网多租户前必须补 P0。
+日期：2026-09-01。范围是 Kin Gateway 每槽 Rust 数据面；仓内其他公网 ingress、scheduler、control 原型不在本次生产切换范围。
 
-## 已实现
+## 已完成
 
-| 组件 | 能力 |
+| 领域 | 当前状态 |
 |---|---|
-| Rust ingress | `/v1/messages`、OpenAI Chat 子集；`stream:true` SSE，`stream:false` 拼官方流 |
-| Scheduler | sticky-first、P2C、active/waiting 分离、generation |
-| Continuation | tenant/session/token/tool-id 绑定、单次消费 |
-| Isolation | `process` / `session-reset` / `subagent-pool`（每 session 一 `--session-id`，上限 N 进程） |
-| Providers | mock；Anthropic Messages 出站强制流式；`local_cli` 真 Claude Code（订阅 `claudeAiOauth` 或 setup-token） |
-| Egress | `KIN_HTTPS_PROXY` HTTP CONNECT；Go `refresh_token` 直连同一条 SOCKS5 |
-| Go control | 注册、心跳、stale reconcile、drain、route policy、快照；sessionKey 410 |
-| Contracts/deploy | OpenAPI、JSON Schema、Compose、Kubernetes、smoke、静态校验 |
-| 面板/脚本 | Node kernel 孪生、CLI 实验室、http_to_socks 桥 |
+| 运行拓扑 | `kin-kernel --gateway-worker --config /run/kin/kernel.json` 为 Rust VM 容器 PID 1 |
+| 互斥引擎 | Rust VM 不挂载/启动 Go、无 `worker.sock`；Go VM 不挂载/启动 Rust、无 `kernel.sock` |
+| 推理 | `/internal/v1/messages`，realtime/verified，流式/非流式，usage 与终态 metadata |
+| 凭证 | OAuth/setup-token/API key import/status/Ensure；Rust 是 Rust VM 唯一 refresh owner |
+| 一致性 | `.lock` 跨进程互斥、持锁重读、generation 单调、rotation 原子写、类型切换清残留 |
+| 身份与用量 | `/internal/identity`、`/internal/oauth/usage`，经当前槽 SOCKS5 |
+| 遥测 | Rust 进程内 event batch + GrowthBook；官方 machine/user identity 双门槛；reload/touch 热更新 |
+| 健康 | `/internal/health` 返回实际 engine、脱敏 credential/state、telemetry 状态 |
+| Gateway 路由 | 运行中 `vm.runtime.engine` 为 SSOT；无请求级跨引擎 fallback |
+| 控制面切换 | 全局默认延迟到下次启动；单槽立即事务切换；目标失败恢复旧拓扑 |
 
-## 生产前 P0
+## 安全与故障语义
 
-- Redis CAS/Lua 替换内存 SessionDirectory。
-- Postgres desired-state/audit 替换 Go 内存 store。
-- 客户认证、tenant 注入、RBAC、mTLS；禁止公网自报 `x-tenant-id`。
-- signed snapshot + last-known-good。
-- 客户端断开取消 CLI、首字节重试边界。
-- tenant/model RPM、ITPM、OTPM、waiting-tool quota。
-- Secret manager/WIF；禁止长期 env 里放 oauth JSON。
-- OpenTelemetry、Prometheus、低基数审计。
-- 压测、chaos、镜像扫描、供应商条款评审。
+- 全部内部端点使用 Unix socket 与 `X-Kin-Internal-Token`。
+- production endpoint host 固定；mock endpoint 仅 `test_endpoints=true`。
+- `proxy_required=true` 时 fail closed。
+- 推理前 `ensure(false)`；上游 401 不 force refresh。
+- fatal refresh 错误不覆盖旧凭证；retryable 429/5xx/transport 有界重试。
+- 内部响应与错误不返回 access token、refresh token、API key 或代理密码。
+- telemetry 失败不影响 inference。
+- Rust health 失败时槽位停止调度，不隐式启动或回退 Go。
 
-## 已知限制（原型已验证）
+## 已验证场景
 
-- stock Claude CLI：一进程一轮 stdin，不能 1 pid × 20 并行 loop。5 并发 = 5 个 ~210MB 进程。
-- 空闲 session 保活会堆 RSS；需要淘汰策略（已有 LRU 上限，无空闲 TTL）。
-- sessionKey 五步换票不做；订阅票用官方 `/login` 的 `claudeAiOauth` + `refresh_token`；setup-token 走 `CLAUDE_CODE_OAUTH_TOKEN`（inference-only，不能 refresh）。
+- Rust 单元测试覆盖 credential、hop、SSE、server、identity、telemetry。
+- fresh Ensure 不等待文件锁；临期 Ensure 持锁后重读并复用外部 rotation。
+- Clippy `-D warnings` 与 release build。
+- Gateway unit/e2e、Go race tests、Go worker build。
+- 真实 Docker Rust mock VM：PID 1、零 Go、无 `worker.sock`、全部内部端点、rotation、telemetry。
+- 真实 Docker Go mock VM：PID 1、零 Rust、无 `kernel.sock`、credential/inference/usage。
+- 真实 Docker Go→Rust→Go；Rust health timeout 后恢复 Go。
+- 控制台真实浏览器：全局延迟生效、事务切换提示、Rust 不健康不回退/停止调度。
 
-## 验证
+所有外部调用均使用 mock 上游与临时凭证。未使用生产 OAuth 凭证，未部署生产。
 
-本环境已跑通：`cargo test`、`go test`、SOCKS5 握手、官方 CLI 对话、Rust kernel 流式/非流式、5 并发 session 隔离。静态校验：`make -C service static-check`。
+## 本次不包含
+
+- 不把仓内公网多租户 Rust ingress/control 原型切入 Gateway 生产路径。
+- 不把 Gateway pool、persona、model policy 下沉到 Rust。
+- 不新增 `/internal/v1/models`；模型目录继续由 Gateway 管理。
+- 不部署、不提交、不推送，除非后续明确要求。

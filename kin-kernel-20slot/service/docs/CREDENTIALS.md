@@ -1,126 +1,112 @@
-# 凭据服务设计
+# Gateway Worker 凭证契约
 
-## 1. 对现有“换票”链路的判断
+日期：2026-09-01。本文描述 `kin-kernel --gateway-worker` 的现行实现，不描述未来 secret-manager 架构。
 
-附件中的链路把浏览器会话 cookie 依次送到 authorize、token、bootstrap 和账号设置接口，并刻意对齐浏览器/SDK/CLI 身份特征。这是一条实验性、与消费账号状态紧耦合的登录复现链路，不适合固化为多租户基础设施：
+## 1. 所有权与拓扑
 
-- sessionKey 的权限和生命周期远大于一次推理请求；
-- refresh/access token 相互撤销时会产生竞态；
-- UA、TLS、scope 和非公开接口随客户端版本变化，无法形成稳定契约；
-- 账号身份、source IP、metadata 与遥测规避会形成合规和封禁风险；
-- 同一凭据的多份文件副本容易产生“哪份是真源”的一致性问题。
+- Rust VM 中 `kin-kernel` 是 inference、credential、identity、usage、telemetry 的唯一 owner。
+- Rust VM 不挂载或启动 `kin-worker`，没有 `worker.sock`。
+- Go VM 继续由 `kin-worker` 独占同一组职责。
+- 同一 VM 同一时刻只有当前 `runtime.engine` 可以写凭证。
+- Go↔Rust 切换复用磁盘文件，不复制、不迁移 secret。
 
-因此 v2 不复制该五步换票。`POST /internal/v1/credentials/import-session-key` 固定返回 410。
-
-可复用的是“推理面只消费最终短期 lease、刷新面单独 singleflight、写入必须原子”的工程原则。
-
-### 1.1 CLI 路径上的正式换票
-
-本地 Claude Code 转发把换票拆成两段，都不碰 cookie：
-
-1. **凭据面**：两条官方 CLI 票都可以交给 kernel，**不要混用**。
-   - **订阅 OAuth**（`claude auth login` / `/login`）：secret 是 `claudeAiOauth` 整包（accessToken + refreshToken + expiresAt + 全 scope）。Kernel 写隔离 `CLAUDE_CONFIG_DIR/.credentials.json`（0600），**不**设 `CLAUDE_CODE_OAUTH_TOKEN`，子进程自己 refresh。
-   - **setup-token**（`claude setup-token`）：inference-only，`refreshToken` 为空，`scopes=['user:inference']`。Kernel 注入 `CLAUDE_CODE_OAUTH_TOKEN`（CLI 官方用法）。可经 `KIN_CLAUDE_CODE_OAUTH_TOKEN`，或 `KIN_CLAUDE_AI_OAUTH_JSON` 里 `kind=setup-token` / 空 refresh / sub2api `type=setup-token` 导出。导出串若粘了 “Store this token securely” UI 文案，kernel 会裁到 `…AA`。setup-token **不能 refresh**、没有 `user:sessions:claude_code` / `user:mcp_servers` / `user:file_upload`；本地 `--mcp-config` HTTP MCP 仍可用，Remote Control 不可用。
-   - **不**加 `--bare`（那是 API key）。换票（仅订阅票的 `refresh_token`）和用票绑同一条 SOCKS5。`POST /api/v1/credentials/exchange` 带 `session_key` 固定 410。
-2. **请求面**：`x-kin-continuation` 把下一跳 HTTP 绑到同一 pid 的 stdin（mock）或 MCP `result.json`（真 CLI）。进程 SIGTERM 后 generation +1，continuation 失效为 `continuation_lost`。
-
-`--bare` 是官方脚本路径，只吃 API key。订阅 OAuth 只允许本机/单操作员的 setup-token，不把一个 Pro 座卖成多租户 API。
-
-## 2. 正式凭据架构
-
-```mermaid
-flowchart TB
-    A["Admin / workload identity"] --> B["Credential broker"]
-    B --> S["Secret manager"]
-    S --> L["Short-lived lease"]
-    L --> K["Rust adapter"]
-    K --> P["Official provider endpoint"]
-```
-
-### 控制面保存的 metadata
-
-```json
-{
-  "credential_id": "cred_prod_anthropic_01",
-  "tenant_id": "tenant-a",
-  "provider": "anthropic_api",
-  "secret_ref": "vault://kin/prod/tenant-a/anthropic",
-  "auth_mode": "api_key",
-  "allowed_models": ["claude-sonnet-*"],
-  "status": "active",
-  "version": 12,
-  "expires_at": null,
-  "rotation_policy": "30d"
-}
-```
-
-永远不含 access token、refresh token、session cookie 或代理密码。
-
-### 数据面 lease
-
-kernel 以自身 workload identity 请求：
+凭证路径由 `kernel.json.credential_path` 指定，Gateway 容器内固定为：
 
 ```text
-Lease(credential_id, kernel_id, route_id, ttl <= 15m)
-  -> lease_id, secret_handle, expires_at, fencing_token
+/home/kincli/.claude/credentials.json
+/home/kincli/.claude/credentials.json.lock
 ```
 
-secret value 直接进入 adapter 的敏感 header，不经过 Go API、Redis session、业务 JSON 或日志。lease 到期后从内存清零并重新领取。
+## 2. 支持的凭证
 
-## 3. 轮换状态机
+| 类型 | 落盘主键 | 出站鉴权 | refresh | usage |
+|---|---|---|---|---|
+| OAuth | `claudeAiOauth` | Bearer | 有 refresh token 时支持 | 支持 |
+| setup-token | `claudeAiOauth`，`type=setup-token` | Bearer | 不支持 | 支持 |
+| API key | `anthropicApiKey` | `x-api-key` 或配置 scheme | 不支持 | 返回 `usage_unsupported` |
 
-```mermaid
-stateDiagram-v2
-    [*] --> Active
-    Active --> Rotating: policy/manual trigger
-    Rotating --> DualRead: new secret verified
-    DualRead --> DrainingOld: config revision committed
-    DrainingOld --> Revoked: old leases zero
-    Revoked --> Active: new version canonical
-    Rotating --> Active: verification failed
+导入端点：
+
+```text
+POST /internal/credential/import
 ```
 
-规则：
+请求字段：`type`、`access_token`、`refresh_token`、`api_key`、`base_url`、`auth_scheme`、`expires_at` / `expires_in`、`email`、`account_uuid`、`org_uuid`、`scopes`。
 
-- 同一 credential 只允许一个 rotation leader；使用 fencing token，不靠文件锁。
-- 新 secret 先做不含用户内容的健康验证，再发布配置 revision。
-- 首字节后的请求继续使用原 lease 完成，不在中途换 credential。
-- old lease 数归零或到 hard deadline 后才 revoke。
-- rotation 失败保持旧版本 canonical，不写“半套”凭据。
+切换凭证类型时做 clean cutover：
 
-## 4. 一致性
+- 保存 API key 会删除 `claudeAiOauth`。
+- 保存 OAuth 或 setup-token 会删除 `anthropicApiKey`。
+- setup-token 会删除残留 `refreshToken`。
 
-现网的 `credentials.json`、CLI 副本和 VM metadata 多份同步，应改为：
+## 3. 文件兼容与原子写
 
-- Secret manager 是 secret value 的唯一真源；
-- Postgres 是 credential metadata 的唯一真源；
-- kernel 内存只持短期 lease，不落本地文件；
-- route snapshot 只引用 `credential_id + version`；
-- DB 中不存在 token 列，避免 NULL/非 NULL 双轨逻辑。
+Rust 读取现有 Claude/Go 形状并兼容以下 generation 字段：
 
-若某个官方 CLI 确实必须读取文件，credential broker 通过 tmpfs 写一次性文件：0600、单 runtime namespace、lease 到期删除，且不能挂载到其他 tenant。
+```text
+kinGeneration
+kin_generation
+_token_version
+```
 
-## 5. Refresh 与故障处理
+写入规则：
 
-只有供应商正式 OAuth 流才启用 refresh：
+1. 打开 `credentials.json.lock` 并取得跨进程独占文件锁。
+2. 持锁重读当前文档。
+3. generation 取当前值与传入值的较大者，再单调加一。
+4. 在同目录创建唯一临时文件。
+5. 目录权限设为 `0700`，临时文件与最终文件设为 `0600`。
+6. 写入、`sync_all`、原子 `rename` 替换目标文件，再同步父目录。
 
-1. 读取当前 version 与 refresh lease。
-2. 取得 singleflight leader + fencing token。
-3. 调官方 token endpoint。
-4. 在一次 secret-manager compare-and-swap 中写新版本。
-5. 发布 metadata revision；旧 access lease 自然 drain。
+refresh 响应携带新 `refresh_token` 时，与 access token、expiresAt、scope 和 generation 在同一次原子替换中写入；未携带时保留旧 refresh token。
 
-错误分类：
+## 4. Ensure：唯一换票入口
 
-| 错误 | 行为 |
-|---|---|
-| transient network/5xx | 有界退避，保持旧 lease |
-| invalid_grant | credential quarantine，停止新流量，要求管理员重新授权 |
-| revoked/401 | 断路并告警，不切换到历史 cookie/token |
-| secret store conflict | fencing loser 放弃，不覆盖新版本 |
-| scope/model mismatch | 策略错误，禁止请求进入数据面 |
+```text
+POST /internal/credential/ensure?force=0|1
+```
 
-## 6. 审计字段
+推理与 usage 出站前都调用 `ensure(false)`。没有后台定时刷新；上游 401 不触发强制刷新。
 
-允许记录：credential id、version、lease id hash、kernel id、route id、operator/workload identity、动作、结果、时间。禁止记录 secret、完整 header、cookie、请求内容和代理密码。
+非强制流程：
 
+1. 无锁读取当前凭证并判断是否进入 `refresh_skew_seconds` 窗口；fresh 直接返回，不等待文件锁。
+2. 需要刷新时进入进程内 singleflight。
+3. 获取 `credentials.json.lock`。
+4. 持锁重读文件并再次判断；其他进程已刷新则直接复用。
+5. 仍需刷新才请求 OAuth token endpoint。
+6. 原子写回完整凭证与 rotation 结果。
+
+`force=1` 仍走 singleflight 和文件锁。并发 force 调用只允许一次 refresh；等待者重读并共享新票。
+
+默认 skew 为 300 秒。状态枚举：
+
+```text
+missing | refreshable | expired_refreshable | expired | refresh_window | fresh
+```
+
+## 5. Refresh 网络与错误
+
+- 生产 OAuth endpoint 固定 `https://platform.claude.com/v1/oauth/token`。
+- 只有 `test_endpoints=true` 才允许非生产 host。
+- HTTP client 使用当前槽 `proxy_url`；`proxy_required=true` 且代理为空时拒绝启动。
+- 429、5xx、网络错误最多尝试 3 次，退避 300ms、600ms。
+- `invalid_grant`、`invalid_refresh_token` 和其他 400 类为 fatal，不覆盖当前文件。
+- refresh 失败不写半套凭证，不回退历史 token，也不切换到 Go。
+
+## 6. 内部 API 与脱敏
+
+| 方法 | 路径 | 行为 |
+|---|---|---|
+| GET | `/internal/credential/status` | 只读状态，不 refresh |
+| POST | `/internal/credential/import` | 导入并原子写盘 |
+| POST | `/internal/credential/ensure` | 唯一 refresh 入口 |
+| GET | `/internal/health` | 返回脱敏 credential 与 `credential_state` |
+| GET | `/internal/oauth/usage` | 先 `ensure(false)`，再经槽 SOCKS5 请求 usage |
+| POST | `/internal/v1/messages` | 先 `ensure(false)`，再装配上游鉴权 |
+
+所有 `/internal/*` 都要求 `X-Kin-Internal-Token`。公开响应只包含 `has_access`、`has_refresh`、过期时间、generation、账号 metadata、scope、auth scheme 和状态；禁止返回 access token、refresh token 或 API key。
+
+## 7. 验证覆盖
+
+测试覆盖 OAuth/setup-token/API key 导入、类型切换清理、fresh fast path、锁后重读、跨调用 singleflight、refresh rotation、429/5xx 重试、fatal 错误不落盘、重启恢复、generation 单调和公开响应无 secret。

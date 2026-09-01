@@ -2,8 +2,11 @@ mod config;
 mod credential;
 mod error;
 mod hop;
+mod identity;
+mod oauth;
 mod server;
 mod sse;
+mod telemetry;
 
 use std::path::PathBuf;
 
